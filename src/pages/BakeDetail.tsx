@@ -284,11 +284,6 @@ export default function BakeDetail() {
             />
           </div>
 
-          {/* Metadata */}
-          <p className="text-[12px] text-muted-foreground text-center"
-            style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            {bake.loaf_count} {bake.loaf_count === 1 ? 'loaf' : 'loaves'} · {bake.loaf_weight_g}g target
-          </p>
 
           {/* Delete */}
           <button
