@@ -7,10 +7,7 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      padding: "1rem",
     },
     extend: {
       colors: {
@@ -57,33 +54,49 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Crumb palette tokens
+        crumb: {
+          cream: "#FAF7F2",
+          maroon: "#7C2D2D",
+          ink: "#1C1007",
+          border: "#2E1F1F",
+          muted: "#E8E2D9",
+        },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "6px",
+        md: "4px",
+        sm: "3px",
+      },
+      fontFamily: {
+        sans: ["DM Sans", "sans-serif"],
+        heading: ["Raleway", "sans-serif"],
+        wordmark: ["Agrandir", "Raleway", "sans-serif"],
+      },
+      boxShadow: {
+        "hard-sm": "2px 2px 0px #1C1007",
+        "hard-md": "4px 4px 0px #1C1007",
+        "hard-lg": "6px 6px 0px #1C1007",
+        "hard-maroon": "4px 4px 0px #7C2D2D",
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "slide-up": {
+          from: { transform: "translateY(8px)", opacity: "0" },
+          to: { transform: "translateY(0)", opacity: "1" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-up": "slide-up 0.2s ease-out",
       },
     },
   },
