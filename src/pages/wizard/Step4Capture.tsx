@@ -88,6 +88,11 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
         </div>
       </header>
 
+      {/* Progress bar */}
+      <div className="h-1 w-full bg-muted">
+        <div className="h-full bg-primary transition-all" style={{ width: '100%' }} />
+      </div>
+
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
         {/* Loaf photo */}
         <div>
