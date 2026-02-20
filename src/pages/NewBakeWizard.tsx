@@ -115,7 +115,10 @@ export default function NewBakeWizard() {
     return (
       <Step1Recipe
         onNext={handleStep1}
-        initialData={{ date: searchParams.get('date') ?? undefined }}
+        initialData={{
+          date: searchParams.get('date') ?? undefined,
+          ...bakeData,
+        }}
       />
     );
   }
