@@ -10,43 +10,37 @@ interface Step3Props {
 
 export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props) {
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   const isPastDate = date < today;
 
   const [temp, setTemp] = useState(250);
-  const [preheatMins, setPreheatMins] = useState(45);
   const [bakeMins, setBakeMins] = useState(35);
 
-  const [activeTimer, setActiveTimer] = useState<'preheat' | 'bake' | null>(null);
+  const [timerActive, setTimerActive] = useState(false);
   const [secsLeft, setSecsLeft] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!activeTimer) return;
+    if (!timerActive) return;
     const id = setInterval(() => {
       setSecsLeft(s => {
-        if (s <= 1) {
-          clearInterval(id);
-          setActiveTimer(null);
-          return 0;
-        }
+        if (s <= 1) { clearInterval(id); setTimerActive(false); return 0; }
         return s - 1;
       });
     }, 1000);
     intervalRef.current = id;
     return () => clearInterval(id);
-  }, [activeTimer]);
+  }, [timerActive]);
 
-  const startTimer = (type: 'preheat' | 'bake') => {
+  const startTimer = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    const mins = type === 'preheat' ? preheatMins : bakeMins;
-    setSecsLeft(mins * 60);
-    setActiveTimer(type);
+    setSecsLeft(bakeMins * 60);
+    setTimerActive(true);
   };
 
   const stopTimer = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    setActiveTimer(null);
+    setTimerActive(false);
   };
 
   const fmtTime = (secs: number) => {
@@ -111,42 +105,10 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
           </div>
         </div>
 
-        {/* Preheat */}
-        <div className="crumb-card p-4">
-          <h3 className="text-[15px] font-bold mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            Preheat
-          </h3>
-          <div className="flex gap-3 mb-4">
-            <div className="flex-1">
-              <label className="crumb-label">Duration (min)</label>
-              <input
-                className="crumb-input tabular-nums"
-                type="number"
-                inputMode="numeric"
-                value={preheatMins}
-                onChange={e => setPreheatMins(Number(e.target.value))}
-              />
-            </div>
-          </div>
-          {activeTimer === 'preheat' ? (
-            <>
-              <div className="text-5xl font-bold tabular-nums text-center my-3"
-                style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
-                {fmtTime(secsLeft)}
-              </div>
-              <button onClick={stopTimer} className="btn-secondary w-full py-3 text-[15px]">Stop</button>
-            </>
-          ) : (
-            <button onClick={() => startTimer('preheat')} className="btn-secondary w-full py-3 text-[15px]">
-              Start Preheat Timer
-            </button>
-          )}
-        </div>
-
         {/* Bake */}
         <div className="crumb-card p-4">
           <h3 className="text-[15px] font-bold mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            Bake
+            Bake Timer
           </h3>
           <div className="flex gap-3 mb-4">
             <div className="flex-1">
@@ -160,7 +122,7 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
               />
             </div>
           </div>
-          {activeTimer === 'bake' ? (
+          {timerActive ? (
             <>
               <div className="text-5xl font-bold tabular-nums text-center my-3"
                 style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
@@ -169,7 +131,7 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
               <button onClick={stopTimer} className="btn-secondary w-full py-3 text-[15px]">Stop</button>
             </>
           ) : (
-            <button onClick={() => startTimer('bake')} className="btn-primary w-full py-3 text-[15px]">
+            <button onClick={startTimer} className="btn-primary w-full py-3 text-[15px]">
               Start Bake Timer
             </button>
           )}
@@ -179,10 +141,7 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
       {/* Next */}
       <div className="px-4 py-4 border-t border-border bg-background">
         <button
-          onClick={() => {
-            stopTimer();
-            onNext({ bake_temp_c: temp, bake_time_mins: bakeMins });
-          }}
+          onClick={() => { stopTimer(); onNext({ bake_temp_c: temp, bake_time_mins: bakeMins }); }}
           className="btn-primary w-full py-4 text-[16px]"
         >
           Next — Capture & Review
