@@ -82,7 +82,7 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
             Step 4 of 4
           </p>
           <h2 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            Capture & Review
+            Capture
           </h2>
         </div>
       </header>
