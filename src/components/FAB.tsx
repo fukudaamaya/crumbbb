@@ -18,7 +18,7 @@ export default function FAB({ date }: FABProps) {
       onClick={handleTap}
       className="crumb-fab fixed z-40 flex items-center gap-2 px-5 py-3"
       style={{
-        bottom: `calc(env(safe-area-inset-bottom) + 72px)`,
+        bottom: `calc(env(safe-area-inset-bottom) + 64px + 20px)`,
         right: '20px',
       }}
       aria-label="Start a new bake"
