@@ -97,7 +97,7 @@ export default function DotCalendar({ bakes, year }: DotCalendarProps) {
                 <img
                   src={bake.photo_base64}
                   alt={bake.name}
-                  className="w-3 h-3 rounded-full object-cover"
+                  className="w-full h-full rounded-full object-cover"
                   style={{ border: '1.5px solid hsl(var(--border))' }}
                 />
               ) : (
