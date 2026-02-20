@@ -76,7 +76,15 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const addFlour = () => setFlours((f) => [...f, { type: '', grams: 0 }]);
   const removeFlour = (i: number) => setFlours((f) => f.filter((_, idx) => idx !== i));
   const updateFlour = (i: number, field: keyof Flour, value: string | number) =>
-  setFlours((f) => f.map((item, idx) => idx === i ? { ...item, [field]: value } : item));
+    setFlours((f) => f.map((item, idx) => {
+      if (idx !== i) return item;
+      if (field === 'grams') {
+        const otherTotal = f.reduce((s, fl, fi) => fi !== i ? s + (fl.grams || 0) : s, 0);
+        const clamped = Math.max(0, Math.min(Number(value), loafWeight - otherTotal));
+        return { ...item, grams: clamped };
+      }
+      return { ...item, type: String(value) };
+    }));
 
   const canProceed = name.trim() && date && totalFlour > 0;
 
