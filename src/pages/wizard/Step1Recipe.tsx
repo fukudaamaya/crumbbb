@@ -38,6 +38,11 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   );
   const [loafCount, setLoafCount] = useState(initialData?.loaf_count ?? 1);
   const [loafWeight, setLoafWeight] = useState(initialData?.loaf_weight_g ?? 500);
+
+  const handleLoafCountChange = (n: number) => {
+    setLoafCount(n);
+    setLoafWeight(n === 1 ? 500 : 1000);
+  };
   const [flours, setFlours] = useState<Flour[]>(
     initialData?.flours ?? [{ type: 'White bread flour', grams: 500 }]
   );
@@ -127,7 +132,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
               {[1, 2].map((n) =>
               <button
                 key={n}
-                onClick={() => setLoafCount(n)}
+                onClick={() => handleLoafCountChange(n)}
                 className={`flex-1 py-2 rounded-[4px] border font-semibold text-[15px] ${
                 loafCount === n ?
                 'bg-primary text-primary-foreground border-border' :
