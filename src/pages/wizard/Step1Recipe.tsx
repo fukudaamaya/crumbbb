@@ -157,26 +157,15 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
             </div>
           </div>
           <div className="flex-1">
-            <label className="crumb-label">Target Weight</label>
-            <div className="flex gap-2">
-              {[500, 1000].map((w) =>
-              <button
-                key={w}
-                onClick={() => setLoafWeight(w)}
-                className={`flex-1 py-2 rounded-[4px] border font-semibold text-[13px] ${
-                loafWeight === w ?
-                'bg-primary text-primary-foreground border-border' :
-                'bg-background text-foreground border-border'}`
-                }
-                style={{
-                  boxShadow: '2px 2px 0px hsl(var(--border))',
-                  fontFamily: 'DM Sans, sans-serif'
-                }}>
-
-                  {w}g
-                </button>
-              )}
-            </div>
+            <label className="crumb-label">Target Weight (g)</label>
+            <input
+              className="crumb-input tabular-nums"
+              type="number"
+              inputMode="numeric"
+              value={loafWeight || ''}
+              onChange={(e) => setLoafWeight(Number(e.target.value))}
+              placeholder="500"
+            />
           </div>
         </div>
 
