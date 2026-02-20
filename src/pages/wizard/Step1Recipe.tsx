@@ -53,6 +53,22 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const [leaven, setLeaven] = useState(initialData?.leaven_g ?? 0);
 
   const totalFlour = flours.reduce((s, f) => s + (f.grams || 0), 0);
+
+  // Sync flour blend total to target weight
+  useEffect(() => {
+    if (!loafWeight) return;
+    setFlours(prev => {
+      const currentTotal = prev.reduce((s, f) => s + (f.grams || 0), 0);
+      if (currentTotal === 0 || prev.length === 1) {
+        return prev.map((f, i) => i === 0 ? { ...f, grams: loafWeight } : f);
+      }
+      // Multiple flours — scale proportionally
+      return prev.map(f => ({
+        ...f,
+        grams: Math.round((f.grams / currentTotal) * loafWeight),
+      }));
+    });
+  }, [loafWeight]);
   const hydrationPct = calcPct(water, totalFlour);
   const starterPct = calcPct(starter, totalFlour);
   const leavenPct = calcPct(leaven, totalFlour);
