@@ -126,6 +126,7 @@ export default function NewBakeWizard() {
         date={bakeData.date ?? today}
         onNext={handleStep2}
         onSkip={() => setStep(3)}
+        onBack={() => setStep(1)}
       />
     );
   }
@@ -136,6 +137,7 @@ export default function NewBakeWizard() {
         date={bakeData.date ?? today}
         onNext={handleStep3}
         onSkip={() => setStep(4)}
+        onBack={() => setStep(2)}
       />
     );
   }
