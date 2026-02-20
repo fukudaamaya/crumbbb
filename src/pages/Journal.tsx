@@ -19,7 +19,7 @@ export default function Journal() {
     >
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background border-b border-border px-4 py-3 flex items-center justify-between"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}>
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <h1 className="wordmark">CRUMB</h1>
           <p className="text-[12px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans, sans-serif' }}>
