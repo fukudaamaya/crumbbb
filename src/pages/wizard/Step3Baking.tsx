@@ -88,10 +88,10 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-        {/* Oven temp */}
-        <div>
-          <label className="crumb-label">Oven Temperature (°C)</label>
-          <div className="flex items-center gap-3">
+        {/* Two input fields side by side */}
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="crumb-label">Oven Temp (°C)</label>
             <input
               className="crumb-input tabular-nums"
               type="number"
@@ -99,41 +99,33 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
               value={temp}
               onChange={e => setTemp(Number(e.target.value))}
             />
-            <span className="text-[15px] font-bold text-primary" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              {temp}°C
-            </span>
+          </div>
+          <div className="flex-1">
+            <label className="crumb-label">Duration (min)</label>
+            <input
+              className="crumb-input tabular-nums"
+              type="number"
+              inputMode="numeric"
+              value={bakeMins}
+              onChange={e => setBakeMins(Number(e.target.value))}
+            />
           </div>
         </div>
 
-        {/* Bake */}
-        <div className="crumb-card p-4">
-          <h3 className="text-[15px] font-bold mb-3" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            Bake Timer
-          </h3>
-          <div className="flex gap-3 mb-4">
-            <div className="flex-1">
-              <label className="crumb-label">Duration (min)</label>
-              <input
-                className="crumb-input tabular-nums"
-                type="number"
-                inputMode="numeric"
-                value={bakeMins}
-                onChange={e => setBakeMins(Number(e.target.value))}
-              />
+        {/* Bake timer card */}
+        <div className="crumb-card p-6 flex flex-col items-center gap-5">
+          <div className="text-center">
+            <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold mb-1"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Bake Timer</p>
+            <div className="text-6xl font-bold tabular-nums"
+              style={{ fontFamily: 'DM Sans, sans-serif', color: timerActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))' }}>
+              {timerActive ? fmtTime(secsLeft) : fmtTime(bakeMins * 60)}
             </div>
           </div>
           {timerActive ? (
-            <>
-              <div className="text-5xl font-bold tabular-nums text-center my-3"
-                style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
-                {fmtTime(secsLeft)}
-              </div>
-              <button onClick={stopTimer} className="btn-secondary w-full py-3 text-[15px]">Stop</button>
-            </>
+            <button onClick={stopTimer} className="btn-secondary w-full py-3 text-[15px]">Stop</button>
           ) : (
-            <button onClick={startTimer} className="btn-primary w-full py-3 text-[15px]">
-              Start Bake Timer
-            </button>
+            <button onClick={startTimer} className="btn-primary w-full py-3 text-[15px]">Start Timer</button>
           )}
         </div>
       </div>
