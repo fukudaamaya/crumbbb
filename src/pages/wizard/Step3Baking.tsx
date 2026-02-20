@@ -89,6 +89,11 @@ export default function Step3Baking({ date, onNext, onSkip }: Step3Props) {
         </button>
       </header>
 
+      {/* Progress bar */}
+      <div className="h-1 w-full bg-muted">
+        <div className="h-full bg-primary transition-all" style={{ width: '75%' }} />
+      </div>
+
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         {/* Oven temp */}
         <div>

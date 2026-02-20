@@ -161,8 +161,12 @@ export default function Step2Proofing({ date, onNext, onSkip }: Step2Props) {
         </button>
       </header>
 
+      {/* Progress bar */}
+      <div className="h-1 w-full bg-muted">
+        <div className="h-full bg-primary transition-all" style={{ width: '50%' }} />
+      </div>
+
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-        {/* Notification info */}
         {!notifSupported && (
           <div className="crumb-card p-3 text-[13px] text-muted-foreground"
             style={{ fontFamily: 'DM Sans, sans-serif' }}>
