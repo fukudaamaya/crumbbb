@@ -48,7 +48,8 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
   const [saving, setSaving] = useState(false);
 
   const loafInputRef = useRef<HTMLInputElement>(null);
-  
+  const loafLibraryRef = useRef<HTMLInputElement>(null);
+
 
   const handlePhoto = async (file: File, setter: (s: string) => void) => {
     try {
@@ -97,11 +98,20 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
         {/* Loaf photo */}
         <div>
           <label className="crumb-label">Loaf Photo</label>
+          {/* Camera input */}
           <input
             ref={loafInputRef}
             type="file"
             accept="image/*"
             capture="environment"
+            className="hidden"
+            onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto)}
+          />
+          {/* Library input */}
+          <input
+            ref={loafLibraryRef}
+            type="file"
+            accept="image/*"
             className="hidden"
             onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto)}
           />
@@ -122,12 +132,20 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => loafInputRef.current?.click()}
-              className="btn-secondary w-full py-4 text-[15px]"
-            >
-              📷 Take Loaf Photo
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => loafInputRef.current?.click()}
+                className="btn-secondary flex-1 py-4 text-[15px]"
+              >
+                📷 Camera
+              </button>
+              <button
+                onClick={() => loafLibraryRef.current?.click()}
+                className="btn-secondary flex-1 py-4 text-[15px]"
+              >
+                🖼️ Library
+              </button>
+            </div>
           )}
         </div>
 
