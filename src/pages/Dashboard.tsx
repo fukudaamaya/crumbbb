@@ -72,7 +72,7 @@ export default function Dashboard() {
       {/* Header with wordmark */}
       <header
         className="px-4 py-4 border-b border-border bg-background"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}>
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 40px)' }}>
 
         <span className="wordmark">DASHBOARD</span>
         <p className="text-[12px] text-muted-foreground mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
