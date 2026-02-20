@@ -158,15 +158,16 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
         {/* Star rating */}
         <div>
           <label className="crumb-label">Rating</label>
-          <div className="flex gap-3 mt-2">
+          <div className="flex justify-between mt-2">
             {[1, 2, 3, 4, 5].map(s => (
               <button
                 key={s}
+                className="flex-1 flex justify-center py-1"
                 onClick={() => setRating(r => r === s ? 0 : s)}
                 aria-label={`${s} star${s > 1 ? 's' : ''}`}
               >
                 <Star
-                  size={32}
+                  size={52}
                   fill={s <= rating ? 'hsl(var(--primary))' : 'none'}
                   stroke={s <= rating ? 'hsl(var(--primary))' : 'hsl(var(--border))'}
                   strokeWidth={1.5}
