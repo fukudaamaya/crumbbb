@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, MoreVertical, Camera, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil } from 'lucide-react';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -39,15 +39,13 @@ export default function BakeDetail() {
 
   const bake = bakes.find(b => b.id === id);
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editingDate, setEditingDate] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
-  // Edit state
-  const [editNotes, setEditNotes] = useState('');
-  const [editRating, setEditRating] = useState(0);
-  const [editPhoto, setEditPhoto] = useState('');
+  const [localName, setLocalName] = useState('');
+  const [localDate, setLocalDate] = useState('');
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
@@ -62,32 +60,29 @@ export default function BakeDetail() {
 
   const toggleFavourite = () => updateBake(bake.id, { is_favourite: !bake.is_favourite });
 
-  const openEdit = () => {
-    setEditNotes(bake.notes);
-    setEditRating(bake.rating);
-    setEditPhoto(bake.photo_base64);
-    setMenuOpen(false);
-    setShowEdit(true);
+  const handlePhoto = async (file: File) => {
+    try {
+      const compressed = await compressImage(file);
+      updateBake(bake.id, { photo_base64: compressed });
+    } catch (e) {
+      console.error('Image compression failed', e);
+    }
+    setShowPhotoOptions(false);
   };
 
-  const saveEdit = () => {
-    updateBake(bake.id, { notes: editNotes, rating: editRating, photo_base64: editPhoto });
-    setShowEdit(false);
+  const saveName = () => {
+    if (localName.trim()) updateBake(bake.id, { name: localName.trim() });
+    setEditingName(false);
+  };
+
+  const saveDate = () => {
+    if (localDate) updateBake(bake.id, { date: localDate });
+    setEditingDate(false);
   };
 
   const confirmDelete = () => {
     deleteBake(bake.id);
     navigate('/', { replace: true });
-  };
-
-  const handlePhoto = async (file: File) => {
-    try {
-      const compressed = await compressImage(file);
-      setEditPhoto(compressed);
-    } catch (e) {
-      console.error('Image compression failed', e);
-    }
-    setShowPhotoOptions(false);
   };
 
   return (
@@ -103,56 +98,105 @@ export default function BakeDetail() {
         <button onClick={() => navigate(-1)} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <div className="flex items-center gap-1">
-          <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
-            <Heart
-              size={24}
-              fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
-              stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
-              strokeWidth={1.8}
-            />
-          </button>
-          <button onClick={() => setMenuOpen(true)} className="p-1" aria-label="More options">
-            <MoreVertical size={22} strokeWidth={2} />
-          </button>
-        </div>
+        <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
+          <Heart
+            size={24}
+            fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
+            stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+            strokeWidth={1.8}
+          />
+        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto">
-        {/* Loaf photo */}
-        {bake.photo_base64 ? (
-          <div className="px-4 pt-4">
-            <img
-              src={bake.photo_base64}
-              alt={bake.name}
-              className="w-full rounded-[6px] border border-border object-cover"
-              style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
-            />
-          </div>
-        ) : (
-          <div className="mx-4 mt-4 h-48 bg-muted rounded-[6px] border border-border flex items-center justify-center"
-            style={{ boxShadow: '4px 4px 0px hsl(var(--border))' }}>
-            <span className="text-5xl">🍞</span>
-          </div>
-        )}
+        {/* Tappable photo */}
+        <div className="px-4 pt-4 relative" onClick={() => setShowPhotoOptions(true)}>
+          {bake.photo_base64 ? (
+            <>
+              <img
+                src={bake.photo_base64}
+                alt={bake.name}
+                className="w-full rounded-[6px] border border-border object-cover"
+                style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+              />
+              <div className="absolute top-6 right-6 bg-background/80 border border-border rounded-full p-1.5"
+                style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
+                <Camera size={16} strokeWidth={2} />
+              </div>
+            </>
+          ) : (
+            <div className="h-48 bg-muted rounded-[6px] border border-border flex flex-col items-center justify-center gap-2"
+              style={{ boxShadow: '4px 4px 0px hsl(var(--border))' }}>
+              <Camera size={28} strokeWidth={1.5} className="text-muted-foreground" />
+              <span className="text-[14px] font-semibold text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                Tap to add photo
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className="px-4 py-5 space-y-6">
-          {/* Name + date + stars */}
+          {/* Tappable name */}
           <div>
-            <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              {bake.name}
-            </h1>
-            <p className="text-muted-foreground text-[14px] mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              {formatDate(bake.date)}
-            </p>
+            {editingName ? (
+              <input
+                autoFocus
+                className="crumb-input text-2xl font-bold w-full"
+                style={{ fontFamily: 'Raleway, sans-serif' }}
+                value={localName}
+                onChange={e => setLocalName(e.target.value)}
+                onBlur={saveName}
+                onKeyDown={e => e.key === 'Enter' && saveName()}
+              />
+            ) : (
+              <button
+                className="flex items-center gap-2 w-full text-left group"
+                onClick={() => { setLocalName(bake.name); setEditingName(true); }}
+              >
+                <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  {bake.name}
+                </h1>
+                <Pencil size={15} strokeWidth={2} className="text-muted-foreground shrink-0" />
+              </button>
+            )}
+
+            {/* Tappable date */}
+            {editingDate ? (
+              <input
+                autoFocus
+                type="date"
+                className="crumb-input mt-1 text-[14px]"
+                value={localDate}
+                onChange={e => setLocalDate(e.target.value)}
+                onBlur={saveDate}
+              />
+            ) : (
+              <button
+                className="flex items-center gap-1.5 mt-1"
+                onClick={() => { setLocalDate(bake.date); setEditingDate(true); }}
+              >
+                <p className="text-muted-foreground text-[14px]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {formatDate(bake.date)}
+                </p>
+                <Pencil size={12} strokeWidth={2} className="text-muted-foreground" />
+              </button>
+            )}
+
+            {/* Tappable rating */}
             <div className="flex gap-1 mt-2">
               {[1,2,3,4,5].map(s => (
-                <Star
+                <button
                   key={s}
-                  size={18}
-                  fill={s <= bake.rating ? 'hsl(var(--primary))' : 'none'}
-                  stroke={s <= bake.rating ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
-                />
+                  onClick={() => updateBake(bake.id, { rating: bake.rating === s ? 0 : s })}
+                  aria-label={`${s} star`}
+                >
+                  <Star
+                    size={26}
+                    fill={s <= bake.rating ? 'hsl(var(--primary))' : 'none'}
+                    stroke={s <= bake.rating ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
+                    strokeWidth={1.5}
+                  />
+                </button>
               ))}
             </div>
           </div>
@@ -228,56 +272,62 @@ export default function BakeDetail() {
             </div>
           )}
 
-          {/* Notes */}
-          {bake.notes && (
-            <div className="crumb-card p-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                Notes
-              </h3>
-              <p className="text-[15px] leading-relaxed text-foreground"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {bake.notes}
-              </p>
-            </div>
-          )}
+          {/* Notes — always editable */}
+          <div>
+            <label className="crumb-label">Notes</label>
+            <textarea
+              className="crumb-input resize-none"
+              rows={4}
+              placeholder="How did it go? Crust colour, oven spring, flavour..."
+              defaultValue={bake.notes}
+              onBlur={e => updateBake(bake.id, { notes: e.target.value })}
+            />
+          </div>
 
           {/* Metadata */}
           <p className="text-[12px] text-muted-foreground text-center"
             style={{ fontFamily: 'DM Sans, sans-serif' }}>
             {bake.loaf_count} {bake.loaf_count === 1 ? 'loaf' : 'loaves'} · {bake.loaf_weight_g}g target
           </p>
+
+          {/* Delete */}
+          <button
+            onClick={() => setShowDelete(true)}
+            className="w-full py-4 text-[15px] font-semibold rounded-[4px] border border-border text-destructive"
+            style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
+          >
+            Delete Entry
+          </button>
         </div>
       </div>
 
-      {/* ⋯ Menu sheet */}
-      {menuOpen && (
+      {/* Hidden file inputs */}
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
+      <input ref={libraryRef} type="file" accept="image/*" className="hidden"
+        onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
+
+      {/* Photo source sheet */}
+      {showPhotoOptions && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setMenuOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowPhotoOptions(false)} />
           <div
             className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-[16px] border-t border-border px-4 pt-4"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
           >
             <p className="text-center text-[13px] text-muted-foreground font-semibold uppercase tracking-widest mb-4"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>Options</p>
-            <button
-              onClick={openEdit}
-              className="btn-secondary w-full py-4 text-[15px] mb-2"
-            >
-              Edit Entry
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Add Photo</p>
+            <button onClick={() => cameraRef.current?.click()}
+              className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-2">
+              <Camera size={18} strokeWidth={2} /> Camera
             </button>
-            <button
-              onClick={() => { setMenuOpen(false); setShowDelete(true); }}
-              className="w-full py-4 text-[15px] font-semibold rounded-[4px] border border-border text-destructive mb-3"
-              style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
-            >
-              Delete Entry
+            <button onClick={() => libraryRef.current?.click()}
+              className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-3">
+              <ImageIcon size={18} strokeWidth={2} /> Photo Library
             </button>
-            <button
-              onClick={() => setMenuOpen(false)}
+            <button onClick={() => setShowPhotoOptions(false)}
               className="w-full py-3 text-[15px] font-semibold text-muted-foreground"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}
-            >
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>
               Cancel
             </button>
           </div>
@@ -296,131 +346,12 @@ export default function BakeDetail() {
             <p className="text-center text-[14px] text-muted-foreground mb-5" style={{ fontFamily: 'DM Sans, sans-serif' }}>
               This can't be undone.
             </p>
-            <button
-              onClick={confirmDelete}
+            <button onClick={confirmDelete}
               className="w-full py-4 text-[15px] font-semibold rounded-[4px] border border-border text-destructive mb-2"
-              style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
-            >
+              style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}>
               Yes, Delete
             </button>
-            <button
-              onClick={() => setShowDelete(false)}
-              className="w-full py-3 text-[15px] font-semibold text-muted-foreground"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}
-            >
-              Cancel
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Edit sheet */}
-      {showEdit && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowEdit(false)} />
-          <div
-            className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-[16px] border-t border-border"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)', maxHeight: '85dvh', overflowY: 'auto' }}
-          >
-            <div className="px-4 pt-4 space-y-5">
-              <p className="text-center text-[13px] text-muted-foreground font-semibold uppercase tracking-widest"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}>Edit Entry</p>
-
-              {/* Photo */}
-              <div>
-                <label className="crumb-label">Photo</label>
-                <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-                  onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
-                <input ref={libraryRef} type="file" accept="image/*" className="hidden"
-                  onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
-                {editPhoto ? (
-                  <div className="relative">
-                    <img src={editPhoto} alt="Loaf" className="w-full rounded-[6px] border border-border object-cover"
-                      style={{ maxHeight: 200, boxShadow: '4px 4px 0px hsl(var(--border))' }} />
-                    <button
-                      onClick={() => setShowPhotoOptions(true)}
-                      className="absolute top-2 right-2 bg-background border border-border rounded-[4px] px-2 py-1 text-[12px] font-semibold"
-                      style={{ boxShadow: '2px 2px 0px hsl(var(--border))', fontFamily: 'DM Sans, sans-serif' }}
-                    >
-                      Change
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowPhotoOptions(true)}
-                    className="w-full rounded-[6px] border-2 border-dashed border-border bg-muted/40 flex flex-col items-center justify-center gap-2 py-8"
-                  >
-                    <Camera size={28} strokeWidth={1.5} className="text-muted-foreground" />
-                    <span className="text-[14px] font-semibold text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                      Tap to add photo
-                    </span>
-                  </button>
-                )}
-              </div>
-
-              {/* Rating */}
-              <div>
-                <label className="crumb-label">Rating</label>
-                <div className="flex justify-between mt-1">
-                  {[1,2,3,4,5].map(s => (
-                    <button key={s} className="flex-1 flex justify-center py-1"
-                      onClick={() => setEditRating(r => r === s ? 0 : s)}>
-                      <Star size={40}
-                        fill={s <= editRating ? 'hsl(var(--primary))' : 'none'}
-                        stroke={s <= editRating ? 'hsl(var(--primary))' : 'hsl(var(--border))'}
-                        strokeWidth={1.5} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="crumb-label">Notes</label>
-                <textarea
-                  className="crumb-input resize-none"
-                  rows={4}
-                  placeholder="How did it go? Crust colour, oven spring, flavour..."
-                  value={editNotes}
-                  onChange={e => setEditNotes(e.target.value)}
-                />
-              </div>
-
-              {/* Actions */}
-              <button onClick={saveEdit} className="btn-primary w-full py-4 text-[16px]">
-                Save Changes
-              </button>
-              <button
-                onClick={() => setShowEdit(false)}
-                className="w-full py-3 text-[15px] font-semibold text-muted-foreground"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Photo source sheet (within edit) */}
-      {showPhotoOptions && (
-        <>
-          <div className="fixed inset-0 z-60 bg-black/40" onClick={() => setShowPhotoOptions(false)} />
-          <div
-            className="fixed bottom-0 left-0 right-0 z-[70] bg-background rounded-t-[16px] border-t border-border px-4 pt-4"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
-          >
-            <p className="text-center text-[13px] text-muted-foreground font-semibold uppercase tracking-widest mb-4"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>Add Photo</p>
-            <button onClick={() => cameraRef.current?.click()}
-              className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-2">
-              <Camera size={18} strokeWidth={2} /> Camera
-            </button>
-            <button onClick={() => libraryRef.current?.click()}
-              className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-3">
-              <ImageIcon size={18} strokeWidth={2} /> Photo Library
-            </button>
-            <button onClick={() => setShowPhotoOptions(false)}
+            <button onClick={() => setShowDelete(false)}
               className="w-full py-3 text-[15px] font-semibold text-muted-foreground"
               style={{ fontFamily: 'DM Sans, sans-serif' }}>
               Cancel
