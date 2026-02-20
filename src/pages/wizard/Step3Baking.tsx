@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 interface Step3Props {
   date: string;
   onNext: (data: { bake_temp_c: number; bake_time_mins: number }) => void;
   onSkip: () => void;
+  onBack: () => void;
 }
 
-export default function Step3Baking({ date, onNext, onSkip }: Step3Props) {
-  const navigate = useNavigate();
+export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props) {
 
   const today = new Date().toISOString().split('T')[0];
   const isPastDate = date < today;
@@ -68,7 +67,7 @@ export default function Step3Baking({ date, onNext, onSkip }: Step3Props) {
         className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
       >
-        <button onClick={() => navigate(-1)} className="p-1" aria-label="Back">
+        <button onClick={onBack} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <div className="flex-1">

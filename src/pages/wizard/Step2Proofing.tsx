@@ -1,17 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 interface Step2Props {
   date: string;
   onNext: (proofingMins: number) => void;
   onSkip: () => void;
+  onBack: () => void;
 }
 
 const INTERVALS = [30, 60, 90, 120, 150, 180]; // minutes
 
-export default function Step2Proofing({ date, onNext, onSkip }: Step2Props) {
-  const navigate = useNavigate();
+export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Props) {
 
   // Check if the bake is for a past date
   const today = new Date().toISOString().split('T')[0];
@@ -140,7 +139,7 @@ export default function Step2Proofing({ date, onNext, onSkip }: Step2Props) {
         className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
       >
-        <button onClick={() => navigate(-1)} className="p-1" aria-label="Back">
+        <button onClick={onBack} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <div className="flex-1">
