@@ -245,12 +245,12 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
           </button>
         </div>
 
-        {/* Water, starter, salt */}
+        {/* Water, leaven, salt */}
         <div className="flex gap-2">
           {[
             { label: 'Water (g)', value: water, set: setWater, pct: hydrationPct },
-            { label: 'Starter (g)', value: starter, set: setStarter, pct: starterPct },
-            { label: 'Salt (g)', value: leaven, set: setLeaven, pct: leavenPct },
+            { label: 'Leaven (g)', value: leaven, set: setLeaven, pct: leavenPct },
+            { label: 'Salt (g)', value: starter, set: setStarter, pct: starterPct },
           ].map(({ label, value, set, pct }) => (
             <div key={label} className="flex-1 flex flex-col gap-1">
               <label className="crumb-label">{label}</label>
@@ -287,14 +287,16 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                 <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Hydration</span>
                 <span className="font-bold text-primary tabular-nums">{hydrationPct}%</span>
               </div>
-              <div className="flex justify-between text-[14px]">
-                <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Starter</span>
-                <span className="font-bold text-primary tabular-nums">{starterPct}%</span>
-              </div>
               {leaven > 0 &&
             <div className="flex justify-between text-[14px]">
                   <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Leaven</span>
                   <span className="font-bold text-primary tabular-nums">{leavenPct}%</span>
+                </div>
+            }
+              {starter > 0 &&
+            <div className="flex justify-between text-[14px]">
+                  <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Salt</span>
+                  <span className="font-bold text-primary tabular-nums">{starterPct}%</span>
                 </div>
             }
             </div>
