@@ -95,7 +95,7 @@ export default function BakeDetail() {
         className="flex items-center justify-between px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
       >
-        <button onClick={() => navigate(-1)} className="p-1" aria-label="Back">
+        <button onClick={() => navigate('/')} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
