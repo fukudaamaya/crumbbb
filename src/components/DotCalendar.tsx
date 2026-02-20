@@ -86,29 +86,27 @@ export default function DotCalendar({ bakes, year }: DotCalendarProps) {
             <button
               key={ds}
               onClick={() => handleDayTap(d)}
-              className="aspect-square rounded-full relative flex items-center justify-center"
-              style={{
-                border: isToday ? '2px solid hsl(var(--primary))' : undefined,
-              }}
+              className="aspect-square relative flex items-center justify-center"
               aria-label={ds}
             >
               {bake?.photo_base64 ? (
                 <img
                   src={bake.photo_base64}
                   alt={bake.name}
-                  className="w-full h-full rounded-full object-cover"
+                  className="w-3 h-3 rounded-full object-cover"
                   style={{ border: '1.5px solid hsl(var(--border))' }}
                 />
               ) : (
                 <div
-                  className="w-full h-full rounded-full"
+                  className="w-2 h-2 rounded-full"
                   style={{
-                    backgroundColor: isPast
-                      ? 'hsl(var(--muted))'
-                      : isToday
-                      ? 'hsl(var(--primary) / 0.15)'
-                      : 'hsl(var(--muted))',
-                    opacity: isPast && !isToday ? 0.5 : 1,
+                    backgroundColor: isToday
+                      ? 'hsl(var(--primary))'
+                      : isPast
+                      ? 'hsl(var(--primary) / 0.25)'
+                      : 'hsl(var(--primary) / 0.12)',
+                    outline: isToday ? '2px solid hsl(var(--primary))' : undefined,
+                    outlineOffset: isToday ? '2px' : undefined,
                   }}
                 />
               )}
