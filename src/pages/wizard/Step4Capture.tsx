@@ -1,7 +1,5 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Heart } from 'lucide-react';
-import { Bake } from '@/types/bake';
+import { ArrowLeft, Star, Camera, ImageIcon } from 'lucide-react';
 
 interface Step4Props {
   onSave: (data: {
@@ -39,7 +37,7 @@ async function compressImage(file: File): Promise<string> {
 }
 
 export default function Step4Capture({ onSave, onBack }: Step4Props) {
-  const navigate = useNavigate();
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
   const [loafPhoto, setLoafPhoto] = useState('');
   const [crumbPhoto] = useState('');
@@ -105,7 +103,7 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
             accept="image/*"
             capture="environment"
             className="hidden"
-            onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto)}
+            onChange={e => { e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto); setShowPhotoOptions(false); }}
           />
           {/* Library input */}
           <input
@@ -113,7 +111,7 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto)}
+            onChange={e => { e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto); setShowPhotoOptions(false); }}
           />
           {loafPhoto ? (
             <div className="relative">
@@ -132,20 +130,16 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
               </button>
             </div>
           ) : (
-            <div className="flex gap-2">
-              <button
-                onClick={() => loafInputRef.current?.click()}
-                className="btn-secondary flex-1 py-4 text-[15px]"
-              >
-                📷 Camera
-              </button>
-              <button
-                onClick={() => loafLibraryRef.current?.click()}
-                className="btn-secondary flex-1 py-4 text-[15px]"
-              >
-                🖼️ Library
-              </button>
-            </div>
+            <button
+              onClick={() => setShowPhotoOptions(true)}
+              className="w-full rounded-[6px] border-2 border-dashed border-border bg-muted/40 flex flex-col items-center justify-center gap-2 py-10"
+              style={{ boxShadow: 'none' }}
+            >
+              <Camera size={32} strokeWidth={1.5} className="text-muted-foreground" />
+              <span className="text-[14px] font-semibold text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                Tap to add photo
+              </span>
+            </button>
           )}
         </div>
 
@@ -193,6 +187,42 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
           {saving ? 'Saving...' : 'Save Bake 🍞'}
         </button>
       </div>
+
+      {/* Photo source action sheet */}
+      {showPhotoOptions && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setShowPhotoOptions(false)}
+          />
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-[16px] border-t border-border px-4 pt-4"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+          >
+            <p className="text-center text-[13px] text-muted-foreground font-semibold uppercase tracking-widest mb-4"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Add Photo</p>
+            <button
+              onClick={() => loafInputRef.current?.click()}
+              className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-2"
+            >
+              <Camera size={18} strokeWidth={2} /> Camera
+            </button>
+            <button
+              onClick={() => loafLibraryRef.current?.click()}
+              className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-3"
+            >
+              <ImageIcon size={18} strokeWidth={2} /> Photo Library
+            </button>
+            <button
+              onClick={() => setShowPhotoOptions(false)}
+              className="w-full py-3 text-[15px] font-semibold text-muted-foreground"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
