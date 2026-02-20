@@ -42,13 +42,13 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
   const navigate = useNavigate();
 
   const [loafPhoto, setLoafPhoto] = useState('');
-  const [crumbPhoto, setCrumbPhoto] = useState('');
+  const [crumbPhoto] = useState('');
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const loafInputRef = useRef<HTMLInputElement>(null);
-  const crumbInputRef = useRef<HTMLInputElement>(null);
+  
 
   const handlePhoto = async (file: File, setter: (s: string) => void) => {
     try {
@@ -127,43 +127,6 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
               className="btn-secondary w-full py-4 text-[15px]"
             >
               📷 Take Loaf Photo
-            </button>
-          )}
-        </div>
-
-        {/* Crumb photo */}
-        <div>
-          <label className="crumb-label">Crumb Cross-Section (optional)</label>
-          <input
-            ref={crumbInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0], setCrumbPhoto)}
-          />
-          {crumbPhoto ? (
-            <div className="relative">
-              <img
-                src={crumbPhoto}
-                alt="Crumb"
-                className="w-full rounded-[6px] border border-border object-cover"
-                style={{ maxHeight: 240, boxShadow: '4px 4px 0px hsl(var(--border))' }}
-              />
-              <button
-                onClick={() => setCrumbPhoto('')}
-                className="absolute top-2 right-2 bg-background border border-border rounded-[4px] px-2 py-1 text-[12px] font-semibold"
-                style={{ boxShadow: '2px 2px 0px hsl(var(--border))', fontFamily: 'DM Sans, sans-serif' }}
-              >
-                Retake
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => crumbInputRef.current?.click()}
-              className="btn-secondary w-full py-3 text-[14px]"
-            >
-              📷 Crumb Photo
             </button>
           )}
         </div>
