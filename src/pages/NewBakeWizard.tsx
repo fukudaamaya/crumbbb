@@ -38,7 +38,7 @@ export default function NewBakeWizard() {
   const [step, setStep] = useState(1);
   const [bakeData, setBakeData] = useState<Partial<BakeData>>({});
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   const bakeDate = bakeData.date ?? searchParams.get('date') ?? today;
   const isPastDate = bakeDate < today;
 
