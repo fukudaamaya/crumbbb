@@ -227,62 +227,27 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
           </button>
         </div>
 
-        {/* Water, starter, leaven */}
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="crumb-label">Water (g)</label>
+        {/* Water, starter, salt */}
+        <div className="flex gap-2">
+          {[
+            { label: 'Water (g)', value: water, set: setWater, pct: hydrationPct },
+            { label: 'Starter (g)', value: starter, set: setStarter, pct: starterPct },
+            { label: 'Salt (g)', value: leaven, set: setLeaven, pct: leavenPct },
+          ].map(({ label, value, set, pct }) => (
+            <div key={label} className="flex-1 flex flex-col gap-1">
+              <label className="crumb-label">{label}</label>
               <input
                 className="crumb-input tabular-nums"
                 type="number"
                 inputMode="numeric"
-                value={water || ''}
-                onChange={(e) => setWater(Number(e.target.value))} />
-
-            </div>
-            <div className="flex items-end pb-2">
-              <span className="text-primary font-bold tabular-nums text-[15px]"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {hydrationPct}%
+                value={value || ''}
+                onChange={(e) => set(Number(e.target.value))} />
+              <span className="text-primary font-bold tabular-nums text-[13px] text-right"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                {pct}%
               </span>
             </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="crumb-label">Starter (g)</label>
-              <input
-                className="crumb-input tabular-nums"
-                type="number"
-                inputMode="numeric"
-                value={starter || ''}
-                onChange={(e) => setStarter(Number(e.target.value))} />
-
-            </div>
-            <div className="flex items-end pb-2">
-              <span className="text-primary font-bold tabular-nums text-[15px]"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {starterPct}%
-              </span>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="crumb-label">Salt (g)</label>
-              <input
-                className="crumb-input tabular-nums"
-                type="number"
-                inputMode="numeric"
-                value={leaven || ''}
-                onChange={(e) => setLeaven(Number(e.target.value))} />
-
-            </div>
-            <div className="flex items-end pb-2">
-              <span className="text-primary font-bold tabular-nums text-[15px]"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {leavenPct}%
-              </span>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Recipe summary card */}
