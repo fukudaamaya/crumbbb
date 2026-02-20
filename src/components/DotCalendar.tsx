@@ -74,7 +74,11 @@ export default function DotCalendar({ bakes, year }: DotCalendarProps) {
       >
         {cells.map((d, i) => {
           if (!d) {
-            return <div key={`pad-${i}`} className="aspect-square" />;
+            return (
+              <div key={`pad-${i}`} className="aspect-square flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'hsl(var(--primary) / 0.08)' }} />
+              </div>
+            );
           }
 
           const ds = toLocalDateString(d);
