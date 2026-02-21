@@ -26,14 +26,10 @@ export default function Signup() {
 
     setLoading(true);
 
-    // Check username availability
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username)
-      .maybeSingle();
+    // Check username availability via security-definer function
+    const { data: taken } = await supabase.rpc('is_username_taken', { _username: username });
 
-    if (existing) {
+    if (taken) {
       setError('That username is already taken.');
       setLoading(false);
       return;
