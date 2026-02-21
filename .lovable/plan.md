@@ -1,90 +1,56 @@
 
-
-# Connect to Lovable Cloud with User Accounts
+# Demo Mode with Sample Data
 
 ## Overview
-Set up Lovable Cloud as the backend for Crumb, enabling user sign-up with name and username, profile storage, and migrating bake data from localStorage to a cloud database. This will allow you to track usage and give each user their own bake journal.
+Add a "demo mode" that lets visitors explore the app with pre-loaded sample bakes -- no account required. Users will see a banner prompting them to sign up, and all write actions (add, edit, delete, favourite) will show a sign-up prompt instead of executing.
 
-## What Users Will Experience
-- A sign-up / login screen where they enter their **name**, **email**, **password**, and choose a **username**
-- Their bakes are stored in the cloud, accessible from any device
-- A profile with their display name and username
+## How It Works
+1. The Login and Signup pages get a "Try Demo" link/button
+2. Tapping it navigates to the Journal page without authenticating
+3. The app detects the unauthenticated state and loads hardcoded sample bakes instead of querying the database
+4. All interactive/write actions (new bake FAB, edit fields, delete, favourite, rating) show a prompt nudging the user to create an account
+5. A persistent banner at the top reminds them they're in demo mode with a "Sign Up" button
 
-## Implementation Steps
-
-### 1. Enable Lovable Cloud
-Connect the project to Lovable Cloud to get a database, auth, and edge functions.
-
-### 2. Database Schema
-Create the following tables:
-
-**profiles** table -- stores user display info
-- `id` (uuid, references auth.users, primary key)
-- `display_name` (text, not null)
-- `username` (text, unique, not null)
-- `created_at` (timestamp)
-
-**bakes** table -- migrates the current localStorage structure to cloud
-- `id` (uuid, primary key)
-- `user_id` (uuid, references auth.users, not null)
-- All existing bake fields: `name`, `date`, `loaf_count`, `loaf_weight_g`, `water_g`, `starter_g`, `leaven_g`, `hydration_pct`, `starter_pct`, `leaven_pct`, `proofing_time_mins`, `bake_temp_c`, `bake_time_mins`, `photo_base64`, `crumb_photo_base64`, `notes`, `rating`, `is_favourite`, `created_at`
-- `flours` (jsonb -- array of {type, grams})
-
-**user_roles** table -- for future role-based access
-- `id` (uuid, primary key)
-- `user_id` (uuid, references auth.users)
-- `role` (app_role enum: admin, moderator, user)
-
-### 3. Row-Level Security (RLS)
-- **profiles**: Users can read/update only their own profile
-- **bakes**: Users can CRUD only their own bakes (filtered by `user_id = auth.uid()`)
-- **user_roles**: Read-only via a `has_role()` security definer function
-
-### 4. Database Trigger
-Auto-create a profile row when a new user signs up, pulling their name from auth metadata.
-
-### 5. Auth Pages
-Create two new pages following the existing Crumb design system (warm brutalist style):
-
-- **Sign Up page** (`/signup`): Fields for display name, username, email, password. Uses `supabase.auth.signUp()` with metadata.
-- **Login page** (`/login`): Email and password. Uses `supabase.auth.signInWithPassword()`.
-- **Forgot / Reset Password** pages for account recovery.
-
-### 6. Auth Context and Route Protection
-- Create an `AuthProvider` context that wraps the app and listens to `onAuthStateChange`
-- Redirect unauthenticated users to `/login`
-- Redirect authenticated users away from auth pages
-
-### 7. Migrate Data Layer
-- Replace the `useBakes` localStorage hook with Supabase queries (using TanStack React Query, already installed)
-- `addBake` becomes an `INSERT` into the `bakes` table
-- `updateBake` becomes an `UPDATE`
-- `deleteBake` becomes a `DELETE`
-- List/read queries fetch from Supabase filtered by the current user
-
-### 8. Update Existing Pages
-- **Journal**: Fetch bakes from Supabase instead of localStorage
-- **BakeDetail**: Read/update/delete via Supabase
-- **NewBakeWizard**: Insert new bake via Supabase
-- **Dashboard**: Query bakes from Supabase
+## User Flow
+- Login/Signup screen --> "Explore Demo" button --> Journal with sample data
+- User taps around, views bake details, browses dashboard -- all read-only
+- Any write action triggers a modal/toast: "Create an account to save your own bakes"
+- Banner "Sign Up" or modal button --> navigates to /signup
 
 ## Technical Details
 
+### 1. Sample data file (`src/data/sampleBakes.ts`)
+- Create 4-5 realistic sample `Bake` objects with varied flour blends, ratings, dates, and notes
+- No photos (use the fallback bread emoji)
+
+### 2. Update `ProtectedRoute` in `src/App.tsx`
+- Add a new `DemoRoute` wrapper that renders children without requiring auth
+- Routes for `/demo`, `/demo/dashboard`, `/demo/bake/:id` using the same page components
+
+### 3. Update `useBakes` hook (`src/hooks/useBakes.ts`)
+- Accept an optional `demo` flag (or detect no user)
+- When in demo mode: return sample bakes, and make all mutations no-ops that trigger a sign-up prompt (toast from sonner)
+
+### 4. Update `Journal.tsx`, `Dashboard.tsx`, `BakeDetail.tsx`
+- Accept a `demo` prop or detect demo mode from context/route
+- Show a top banner in demo mode: "You're exploring Crumb -- Sign up to start your own journal"
+- Hide or intercept the FAB and edit actions
+
+### 5. Update `Login.tsx` and `Signup.tsx`
+- Add an "Explore Demo" button/link below the sign-in form
+
+### 6. Update `BottomNav.tsx`
+- In demo mode, point nav links to `/demo` and `/demo/dashboard`
+
 ### Files to Create
-- `src/integrations/supabase/client.ts` -- Supabase client (auto-generated by Cloud)
-- `src/contexts/AuthContext.tsx` -- Auth provider with session management
-- `src/pages/Login.tsx` -- Login page
-- `src/pages/Signup.tsx` -- Sign-up page with name + username
-- `src/pages/ResetPassword.tsx` -- Password reset page
-- `src/hooks/useBakes.ts` -- Rewrite to use Supabase queries
+- `src/data/sampleBakes.ts` -- hardcoded sample bake data
 
 ### Files to Modify
-- `src/App.tsx` -- Add AuthProvider, auth routes, and protected route wrapper
-- `src/pages/Journal.tsx` -- Minor updates for loading states
-- `src/pages/BakeDetail.tsx` -- Use updated hook
-- `src/pages/NewBakeWizard.tsx` -- Use updated hook
-
-### Database Migrations
-- Migration 1: Create `profiles` table, trigger, and RLS
-- Migration 2: Create `bakes` table and RLS
-- Migration 3: Create `user_roles` table, enum, `has_role()` function, and RLS
+- `src/App.tsx` -- add demo routes
+- `src/hooks/useBakes.ts` -- add demo mode with sample data and no-op mutations
+- `src/pages/Login.tsx` -- add "Explore Demo" link
+- `src/pages/Signup.tsx` -- add "Explore Demo" link
+- `src/pages/Journal.tsx` -- add demo banner
+- `src/pages/Dashboard.tsx` -- add demo banner
+- `src/pages/BakeDetail.tsx` -- intercept write actions in demo mode
+- `src/components/BottomNav.tsx` -- handle demo route paths
