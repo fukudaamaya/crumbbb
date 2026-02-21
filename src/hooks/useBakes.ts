@@ -1,50 +1,90 @@
-import { useState, useCallback } from 'react';
-import { Bake, STORAGE_KEY } from '@/types/bake';
+import { useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Bake } from '@/types/bake';
 
-function loadBakes(): Bake[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as Bake[];
-  } catch {
-    return [];
-  }
-}
-
-function saveBakes(bakes: Bake[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(bakes));
+// Map DB row to Bake type
+function rowToBake(row: any): Bake {
+  return {
+    id: row.id,
+    name: row.name,
+    date: row.date,
+    loaf_count: row.loaf_count,
+    loaf_weight_g: row.loaf_weight_g,
+    flours: (row.flours ?? []) as Bake['flours'],
+    water_g: row.water_g,
+    starter_g: row.starter_g,
+    leaven_g: row.leaven_g,
+    hydration_pct: row.hydration_pct,
+    starter_pct: row.starter_pct,
+    leaven_pct: row.leaven_pct,
+    proofing_time_mins: row.proofing_time_mins,
+    bake_temp_c: row.bake_temp_c,
+    bake_time_mins: row.bake_time_mins,
+    photo_base64: row.photo_base64,
+    crumb_photo_base64: row.crumb_photo_base64,
+    notes: row.notes,
+    rating: row.rating,
+    is_favourite: row.is_favourite,
+    created_at: row.created_at,
+  };
 }
 
 export function useBakes() {
-  const [bakes, setBakes] = useState<Bake[]>(loadBakes);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const addBake = useCallback((bake: Bake) => {
-    setBakes(prev => {
-      const next = [...prev, bake];
-      saveBakes(next);
-      return next;
-    });
-  }, []);
+  const { data: bakes = [], isLoading } = useQuery({
+    queryKey: ['bakes', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bakes')
+        .select('*')
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(rowToBake);
+    },
+    enabled: !!user,
+  });
 
-  const updateBake = useCallback((id: string, updates: Partial<Bake>) => {
-    setBakes(prev => {
-      const next = prev.map(b => b.id === id ? { ...b, ...updates } : b);
-      saveBakes(next);
-      return next;
-    });
-  }, []);
+  const addBakeMutation = useMutation({
+    mutationFn: async (bake: Bake) => {
+      const { id, created_at, ...rest } = bake;
+      const { error } = await supabase.from('bakes').insert({
+        ...rest,
+        user_id: user!.id,
+        flours: rest.flours as any,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bakes'] }),
+  });
 
-  const deleteBake = useCallback((id: string) => {
-    setBakes(prev => {
-      const next = prev.filter(b => b.id !== id);
-      saveBakes(next);
-      return next;
-    });
-  }, []);
+  const updateBakeMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Bake> }) => {
+      const { flours, ...rest } = updates;
+      const payload: any = { ...rest };
+      if (flours !== undefined) payload.flours = flours as any;
+      const { error } = await supabase.from('bakes').update(payload).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bakes'] }),
+  });
 
-  const getBake = useCallback((id: string) => {
-    return loadBakes().find(b => b.id === id) ?? null;
-  }, []);
+  const deleteBakeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('bakes').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bakes'] }),
+  });
 
-  return { bakes, addBake, updateBake, deleteBake, getBake };
+  const addBake = useCallback((bake: Bake) => addBakeMutation.mutate(bake), [addBakeMutation]);
+  const updateBake = useCallback((id: string, updates: Partial<Bake>) => updateBakeMutation.mutate({ id, updates }), [updateBakeMutation]);
+  const deleteBake = useCallback((id: string) => deleteBakeMutation.mutate(id), [deleteBakeMutation]);
+
+  const getBake = useCallback((id: string) => bakes.find(b => b.id === id) ?? null, [bakes]);
+
+  return { bakes, isLoading, addBake, updateBake, deleteBake, getBake };
 }
