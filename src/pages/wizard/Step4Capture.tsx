@@ -12,6 +12,11 @@ interface Step4Props {
 }
 
 async function compressImage(file: File): Promise<string> {
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('Image file too large. Please select a smaller image (max 10MB).');
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -29,7 +34,14 @@ async function compressImage(file: File): Promise<string> {
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
+
+      const base64 = canvas.toDataURL('image/jpeg', 0.7);
+      const MAX_BASE64_SIZE = 500 * 1024; // 500KB
+      if (base64.length > MAX_BASE64_SIZE) {
+        reject(new Error('Compressed image still too large. Try a simpler image.'));
+      } else {
+        resolve(base64);
+      }
     };
     img.onerror = reject;
     img.src = url;
