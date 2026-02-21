@@ -140,6 +140,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_username_taken: { Args: { _username: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
