@@ -1,40 +1,39 @@
 
-# Add Notes and Favourite Heart to List View
 
-## Changes
+# Rearrange BakeDetail Layout
 
-### `src/components/BakeListView.tsx`
+## Changes to `src/pages/BakeDetail.tsx`
 
-1. **Add `Heart` icon import** from lucide-react alongside the existing `Star` import.
+### 1. Move the Heart from the header to inline with the title
+- Remove the heart button from the sticky header bar (keep only the back arrow in the header).
+- Place the heart button on the same row as the bake name, aligned to the right edge. The name and heart will sit in a `flex justify-between items-center` container.
 
-2. **Accept `onToggleFavourite` callback prop** so the heart button can update the bake without navigating away:
-   ```
-   onToggleFavourite?: (id: string, current: boolean) => void
-   ```
+### 2. Move Notes above Flour Blend
+- Relocate the Notes section (label + textarea/text) from its current position (below Process) to directly below the star rating row and above the Flour Blend card.
 
-3. **Add a heart icon** in the top-right corner of each list card. Tapping it calls `onToggleFavourite` (with `e.stopPropagation()` to prevent navigating into the bake detail). Filled heart for favourites, outline for non-favourites -- same style used in `BakeDetail.tsx`.
-
-4. **Show truncated notes** below the star rating. Display `bake.notes` in a single line with `truncate` styling and muted text, only when notes exist.
-
-### `src/pages/Journal.tsx`
-
-5. **Pass `onToggleFavourite` to BakeListView**, wiring it to the existing `updateBake` from `useBakes`:
-   ```
-   onToggleFavourite={(id, current) => updateBake(id, { is_favourite: !current })}
-   ```
-   This requires pulling `updateBake` from the `useBakes` hook (already available but not currently destructured in Journal).
-
-## Layout
-
-Each list card will look like:
+### Layout After Changes
 
 ```text
-+------------------------------------------+
-| [photo]  Bake Name               [heart] |
-|          12 Jan 2025 . 75% hydration      |
-|          * * * * *                        |
-|          Great oven spring, nice cr...    |
-+------------------------------------------+
+[back arrow]                        <- header (no heart)
+
+[photo]
+
+Bake Name                   [heart] <- same row
+Date
+* * * * *
+
+Notes                               <- moved up
+[textarea / text]
+
+Flour Blend card
+Baker's Percentages card
+Process card
+[Delete button]
 ```
 
-The card remains a single tappable button that navigates to the detail view. The heart is a nested button with `stopPropagation` so it toggles independently.
+### Technical Details
+- In the header, remove the heart `<button>` entirely.
+- Wrap the name heading and a new heart button in a `flex items-center justify-between` div.
+- Cut the Notes block from its current location and paste it immediately after the star rating `<div>`, before the Flour Blend card.
+- No prop or hook changes needed -- all data and handlers already exist in the component.
+
