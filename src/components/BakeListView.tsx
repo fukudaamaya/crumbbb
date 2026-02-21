@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Bake } from '@/types/bake';
-import { Star } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
 
 interface BakeListViewProps {
   bakes: Bake[];
   demo?: boolean;
+  onToggleFavourite?: (id: string, current: boolean) => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -12,7 +13,7 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function BakeListView({ bakes, demo = false }: BakeListViewProps) {
+export default function BakeListView({ bakes, demo = false, onToggleFavourite }: BakeListViewProps) {
   const navigate = useNavigate();
 
   const sorted = [...bakes].sort((a, b) => b.date.localeCompare(a.date));
@@ -33,8 +34,24 @@ export default function BakeListView({ bakes, demo = false }: BakeListViewProps)
         <button
           key={bake.id}
           onClick={() => navigate(demo ? `/demo/bake/${bake.id}` : `/bake/${bake.id}`)}
-          className="crumb-card flex items-center gap-3 p-3 w-full text-left"
+          className="crumb-card flex items-center gap-3 p-3 w-full text-left relative"
         >
+          {/* Heart */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavourite?.(bake.id, !!bake.is_favourite);
+            }}
+            className="absolute top-2 right-2 p-1"
+            aria-label={bake.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
+          >
+            <Heart
+              size={18}
+              fill={bake.is_favourite ? 'hsl(var(--destructive))' : 'none'}
+              stroke={bake.is_favourite ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))'}
+            />
+          </button>
+
           {/* Thumbnail */}
           <div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden border border-border"
             style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
@@ -48,7 +65,7 @@ export default function BakeListView({ bakes, demo = false }: BakeListViewProps)
           </div>
 
           {/* Info */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-6">
             <p className="font-semibold text-foreground truncate text-[15px]"
               style={{ fontFamily: 'Raleway, sans-serif' }}>
               {bake.name}
@@ -68,6 +85,13 @@ export default function BakeListView({ bakes, demo = false }: BakeListViewProps)
                 />
               ))}
             </div>
+            {/* Notes */}
+            {bake.notes && (
+              <p className="text-muted-foreground text-[12px] mt-1 truncate"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                {bake.notes}
+              </p>
+            )}
           </div>
         </button>
       ))}

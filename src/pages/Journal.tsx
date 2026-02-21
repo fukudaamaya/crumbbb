@@ -9,7 +9,7 @@ import DemoBanner from '@/components/DemoBanner';
 type ViewMode = 'grid' | 'list';
 
 export default function Journal({ demo = false }: { demo?: boolean }) {
-  const { bakes } = useBakes(demo);
+  const { bakes, updateBake } = useBakes(demo);
   const [view, setView] = useState<ViewMode>('grid');
   const year = new Date().getFullYear();
 
@@ -64,7 +64,7 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
         {view === 'grid' ? (
           <DotCalendar bakes={bakes} year={year} demo={demo} />
         ) : (
-          <BakeListView bakes={bakes} demo={demo} />
+          <BakeListView bakes={bakes} demo={demo} onToggleFavourite={(id, current) => updateBake(id, { is_favourite: !current })} />
         )}
       </main>
 
