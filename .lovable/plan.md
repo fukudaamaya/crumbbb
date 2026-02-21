@@ -1,27 +1,40 @@
 
+# Add Notes and Favourite Heart to List View
 
-# Add Bread Images to Demo Bakes
+## Changes
 
-## Overview
-Add real bread photos to the 5 sample bake entries so they appear as circular thumbnails in the year overview calendar and throughout the demo experience.
+### `src/components/BakeListView.tsx`
 
-## Approach
-Update `src/data/sampleBakes.ts` to set the `photo_base64` field to Unsplash image URLs for each entry. Despite the field name, it's used directly as an `img src`, so regular URLs work perfectly -- no base64 encoding needed.
+1. **Add `Heart` icon import** from lucide-react alongside the existing `Star` import.
 
-## Image Assignments
-Each demo bake gets a matching bread photo from Unsplash (using their free image CDN with size parameters for fast loading):
+2. **Accept `onToggleFavourite` callback prop** so the heart button can update the bake without navigating away:
+   ```
+   onToggleFavourite?: (id: string, current: boolean) => void
+   ```
 
-1. **Classic Country Loaf** -- Rustic sourdough boule
-2. **Rye and Caraway** -- Dark rye loaf
-3. **Olive and Rosemary Focaccia** -- Focaccia flatbread
-4. **Spelt Sandwich Loaf** -- Sliced sandwich bread
-5. **Sesame Semolina Boule** -- Sesame-topped round loaf
+3. **Add a heart icon** in the top-right corner of each list card. Tapping it calls `onToggleFavourite` (with `e.stopPropagation()` to prevent navigating into the bake detail). Filled heart for favourites, outline for non-favourites -- same style used in `BakeDetail.tsx`.
 
-## Technical Details
+4. **Show truncated notes** below the star rating. Display `bake.notes` in a single line with `truncate` styling and muted text, only when notes exist.
 
-### File to modify
-- **`src/data/sampleBakes.ts`** -- Replace each `photo_base64: ''` with a URL string pointing to an appropriately sized Unsplash image (around 400x400px for fast loading while looking sharp in both the small calendar dots and the detail view).
+### `src/pages/Journal.tsx`
 
-### No other changes needed
-The DotCalendar, BakeListView, Dashboard, and BakeDetail components already handle the `photo_base64` field and will display the images automatically.
+5. **Pass `onToggleFavourite` to BakeListView**, wiring it to the existing `updateBake` from `useBakes`:
+   ```
+   onToggleFavourite={(id, current) => updateBake(id, { is_favourite: !current })}
+   ```
+   This requires pulling `updateBake` from the `useBakes` hook (already available but not currently destructured in Journal).
 
+## Layout
+
+Each list card will look like:
+
+```text
++------------------------------------------+
+| [photo]  Bake Name               [heart] |
+|          12 Jan 2025 . 75% hydration      |
+|          * * * * *                        |
+|          Great oven spring, nice cr...    |
++------------------------------------------+
+```
+
+The card remains a single tappable button that navigates to the detail view. The heart is a nested button with `stopPropagation` so it toggles independently.
