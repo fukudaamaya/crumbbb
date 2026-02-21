@@ -1,56 +1,51 @@
 
-# Demo Mode with Sample Data
+
+# Settings Page
 
 ## Overview
-Add a "demo mode" that lets visitors explore the app with pre-loaded sample bakes -- no account required. Users will see a banner prompting them to sign up, and all write actions (add, edit, delete, favourite) will show a sign-up prompt instead of executing.
+Add a Settings section accessible from the Dashboard via a gear icon in the header. Settings will be stored locally (localStorage) and exposed through a React context so all components can react to user preferences.
 
-## How It Works
-1. The Login and Signup pages get a "Try Demo" link/button
-2. Tapping it navigates to the Journal page without authenticating
-3. The app detects the unauthenticated state and loads hardcoded sample bakes instead of querying the database
-4. All interactive/write actions (new bake FAB, edit fields, delete, favourite, rating) show a prompt nudging the user to create an account
-5. A persistent banner at the top reminds them they're in demo mode with a "Sign Up" button
+## Settings
+
+### 1. Start of the Week
+- Toggle between **Sunday** and **Monday**
+- Affects the DotCalendar and streak calculation
+
+### 2. Temperature Unit
+- Toggle between **Celsius** and **Fahrenheit**
+- Affects display in BakeDetail (oven temp) and the bake wizard
+
+### 3. Accent Colour
+- 8 colour circles in a 4x2 grid
+- Selected colour updates the CSS `--primary` variable globally
+- Colours will be warm/earthy tones that fit the brutalist aesthetic (e.g., maroon, terracotta, forest green, navy, charcoal, teal, plum, burnt orange)
 
 ## User Flow
-- Login/Signup screen --> "Explore Demo" button --> Journal with sample data
-- User taps around, views bake details, browses dashboard -- all read-only
-- Any write action triggers a modal/toast: "Create an account to save your own bakes"
-- Banner "Sign Up" or modal button --> navigates to /signup
+- Dashboard header gets a gear/settings icon button (top-right)
+- Tapping it navigates to `/settings` (or `/demo/settings` in demo mode)
+- Settings page has the three sections stacked vertically in crumb-cards
+- Changes apply immediately and persist via localStorage
 
 ## Technical Details
 
-### 1. Sample data file (`src/data/sampleBakes.ts`)
-- Create 4-5 realistic sample `Bake` objects with varied flour blends, ratings, dates, and notes
-- No photos (use the fallback bread emoji)
+### New files
+- **`src/contexts/SettingsContext.tsx`** -- React context + provider with localStorage persistence. Exposes `weekStart`, `tempUnit`, `accentColor`, and setters. On mount, reads from localStorage. On change, writes to localStorage and updates CSS custom properties on `:root`.
+- **`src/pages/Settings.tsx`** -- Settings page with three cards: week start toggle, temp unit toggle, and accent colour grid.
 
-### 2. Update `ProtectedRoute` in `src/App.tsx`
-- Add a new `DemoRoute` wrapper that renders children without requiring auth
-- Routes for `/demo`, `/demo/dashboard`, `/demo/bake/:id` using the same page components
+### Modified files
+- **`src/App.tsx`** -- Wrap app in `SettingsProvider`, add `/settings` and `/demo/settings` routes
+- **`src/pages/Dashboard.tsx`** -- Add a gear icon button in the header linking to settings
+- **`src/components/BottomNav.tsx`** -- Optionally add a third "Settings" tab (or keep it as a header icon only)
+- **`src/pages/BakeDetail.tsx`** -- Use `tempUnit` from settings context to display temperature as C or F
+- **`src/pages/wizard/Step3Baking.tsx`** -- Use `tempUnit` for the bake temp input label
+- **`src/index.css`** -- Add the 8 accent colour palettes as data attributes or keep dynamic via JS
 
-### 3. Update `useBakes` hook (`src/hooks/useBakes.ts`)
-- Accept an optional `demo` flag (or detect no user)
-- When in demo mode: return sample bakes, and make all mutations no-ops that trigger a sign-up prompt (toast from sonner)
+### Accent colour implementation
+The `SettingsProvider` will set `--primary` and `--accent` CSS variables on `document.documentElement.style` whenever the accent colour changes. This means all existing `text-primary`, `bg-primary`, etc. classes will automatically pick up the new colour with zero changes to existing components.
 
-### 4. Update `Journal.tsx`, `Dashboard.tsx`, `BakeDetail.tsx`
-- Accept a `demo` prop or detect demo mode from context/route
-- Show a top banner in demo mode: "You're exploring Crumb -- Sign up to start your own journal"
-- Hide or intercept the FAB and edit actions
+### Temperature conversion
+A utility function `displayTemp(celsius: number, unit: 'C' | 'F')` will convert and format. The stored value in the database stays in Celsius -- only the display changes.
 
-### 5. Update `Login.tsx` and `Signup.tsx`
-- Add an "Explore Demo" button/link below the sign-in form
+### Toggle UI
+Each toggle will use a simple two-option segmented control built with the existing brutalist button styles (two side-by-side buttons, active one uses `btn-primary`, inactive uses `btn-secondary`).
 
-### 6. Update `BottomNav.tsx`
-- In demo mode, point nav links to `/demo` and `/demo/dashboard`
-
-### Files to Create
-- `src/data/sampleBakes.ts` -- hardcoded sample bake data
-
-### Files to Modify
-- `src/App.tsx` -- add demo routes
-- `src/hooks/useBakes.ts` -- add demo mode with sample data and no-op mutations
-- `src/pages/Login.tsx` -- add "Explore Demo" link
-- `src/pages/Signup.tsx` -- add "Explore Demo" link
-- `src/pages/Journal.tsx` -- add demo banner
-- `src/pages/Dashboard.tsx` -- add demo banner
-- `src/pages/BakeDetail.tsx` -- intercept write actions in demo mode
-- `src/components/BottomNav.tsx` -- handle demo route paths
