@@ -86,12 +86,14 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
           const bake = bakesByDate[ds];
           const isToday = ds === today;
           const isPast = ds < today;
+          const isFuture = ds > today;
 
           return (
             <button
               key={ds}
-              onClick={() => handleDayTap(d)}
-              className="aspect-square relative flex items-center justify-center"
+              onClick={() => !isFuture && handleDayTap(d)}
+              disabled={isFuture}
+              className="aspect-square relative flex items-center justify-center disabled:cursor-default"
               aria-label={ds}
             >
               {bake?.photo_base64 ? (
