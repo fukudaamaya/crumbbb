@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 
@@ -19,28 +19,40 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
 
   const [timerActive, setTimerActive] = useState(false);
   const [secsLeft, setSecsLeft] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const endTimeRef = useRef<number>(0);
+
+  const recalc = useCallback(() => {
+    if (!endTimeRef.current) return;
+    const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+    setSecsLeft(remaining);
+    if (remaining <= 0) {
+      endTimeRef.current = 0;
+      setTimerActive(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!timerActive) return;
-    const id = setInterval(() => {
-      setSecsLeft(s => {
-        if (s <= 1) { clearInterval(id); setTimerActive(false); return 0; }
-        return s - 1;
-      });
-    }, 1000);
-    intervalRef.current = id;
+    const id = setInterval(recalc, 250);
     return () => clearInterval(id);
-  }, [timerActive]);
+  }, [timerActive, recalc]);
+
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState === 'visible') recalc();
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, [recalc]);
 
   const startTimer = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    endTimeRef.current = Date.now() + bakeMins * 60 * 1000;
     setSecsLeft(bakeMins * 60);
     setTimerActive(true);
   };
 
   const stopTimer = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    endTimeRef.current = 0;
     setTimerActive(false);
   };
 
@@ -89,7 +101,6 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-        {/* Two input fields side by side */}
         <div className="flex gap-3">
           <div className="flex-1">
             <label className="crumb-label">Oven Temp ({tempUnit === 'F' ? '°F' : '°C'})</label>
@@ -113,7 +124,6 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
           </div>
         </div>
 
-        {/* Bake timer card */}
         <div className="crumb-card p-6 flex flex-col items-center gap-5">
           <div className="text-center">
             <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold mb-1"
@@ -131,7 +141,6 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
         </div>
       </div>
 
-      {/* Next */}
       <div className="px-4 py-4 border-t border-border bg-background">
         <button
           onClick={() => { stopTimer(); onNext({ bake_temp_c: temp, bake_time_mins: bakeMins }); }}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
 interface Step2Props {
@@ -11,24 +11,23 @@ interface Step2Props {
 const INTERVALS = [30, 60, 90, 120, 150, 180]; // minutes
 
 export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Props) {
-
-  // Check if the bake is for a past date
   const today = new Date().toISOString().split('T')[0];
   const isPastDate = date < today;
 
   const [autolyseActive, setAutolyseActive] = useState(false);
   const [autolyseSecsLeft, setAutolyseSecsLeft] = useState(30 * 60);
   const [autolyseDone, setAutolyseDone] = useState(false);
+  const autolyseEndRef = useRef<number>(0);
 
   const [proofingMins, setProofingMins] = useState(90);
   const [proofingActive, setProofingActive] = useState(false);
   const [proofingSecsLeft, setProofingSecsLeft] = useState(90 * 60);
+  const proofingEndRef = useRef<number>(0);
 
   const [notifSupported, setNotifSupported] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
 
   const timeoutIds = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const supported = 'Notification' in window;
@@ -42,44 +41,75 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
     return result;
   };
 
+  // Recalculate helper
+  const recalcAutolyse = useCallback(() => {
+    if (!autolyseEndRef.current) return;
+    const remaining = Math.max(0, Math.ceil((autolyseEndRef.current - Date.now()) / 1000));
+    setAutolyseSecsLeft(remaining);
+    if (remaining <= 0) {
+      autolyseEndRef.current = 0;
+      setAutolyseActive(false);
+      setAutolyseDone(true);
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Crumb — Autolyse complete! 🍞', { body: 'Time to add your starter.' });
+      }
+    }
+  }, []);
+
+  const recalcProofing = useCallback(() => {
+    if (!proofingEndRef.current) return;
+    const remaining = Math.max(0, Math.ceil((proofingEndRef.current - Date.now()) / 1000));
+    setProofingSecsLeft(remaining);
+    if (remaining <= 0) {
+      proofingEndRef.current = 0;
+      setProofingActive(false);
+    }
+  }, []);
+
   // Autolyse timer
   useEffect(() => {
     if (!autolyseActive) return;
-    const id = setInterval(() => {
-      setAutolyseSecsLeft(s => {
-        if (s <= 1) {
-          clearInterval(id);
-          setAutolyseActive(false);
-          setAutolyseDone(true);
-          if (notifSupported && notifPermission === 'granted') {
-            new Notification('Crumb — Autolyse complete! 🍞', {
-              body: 'Time to add your starter.',
-            });
-          }
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
+    const id = setInterval(recalcAutolyse, 250);
     return () => clearInterval(id);
-  }, [autolyseActive, notifSupported, notifPermission]);
+  }, [autolyseActive, recalcAutolyse]);
 
   // Proofing timer
   useEffect(() => {
     if (!proofingActive) return;
-    const id = setInterval(() => {
-      setProofingSecsLeft(s => {
-        if (s <= 1) {
-          clearInterval(id);
-          setProofingActive(false);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    intervalRef.current = id;
+    const id = setInterval(recalcProofing, 250);
     return () => clearInterval(id);
-  }, [proofingActive]);
+  }, [proofingActive, recalcProofing]);
+
+  // Visibility change listener
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState === 'visible') {
+        recalcAutolyse();
+        recalcProofing();
+      }
+    };
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, [recalcAutolyse, recalcProofing]);
+
+  const startAutolyse = () => {
+    autolyseEndRef.current = Date.now() + 30 * 60 * 1000;
+    setAutolyseSecsLeft(30 * 60);
+    setAutolyseActive(true);
+  };
+
+  const pauseAutolyse = () => {
+    // Store remaining time so we can resume
+    const remaining = Math.max(0, autolyseEndRef.current - Date.now());
+    autolyseEndRef.current = 0;
+    setAutolyseActive(false);
+    setAutolyseSecsLeft(Math.ceil(remaining / 1000));
+  };
+
+  const resumeAutolyse = () => {
+    autolyseEndRef.current = Date.now() + autolyseSecsLeft * 1000;
+    setAutolyseActive(true);
+  };
 
   const scheduleNotifications = (mins: number, permission: NotificationPermission) => {
     if (!notifSupported || permission !== 'granted') return;
@@ -87,13 +117,9 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
     intervals.forEach(m => {
       const id = setTimeout(() => {
         if (m < mins) {
-          new Notification(`Crumb — Proofing check: ${m} min`, {
-            body: `${mins - m} minutes remaining.`,
-          });
+          new Notification(`Crumb — Proofing check: ${m} min`, { body: `${mins - m} minutes remaining.` });
         } else {
-          new Notification('Crumb — Proofing complete! 🎉', {
-            body: 'Your dough is ready to shape.',
-          });
+          new Notification('Crumb — Proofing complete! 🎉', { body: 'Your dough is ready to shape.' });
         }
       }, m * 60 * 1000);
       timeoutIds.current.push(id);
@@ -101,6 +127,7 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
   };
 
   const startProofing = async () => {
+    proofingEndRef.current = Date.now() + proofingMins * 60 * 1000;
     setProofingSecsLeft(proofingMins * 60);
     let permission = notifPermission;
     if (notifSupported && permission === 'default') {
@@ -113,7 +140,8 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
   const stopAll = () => {
     timeoutIds.current.forEach(clearTimeout);
     timeoutIds.current = [];
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    autolyseEndRef.current = 0;
+    proofingEndRef.current = 0;
     setProofingActive(false);
     setAutolyseActive(false);
   };
@@ -124,10 +152,7 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  if (isPastDate) {
-    // Auto-skip for past dates
-    return null;
-  }
+  if (isPastDate) return null;
 
   return (
     <div
@@ -187,7 +212,11 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
           </div>
           {!autolyseDone && (
             <button
-              onClick={() => setAutolyseActive(a => !a)}
+              onClick={() => {
+                if (autolyseActive) pauseAutolyse();
+                else if (autolyseSecsLeft < 30 * 60) resumeAutolyse();
+                else startAutolyse();
+              }}
               className={autolyseActive ? 'btn-secondary w-full py-3 text-[15px]' : 'btn-primary w-full py-3 text-[15px]'}
             >
               {autolyseActive ? 'Pause' : 'Start Autolyse'}
