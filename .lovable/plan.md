@@ -1,39 +1,43 @@
 
 
-# Rearrange BakeDetail Layout
+# Preserve List View When Navigating Back
 
-## Changes to `src/pages/BakeDetail.tsx`
+## Problem
 
-### 1. Move the Heart from the header to inline with the title
-- Remove the heart button from the sticky header bar (keep only the back arrow in the header).
-- Place the heart button on the same row as the bake name, aligned to the right edge. The name and heart will sit in a `flex justify-between items-center` container.
+The Journal page stores its view mode (`grid` | `list`) in React component state via `useState('grid')`. When you navigate to a bake detail and then back, the Journal component remounts and resets to the default `'grid'` view.
 
-### 2. Move Notes above Flour Blend
-- Relocate the Notes section (label + textarea/text) from its current position (below Process) to directly below the star rating row and above the Flour Blend card.
+## Solution
 
-### Layout After Changes
+Persist the view mode in the URL search params (`?view=list`). This way, when the user navigates back, the URL retains the query parameter and the correct view is restored.
 
-```text
-[back arrow]                        <- header (no heart)
+## Changes
 
-[photo]
+### 1. `src/pages/Journal.tsx`
+- Read the initial view mode from `useSearchParams` instead of hardcoding `'grid'`.
+- When the user toggles the view, update the search param (using `setSearchParams` with `replace: true` so it doesn't pollute browser history).
 
-Bake Name                   [heart] <- same row
-Date
-* * * * *
+### 2. `src/components/BakeListView.tsx`
+- Update the navigation links for each bake card to include `?from=list` or simply ensure the Journal route already has `?view=list` in the back path. No change needed here since the browser back button will return to the URL with the query param intact.
 
-Notes                               <- moved up
-[textarea / text]
+### 3. `src/components/DotCalendar.tsx`
+- Same as above -- verify that bake links navigate via standard `navigate()` so the browser history stack preserves the Journal URL with its search params.
 
-Flour Blend card
-Baker's Percentages card
-Process card
-[Delete button]
+## Technical Details
+
+In `Journal.tsx`:
+```typescript
+const [searchParams, setSearchParams] = useSearchParams();
+const [view, setView] = useState<ViewMode>(
+  (searchParams.get('view') as ViewMode) || 'grid'
+);
+
+const handleSetView = (v: ViewMode) => {
+  setView(v);
+  setSearchParams({ view: v }, { replace: true });
+};
 ```
 
-### Technical Details
-- In the header, remove the heart `<button>` entirely.
-- Wrap the name heading and a new heart button in a `flex items-center justify-between` div.
-- Cut the Notes block from its current location and paste it immediately after the star rating `<div>`, before the Flour Blend card.
-- No prop or hook changes needed -- all data and handlers already exist in the component.
+Then replace `setView('grid')` / `setView('list')` calls with `handleSetView('grid')` / `handleSetView('list')`.
+
+No backend or database changes required.
 
