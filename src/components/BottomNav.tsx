@@ -1,7 +1,9 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { BookOpen, BarChart2 } from 'lucide-react';
 
-export default function BottomNav() {
+export default function BottomNav({ demo = false }: { demo?: boolean }) {
+  const prefix = demo ? '/demo' : '';
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background"
@@ -9,7 +11,7 @@ export default function BottomNav() {
     >
       <div className="flex">
         <NavLink
-          to="/"
+          to={`${prefix}/`}
           end
           className={({ isActive }) =>
             `flex flex-1 flex-col items-center justify-center py-3 gap-1 transition-colors ${
@@ -34,7 +36,7 @@ export default function BottomNav() {
           )}
         </NavLink>
         <NavLink
-          to="/dashboard"
+          to={`${prefix}/dashboard`}
           className={({ isActive }) =>
             `flex flex-1 flex-col items-center justify-center py-3 gap-1 transition-colors ${
               isActive ? 'text-primary' : 'text-muted-foreground'

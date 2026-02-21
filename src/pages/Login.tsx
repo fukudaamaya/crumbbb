@@ -94,6 +94,13 @@ export default function Login() {
             Don't have an account?{' '}
             <Link to="/signup" className="text-primary font-semibold underline">Sign up</Link>
           </p>
+          <Link
+            to="/demo"
+            className="inline-block text-[13px] text-muted-foreground underline mt-2"
+            style={{ fontFamily: 'DM Sans, sans-serif' }}
+          >
+            Explore demo →
+          </Link>
         </div>
       </div>
     </div>

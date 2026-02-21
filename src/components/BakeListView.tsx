@@ -4,6 +4,7 @@ import { Star } from 'lucide-react';
 
 interface BakeListViewProps {
   bakes: Bake[];
+  demo?: boolean;
 }
 
 function formatDate(dateStr: string): string {
@@ -11,7 +12,7 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function BakeListView({ bakes }: BakeListViewProps) {
+export default function BakeListView({ bakes, demo = false }: BakeListViewProps) {
   const navigate = useNavigate();
 
   const sorted = [...bakes].sort((a, b) => b.date.localeCompare(a.date));
@@ -31,7 +32,7 @@ export default function BakeListView({ bakes }: BakeListViewProps) {
       {sorted.map(bake => (
         <button
           key={bake.id}
-          onClick={() => navigate(`/bake/${bake.id}`)}
+          onClick={() => navigate(demo ? `/demo/bake/${bake.id}` : `/bake/${bake.id}`)}
           className="crumb-card flex items-center gap-3 p-3 w-full text-left"
         >
           {/* Thumbnail */}

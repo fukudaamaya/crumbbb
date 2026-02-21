@@ -4,11 +4,12 @@ import { useBakes } from '@/hooks/useBakes';
 import DotCalendar from '@/components/DotCalendar';
 import BakeListView from '@/components/BakeListView';
 import FAB from '@/components/FAB';
+import DemoBanner from '@/components/DemoBanner';
 
 type ViewMode = 'grid' | 'list';
 
-export default function Journal() {
-  const { bakes } = useBakes();
+export default function Journal({ demo = false }: { demo?: boolean }) {
+  const { bakes } = useBakes(demo);
   const [view, setView] = useState<ViewMode>('grid');
   const year = new Date().getFullYear();
 
@@ -17,9 +18,11 @@ export default function Journal() {
       className="flex flex-col min-h-screen bg-background"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}
     >
+      {demo && <DemoBanner />}
+
       {/* Header */}
       <header className="sticky top-0 z-30 bg-background border-b border-border px-4 py-3 flex items-center justify-between"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 40px)' }}>
+        style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <h1 className="wordmark">CRUMB</h1>
           <p className="text-[12px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -59,14 +62,14 @@ export default function Journal() {
       {/* Content */}
       <main className="flex-1 pt-4">
         {view === 'grid' ? (
-          <DotCalendar bakes={bakes} year={year} />
+          <DotCalendar bakes={bakes} year={year} demo={demo} />
         ) : (
-          <BakeListView bakes={bakes} />
+          <BakeListView bakes={bakes} demo={demo} />
         )}
       </main>
 
-      {/* FAB */}
-      <FAB />
+      {/* FAB — hidden in demo */}
+      {!demo && <FAB />}
     </div>
   );
 }
