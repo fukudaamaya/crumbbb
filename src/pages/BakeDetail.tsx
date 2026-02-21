@@ -107,14 +107,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         <button onClick={() => navigate(backPath)} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
-          <Heart
-            size={24}
-            fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
-            stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
-            strokeWidth={1.8}
-          />
-        </button>
+        <div className="w-8" /> {/* Spacer to balance header */}
       </header>
 
       <div className="flex-1 overflow-y-auto">
@@ -147,27 +140,39 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         <div className="px-4 py-5 space-y-6">
           {/* Tappable name */}
           <div>
-            {editingName ? (
-              <input
-                autoFocus
-                className="crumb-input text-2xl font-bold w-full"
-                style={{ fontFamily: 'Raleway, sans-serif' }}
-                value={localName}
-                onChange={e => setLocalName(e.target.value)}
-                onBlur={saveName}
-                onKeyDown={e => e.key === 'Enter' && saveName()}
-              />
-            ) : (
-              <button
-                className="flex items-center gap-2 w-full text-left group"
-                onClick={() => { setLocalName(bake.name); setEditingName(true); }}
-              >
-                <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
-                  {bake.name}
-                </h1>
-                {!isDemo && <Pencil size={15} strokeWidth={2} className="text-muted-foreground shrink-0" />}
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                {editingName ? (
+                  <input
+                    autoFocus
+                    className="crumb-input text-2xl font-bold w-full"
+                    style={{ fontFamily: 'Raleway, sans-serif' }}
+                    value={localName}
+                    onChange={e => setLocalName(e.target.value)}
+                    onBlur={saveName}
+                    onKeyDown={e => e.key === 'Enter' && saveName()}
+                  />
+                ) : (
+                  <button
+                    className="flex items-center gap-2 w-full text-left group"
+                    onClick={() => { setLocalName(bake.name); setEditingName(true); }}
+                  >
+                    <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                      {bake.name}
+                    </h1>
+                    {!isDemo && <Pencil size={15} strokeWidth={2} className="text-muted-foreground shrink-0" />}
+                  </button>
+                )}
+              </div>
+              <button onClick={toggleFavourite} className="p-1 shrink-0 ml-2" aria-label="Toggle favourite">
+                <Heart
+                  size={24}
+                  fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
+                  stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+                  strokeWidth={1.8}
+                />
               </button>
-            )}
+            </div>
 
             {/* Tappable date */}
             {editingDate ? (
@@ -208,6 +213,24 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="crumb-label">Notes</label>
+            {isDemo ? (
+              <p className="text-[14px] text-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                {bake.notes || '—'}
+              </p>
+            ) : (
+              <textarea
+                className="crumb-input resize-none"
+                rows={4}
+                placeholder="How did it go? Crust colour, oven spring, flavour..."
+                defaultValue={bake.notes}
+                onBlur={e => updateBake(bake.id, { notes: e.target.value })}
+              />
+            )}
           </div>
 
           {/* Flour blend */}
@@ -268,24 +291,6 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
               </div>
             </div>
           )}
-
-          {/* Notes */}
-          <div>
-            <label className="crumb-label">Notes</label>
-            {isDemo ? (
-              <p className="text-[14px] text-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {bake.notes || '—'}
-              </p>
-            ) : (
-              <textarea
-                className="crumb-input resize-none"
-                rows={4}
-                placeholder="How did it go? Crust colour, oven spring, flavour..."
-                defaultValue={bake.notes}
-                onBlur={e => updateBake(bake.id, { notes: e.target.value })}
-              />
-            )}
-          </div>
 
           {/* Delete — hidden in demo */}
           {!isDemo && (
