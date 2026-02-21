@@ -20,6 +20,7 @@ function calcStreak(bakes: Bake[]): number {
     weekSet.add(`${d.getFullYear()}-W${week}`);
   });
   const now = new Date();
+  now.setHours(0, 0, 0, 0);
   const jan1Now = new Date(now.getFullYear(), 0, 1);
   const currentWeek = Math.ceil(((now.getTime() - jan1Now.getTime()) / 86400000 + jan1Now.getDay() + 1) / 7);
   let streak = 0;
