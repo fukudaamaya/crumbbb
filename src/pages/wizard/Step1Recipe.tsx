@@ -188,6 +188,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
               inputMode="numeric"
               value={loafWeight || ''}
               onChange={(e) => setLoafWeight(Number(e.target.value))}
+              onFocus={(e) => e.target.select()}
               placeholder="500"
             />
           </div>
@@ -222,7 +223,8 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                 inputMode="numeric"
                 placeholder="g"
                 value={f.grams || ''}
-                onChange={(e) => updateFlour(i, 'grams', Number(e.target.value))} />
+                onChange={(e) => updateFlour(i, 'grams', Number(e.target.value))}
+                onFocus={(e) => e.target.select()} />
 
                 {flours.length > 1 &&
               <button
@@ -259,7 +261,8 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                 type="number"
                 inputMode="numeric"
                 value={value || ''}
-                onChange={(e) => set(Number(e.target.value))} />
+                onChange={(e) => set(Number(e.target.value))}
+                onFocus={(e) => e.target.select()} />
               <span className="text-primary font-bold tabular-nums text-[13px] text-right"
                 style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 {pct}%
