@@ -1,84 +1,32 @@
 
 
-# Allow Up to 5 Photos Per Bake
+# Fix Broken Demo Bread Images
 
-## Overview
+## Problem
 
-Replace the single "Loaf Photo" field with a multi-photo gallery supporting up to 5 photos. The first photo remains the "hero" image shown in list views and cards.
+3 of the 5 sample bake images in `src/data/sampleBakes.ts` use Unsplash photo URLs that no longer resolve, causing the circular thumbnails to show the bread emoji fallback instead of actual photos.
 
-## Database Change
+**Broken entries:**
+- demo-1 (Classic Country Loaf): `photo-1585478259715-876acc5be8eb`
+- demo-4 (Spelt Sandwich Loaf): `photo-1549931319-a545753467c8`
+- demo-5 (Sesame Semolina Boule): `photo-1555507036-ab1f4038024a`
 
-Add a new `photos` jsonb column to the `bakes` table to store an array of base64 strings. Keep the existing `photo_base64` column for backward compatibility (it will hold the first photo for list/card thumbnails).
+**Working entries (no change needed):**
+- demo-2 (Rye and Caraway): `photo-1509440159596-0249088772ff`
+- demo-3 (Olive and Rosemary Focaccia): `photo-1568471173242-461f0a730452`
 
-```sql
-ALTER TABLE bakes ADD COLUMN photos jsonb NOT NULL DEFAULT '[]'::jsonb;
-```
+## Fix
 
-## Changes
+Replace the 3 broken Unsplash URLs in `src/data/sampleBakes.ts` with working bread/sourdough image URLs from Unsplash:
 
-### 1. `src/types/bake.ts`
-- Add `photos: string[]` field to the `Bake` interface.
+| Bake | Old (broken) ID | New URL |
+|------|-----------------|---------|
+| Classic Country Loaf | `photo-1585478259715-876acc5be8eb` | A working Unsplash sourdough/country loaf image |
+| Spelt Sandwich Loaf | `photo-1549931319-a545753467c8` | A working Unsplash sandwich loaf image |
+| Sesame Semolina Boule | `photo-1555507036-ab1f4038024a` | A working Unsplash boule/round bread image |
 
-### 2. `src/hooks/useBakes.ts`
-- Map the new `photos` column from DB rows, defaulting to `[]`.
-- When inserting/updating, include the `photos` field (cast as jsonb).
+## File Changed
 
-### 3. `src/pages/wizard/Step4Capture.tsx` (major change)
-- Replace single `loafPhoto` state with `photos: string[]` state.
-- Show a horizontal scrollable row of photo thumbnails with an "add" button (visible when < 5 photos).
-- Each thumbnail has an "X" button to remove it.
-- The action sheet (Camera / Photo Library) adds a new photo to the array.
-- On save, pass `photo_base64: photos[0] || ''` and `photos` to the parent.
-- Show a "1 / 5", "2 / 5" counter so users know their limit.
+- `src/data/sampleBakes.ts` -- swap the 3 broken `photo_base64` URLs with verified working Unsplash image links.
 
-### 4. `src/pages/NewBakeWizard.tsx`
-- Update `handleSave` to include `photos` in the bake object.
-- Update the `Step4Capture` `onSave` callback type to include `photos: string[]`.
-
-### 5. `src/pages/BakeDetail.tsx`
-- Show a horizontally scrollable photo gallery instead of a single image.
-- Allow adding more photos (up to 5) via the existing action sheet.
-- Allow removing individual photos.
-- Keep `photo_base64` synced with `photos[0]` when updating.
-
-### 6. `src/components/BakeListView.tsx`
-- No change needed -- it already uses `bake.photo_base64` for the thumbnail, which will continue to hold the first photo.
-
-## Technical Details
-
-### Photo array state in Step4Capture:
-```typescript
-const [photos, setPhotos] = useState<string[]>([]);
-
-const addPhoto = async (file: File) => {
-  if (photos.length >= 5) return;
-  const compressed = await compressImage(file);
-  setPhotos(prev => [...prev, compressed]);
-};
-
-const removePhoto = (index: number) => {
-  setPhotos(prev => prev.filter((_, i) => i !== index));
-};
-```
-
-### Gallery UI (Step4Capture):
-- Horizontal scroll row with photo thumbnails (80x80px, rounded).
-- Each has an X overlay button in the corner.
-- A dashed "+" card at the end when count < 5.
-- Tapping "+" opens the Camera/Library action sheet.
-
-### Save payload update:
-```typescript
-onSave({
-  photo_base64: photos[0] || '',
-  crumb_photo_base64: '',
-  photos,
-  notes,
-  rating,
-});
-```
-
-### BakeDetail gallery:
-- Horizontal scroll of all photos from `bake.photos` (falling back to `[bake.photo_base64]` for older bakes).
-- Tap any photo to view it larger (or keep current full-width display for the selected photo).
-
+No other files or backend changes needed.
