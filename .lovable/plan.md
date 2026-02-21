@@ -1,43 +1,22 @@
 
 
-# Preserve List View When Navigating Back
+# Disable Future Date Dots in Calendar
 
-## Problem
+## Change
 
-The Journal page stores its view mode (`grid` | `list`) in React component state via `useState('grid')`. When you navigate to a bake detail and then back, the Journal component remounts and resets to the default `'grid'` view.
-
-## Solution
-
-Persist the view mode in the URL search params (`?view=list`). This way, when the user navigates back, the URL retains the query parameter and the correct view is restored.
-
-## Changes
-
-### 1. `src/pages/Journal.tsx`
-- Read the initial view mode from `useSearchParams` instead of hardcoding `'grid'`.
-- When the user toggles the view, update the search param (using `setSearchParams` with `replace: true` so it doesn't pollute browser history).
-
-### 2. `src/components/BakeListView.tsx`
-- Update the navigation links for each bake card to include `?from=list` or simply ensure the Journal route already has `?view=list` in the back path. No change needed here since the browser back button will return to the URL with the query param intact.
-
-### 3. `src/components/DotCalendar.tsx`
-- Same as above -- verify that bake links navigate via standard `navigate()` so the browser history stack preserves the Journal URL with its search params.
+In `src/components/DotCalendar.tsx`, prevent tapping on future dates by disabling the button for any date after today.
 
 ## Technical Details
 
-In `Journal.tsx`:
-```typescript
-const [searchParams, setSearchParams] = useSearchParams();
-const [view, setView] = useState<ViewMode>(
-  (searchParams.get('view') as ViewMode) || 'grid'
-);
+In the `handleDayTap` function and the button rendering:
 
-const handleSetView = (v: ViewMode) => {
-  setView(v);
-  setSearchParams({ view: v }, { replace: true });
-};
-```
+1. Add a `isFuture` check: `const isFuture = ds > today`
+2. For future dates, render a non-interactive `div` instead of a `button` (or set `disabled` on the button and skip the `onClick` handler)
+3. Keep the existing faded dot styling (`hsl(var(--primary) / 0.12)`) for future dates -- no visual change needed since they already look distinct
 
-Then replace `setView('grid')` / `setView('list')` calls with `handleSetView('grid')` / `handleSetView('list')`.
+### File: `src/components/DotCalendar.tsx`
 
-No backend or database changes required.
+- In the day cell rendering, add `const isFuture = ds > today`
+- Change the `<button>` to disable click for future dates: either render a plain `<div>` when `isFuture` is true, or add `disabled={isFuture}` and guard `onClick` with `if (isFuture) return`
+- No other files need changes
 
