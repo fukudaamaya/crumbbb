@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LayoutGrid, List } from 'lucide-react';
 import { useBakes } from '@/hooks/useBakes';
 import DotCalendar from '@/components/DotCalendar';
@@ -10,7 +11,15 @@ type ViewMode = 'grid' | 'list';
 
 export default function Journal({ demo = false }: { demo?: boolean }) {
   const { bakes, updateBake } = useBakes(demo);
-  const [view, setView] = useState<ViewMode>('grid');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [view, setView] = useState<ViewMode>(
+    (searchParams.get('view') as ViewMode) || 'grid'
+  );
+
+  const handleSetView = (v: ViewMode) => {
+    setView(v);
+    setSearchParams({ view: v }, { replace: true });
+  };
   const year = new Date().getFullYear();
 
   return (
@@ -34,7 +43,7 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
         <div className="flex items-center border border-border rounded-[6px] overflow-hidden"
           style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
           <button
-            onClick={() => setView('grid')}
+            onClick={() => handleSetView('grid')}
             className={`px-3 py-2 transition-colors ${
               view === 'grid'
                 ? 'bg-primary text-primary-foreground'
@@ -46,7 +55,7 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
           </button>
           <div className="w-px h-6 bg-border" />
           <button
-            onClick={() => setView('list')}
+            onClick={() => handleSetView('list')}
             className={`px-3 py-2 transition-colors ${
               view === 'list'
                 ? 'bg-primary text-primary-foreground'
