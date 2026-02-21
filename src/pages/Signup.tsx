@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function Signup() {
   const [displayName, setDisplayName] = useState('');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,31 +14,13 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters.');
-      return;
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      setError('Username can only contain letters, numbers, and underscores.');
-      return;
-    }
-
     setLoading(true);
-
-    // Check username availability via security-definer function
-    const { data: taken } = await supabase.rpc('is_username_taken', { _username: username });
-
-    if (taken) {
-      setError('That username is already taken.');
-      setLoading(false);
-      return;
-    }
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { display_name: displayName, username },
+        data: { display_name: displayName },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -86,18 +67,6 @@ export default function Signup() {
               required
               placeholder="e.g. Jane Baker"
               autoComplete="name"
-            />
-          </div>
-          <div>
-            <label className="crumb-label">Username</label>
-            <input
-              type="text"
-              className="crumb-input"
-              value={username}
-              onChange={e => setUsername(e.target.value.toLowerCase())}
-              required
-              placeholder="e.g. janebakes"
-              autoComplete="username"
             />
           </div>
           <div>
