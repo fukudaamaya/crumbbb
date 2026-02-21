@@ -1,22 +1,33 @@
 
+# Fix Baking Streak Calculation
 
-# Disable Future Date Dots in Calendar
+## Root Cause
 
-## Change
+The `calcStreak` function in `src/pages/Dashboard.tsx` uses `new Date()` (which includes hours/minutes/seconds) to calculate the current week number, but uses midnight (`new Date(b.date + 'T00:00:00')`) for bake dates. The fractional day difference causes `Math.ceil` to round the current week to a higher number than the bake's week, so they never match.
 
-In `src/components/DotCalendar.tsx`, prevent tapping on future dates by disabling the button for any date after today.
+## Fix
 
-## Technical Details
+In the `calcStreak` function, normalize `now` to midnight before calculating the current week number.
 
-In the `handleDayTap` function and the button rendering:
+### File: `src/pages/Dashboard.tsx`
 
-1. Add a `isFuture` check: `const isFuture = ds > today`
-2. For future dates, render a non-interactive `div` instead of a `button` (or set `disabled` on the button and skip the `onClick` handler)
-3. Keep the existing faded dot styling (`hsl(var(--primary) / 0.12)`) for future dates -- no visual change needed since they already look distinct
+In the `calcStreak` function, change:
 
-### File: `src/components/DotCalendar.tsx`
+```typescript
+const now = new Date();
+const jan1Now = new Date(now.getFullYear(), 0, 1);
+const currentWeek = Math.ceil(((now.getTime() - jan1Now.getTime()) / 86400000 + jan1Now.getDay() + 1) / 7);
+```
 
-- In the day cell rendering, add `const isFuture = ds > today`
-- Change the `<button>` to disable click for future dates: either render a plain `<div>` when `isFuture` is true, or add `disabled={isFuture}` and guard `onClick` with `if (isFuture) return`
-- No other files need changes
+To:
 
+```typescript
+const now = new Date();
+now.setHours(0, 0, 0, 0);
+const jan1Now = new Date(now.getFullYear(), 0, 1);
+const currentWeek = Math.ceil(((now.getTime() - jan1Now.getTime()) / 86400000 + jan1Now.getDay() + 1) / 7);
+```
+
+Adding `now.setHours(0, 0, 0, 0)` normalizes "now" to midnight, making the week calculation consistent with how bake dates are handled.
+
+No other files or backend changes are needed.
