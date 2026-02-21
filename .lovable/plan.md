@@ -1,51 +1,43 @@
 
 
-# Settings Page
+# Fix Timers Pausing When App is Backgrounded
 
-## Overview
-Add a Settings section accessible from the Dashboard via a gear icon in the header. Settings will be stored locally (localStorage) and exposed through a React context so all components can react to user preferences.
+## Problem
+All timers (autolyse, proofing, baking) use `setInterval` to count down by 1 second. Mobile Safari pauses these intervals when the app is in the background, so the timer freezes and only resumes when you switch back.
 
-## Settings
+## Solution
+Instead of decrementing a counter each second, store the **end timestamp** (`Date.now() + duration`). Each tick calculates time remaining from the current time. When the app comes back to the foreground, the timer instantly shows the correct remaining time -- or fires the completion if time has elapsed.
 
-### 1. Start of the Week
-- Toggle between **Sunday** and **Monday**
-- Affects the DotCalendar and streak calculation
+Additionally, listen for the `visibilitychange` event to immediately recalculate when the user returns to the app.
 
-### 2. Temperature Unit
-- Toggle between **Celsius** and **Fahrenheit**
-- Affects display in BakeDetail (oven temp) and the bake wizard
+## Files to Modify
 
-### 3. Accent Colour
-- 8 colour circles in a 4x2 grid
-- Selected colour updates the CSS `--primary` variable globally
-- Colours will be warm/earthy tones that fit the brutalist aesthetic (e.g., maroon, terracotta, forest green, navy, charcoal, teal, plum, burnt orange)
+### `src/pages/wizard/Step2Proofing.tsx`
+- Replace `autolyseSecsLeft` countdown logic with an `autolyseEndTime` ref (stores `Date.now() + 30*60*1000`)
+- Replace `proofingSecsLeft` countdown logic with a `proofingEndTime` ref
+- On each `setInterval` tick (every 250ms for snappier updates), calculate `Math.max(0, Math.ceil((endTime - Date.now()) / 1000))`
+- Add a `visibilitychange` listener that recalculates immediately when the page becomes visible
+- Fire completion (notification, state change) if remaining time is 0 when recalculating
 
-## User Flow
-- Dashboard header gets a gear/settings icon button (top-right)
-- Tapping it navigates to `/settings` (or `/demo/settings` in demo mode)
-- Settings page has the three sections stacked vertically in crumb-cards
-- Changes apply immediately and persist via localStorage
+### `src/pages/wizard/Step3Baking.tsx`
+- Same pattern: store `bakeEndTime` ref instead of decrementing `secsLeft`
+- Calculate remaining from `Date.now()` on each tick
+- Add `visibilitychange` listener for instant catch-up
 
-## Technical Details
+## How It Works
 
-### New files
-- **`src/contexts/SettingsContext.tsx`** -- React context + provider with localStorage persistence. Exposes `weekStart`, `tempUnit`, `accentColor`, and setters. On mount, reads from localStorage. On change, writes to localStorage and updates CSS custom properties on `:root`.
-- **`src/pages/Settings.tsx`** -- Settings page with three cards: week start toggle, temp unit toggle, and accent colour grid.
+```text
+Current (broken):
+  Start --> secsLeft = 1800
+  Tick  --> secsLeft = 1799, 1798, ...
+  Background --> intervals paused --> timer freezes
 
-### Modified files
-- **`src/App.tsx`** -- Wrap app in `SettingsProvider`, add `/settings` and `/demo/settings` routes
-- **`src/pages/Dashboard.tsx`** -- Add a gear icon button in the header linking to settings
-- **`src/components/BottomNav.tsx`** -- Optionally add a third "Settings" tab (or keep it as a header icon only)
-- **`src/pages/BakeDetail.tsx`** -- Use `tempUnit` from settings context to display temperature as C or F
-- **`src/pages/wizard/Step3Baking.tsx`** -- Use `tempUnit` for the bake temp input label
-- **`src/index.css`** -- Add the 8 accent colour palettes as data attributes or keep dynamic via JS
+Fixed:
+  Start --> endTime = Date.now() + 1800000
+  Tick  --> remaining = (endTime - Date.now()) / 1000
+  Background --> intervals paused
+  Resume --> remaining recalculated instantly from real clock
+```
 
-### Accent colour implementation
-The `SettingsProvider` will set `--primary` and `--accent` CSS variables on `document.documentElement.style` whenever the accent colour changes. This means all existing `text-primary`, `bg-primary`, etc. classes will automatically pick up the new colour with zero changes to existing components.
-
-### Temperature conversion
-A utility function `displayTemp(celsius: number, unit: 'C' | 'F')` will convert and format. The stored value in the database stays in Celsius -- only the display changes.
-
-### Toggle UI
-Each toggle will use a simple two-option segmented control built with the existing brutalist button styles (two side-by-side buttons, active one uses `btn-primary`, inactive uses `btn-secondary`).
-
+## No visual or functional changes
+The timer UI stays exactly the same. Users just get accurate countdowns that survive backgrounding the app.
