@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
 import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil } from 'lucide-react';
+import DemoBanner from '@/components/DemoBanner';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -32,10 +33,12 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
-export default function BakeDetail() {
+export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { bakes, updateBake, deleteBake } = useBakes();
+  const location = useLocation();
+  const isDemo = demo || location.pathname.startsWith('/demo');
+  const { bakes, updateBake, deleteBake } = useBakes(isDemo);
 
   const bake = bakes.find(b => b.id === id);
 
@@ -49,6 +52,8 @@ export default function BakeDetail() {
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
+
+  const backPath = isDemo ? '/demo' : '/';
 
   if (!bake) {
     return (
@@ -82,7 +87,7 @@ export default function BakeDetail() {
 
   const confirmDelete = () => {
     deleteBake(bake.id);
-    navigate('/', { replace: true });
+    navigate(backPath, { replace: true });
   };
 
   return (
@@ -90,12 +95,14 @@ export default function BakeDetail() {
       className="flex flex-col min-h-dvh bg-background"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
+      {isDemo && <DemoBanner />}
+
       {/* Header */}
       <header
         className="flex items-center justify-between px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
+        style={{ paddingTop: isDemo ? '12px' : 'calc(env(safe-area-inset-top) + 12px)' }}
       >
-        <button onClick={() => navigate('/')} className="p-1" aria-label="Back">
+        <button onClick={() => navigate(backPath)} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
@@ -156,7 +163,7 @@ export default function BakeDetail() {
                 <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
                   {bake.name}
                 </h1>
-                <Pencil size={15} strokeWidth={2} className="text-muted-foreground shrink-0" />
+                {!isDemo && <Pencil size={15} strokeWidth={2} className="text-muted-foreground shrink-0" />}
               </button>
             )}
 
@@ -178,7 +185,7 @@ export default function BakeDetail() {
                 <p className="text-muted-foreground text-[14px]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                   {formatDate(bake.date)}
                 </p>
-                <Pencil size={12} strokeWidth={2} className="text-muted-foreground" />
+                {!isDemo && <Pencil size={12} strokeWidth={2} className="text-muted-foreground" />}
               </button>
             )}
 
@@ -204,9 +211,7 @@ export default function BakeDetail() {
           {/* Flour blend */}
           <div className="crumb-card p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              Flour Blend
-            </h3>
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Flour Blend</h3>
             {bake.flours.map((f, i) => (
               <div key={i} className="flex justify-between text-[14px] py-1">
                 <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{f.type}</span>
@@ -218,9 +223,7 @@ export default function BakeDetail() {
           {/* Baker's percentages */}
           <div className="crumb-card p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              Baker's Percentages
-            </h3>
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Baker's Percentages</h3>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label: 'Hydration', value: `${bake.hydration_pct}%` },
@@ -229,14 +232,8 @@ export default function BakeDetail() {
               ].map(({ label, value }) => (
                 <div key={label} className="text-center border border-border rounded-[4px] p-2"
                   style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
-                  <p className="text-[20px] font-bold text-primary tabular-nums"
-                    style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                    {value}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide"
-                    style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                    {label}
-                  </p>
+                  <p className="text-[20px] font-bold text-primary tabular-nums" style={{ fontFamily: 'DM Sans, sans-serif' }}>{value}</p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'DM Sans, sans-serif' }}>{label}</p>
                 </div>
               ))}
             </div>
@@ -246,9 +243,7 @@ export default function BakeDetail() {
           {(bake.proofing_time_mins > 0 || bake.bake_temp_c > 0 || bake.bake_time_mins > 0) && (
             <div className="crumb-card p-4">
               <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                Process
-              </h3>
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
               <div className="space-y-2">
                 {bake.proofing_time_mins > 0 && (
                   <div className="flex justify-between text-[14px]">
@@ -272,27 +267,34 @@ export default function BakeDetail() {
             </div>
           )}
 
-          {/* Notes — always editable */}
+          {/* Notes */}
           <div>
             <label className="crumb-label">Notes</label>
-            <textarea
-              className="crumb-input resize-none"
-              rows={4}
-              placeholder="How did it go? Crust colour, oven spring, flavour..."
-              defaultValue={bake.notes}
-              onBlur={e => updateBake(bake.id, { notes: e.target.value })}
-            />
+            {isDemo ? (
+              <p className="text-[14px] text-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                {bake.notes || '—'}
+              </p>
+            ) : (
+              <textarea
+                className="crumb-input resize-none"
+                rows={4}
+                placeholder="How did it go? Crust colour, oven spring, flavour..."
+                defaultValue={bake.notes}
+                onBlur={e => updateBake(bake.id, { notes: e.target.value })}
+              />
+            )}
           </div>
 
-
-          {/* Delete */}
-          <button
-            onClick={() => setShowDelete(true)}
-            className="w-full py-4 text-[15px] font-semibold rounded-[4px] border border-border text-destructive"
-            style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
-          >
-            Delete Entry
-          </button>
+          {/* Delete — hidden in demo */}
+          {!isDemo && (
+            <button
+              onClick={() => setShowDelete(true)}
+              className="w-full py-4 text-[15px] font-semibold rounded-[4px] border border-border text-destructive"
+              style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
+            >
+              Delete Entry
+            </button>
+          )}
         </div>
       </div>
 

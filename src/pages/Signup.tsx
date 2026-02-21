@@ -133,6 +133,15 @@ export default function Signup() {
           Already have an account?{' '}
           <Link to="/login" className="text-primary font-semibold underline">Sign in</Link>
         </p>
+        <div className="mt-2 text-center">
+          <Link
+            to="/demo"
+            className="text-[13px] text-muted-foreground underline"
+            style={{ fontFamily: 'DM Sans, sans-serif' }}
+          >
+            Explore demo →
+          </Link>
+        </div>
       </div>
     </div>
   );

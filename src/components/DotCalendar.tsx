@@ -5,6 +5,7 @@ import { Bake } from '@/types/bake';
 interface DotCalendarProps {
   bakes: Bake[];
   year: number;
+  demo?: boolean;
 }
 
 function getYearDays(year: number): Date[] {
@@ -26,7 +27,7 @@ function getDayOfWeek(d: Date): number {
   return (d.getDay() + 6) % 7;
 }
 
-export default function DotCalendar({ bakes, year }: DotCalendarProps) {
+export default function DotCalendar({ bakes, year, demo = false }: DotCalendarProps) {
   const navigate = useNavigate();
 
   const bakesByDate = useMemo(() => {
@@ -60,8 +61,8 @@ export default function DotCalendar({ bakes, year }: DotCalendarProps) {
     const ds = toLocalDateString(d);
     const bake = bakesByDate[ds];
     if (bake) {
-      navigate(`/bake/${bake.id}`);
-    } else {
+      navigate(demo ? `/demo/bake/${bake.id}` : `/bake/${bake.id}`);
+    } else if (!demo) {
       navigate(`/bake/new/1?date=${ds}`);
     }
   };

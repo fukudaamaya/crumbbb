@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Bake } from '@/types/bake';
+import { sampleBakes } from '@/data/sampleBakes';
+import { toast } from 'sonner';
 
 // Map DB row to Bake type
 function rowToBake(row: any): Bake {
@@ -31,13 +33,24 @@ function rowToBake(row: any): Bake {
   };
 }
 
-export function useBakes() {
+function demoNoop() {
+  toast('Create an account to save your own bakes', {
+    action: {
+      label: 'Sign Up',
+      onClick: () => { window.location.href = '/signup'; },
+    },
+  });
+}
+
+export function useBakes(demo = false) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isDemo = demo || !user;
 
   const { data: bakes = [], isLoading } = useQuery({
-    queryKey: ['bakes', user?.id],
+    queryKey: ['bakes', isDemo ? 'demo' : user?.id],
     queryFn: async () => {
+      if (isDemo) return sampleBakes;
       const { data, error } = await supabase
         .from('bakes')
         .select('*')
@@ -45,11 +58,12 @@ export function useBakes() {
       if (error) throw error;
       return (data ?? []).map(rowToBake);
     },
-    enabled: !!user,
+    enabled: isDemo || !!user,
   });
 
   const addBakeMutation = useMutation({
     mutationFn: async (bake: Bake) => {
+      if (isDemo) { demoNoop(); return; }
       const { id, created_at, ...rest } = bake;
       const { error } = await supabase.from('bakes').insert({
         ...rest,
@@ -58,26 +72,28 @@ export function useBakes() {
       });
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bakes'] }),
+    onSuccess: () => { if (!isDemo) queryClient.invalidateQueries({ queryKey: ['bakes'] }); },
   });
 
   const updateBakeMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Bake> }) => {
+      if (isDemo) { demoNoop(); return; }
       const { flours, ...rest } = updates;
       const payload: any = { ...rest };
       if (flours !== undefined) payload.flours = flours as any;
       const { error } = await supabase.from('bakes').update(payload).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bakes'] }),
+    onSuccess: () => { if (!isDemo) queryClient.invalidateQueries({ queryKey: ['bakes'] }); },
   });
 
   const deleteBakeMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (isDemo) { demoNoop(); return; }
       const { error } = await supabase.from('bakes').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['bakes'] }),
+    onSuccess: () => { if (!isDemo) queryClient.invalidateQueries({ queryKey: ['bakes'] }); },
   });
 
   const addBake = useCallback((bake: Bake) => addBakeMutation.mutate(bake), [addBakeMutation]);
@@ -86,5 +102,5 @@ export function useBakes() {
 
   const getBake = useCallback((id: string) => bakes.find(b => b.id === id) ?? null, [bakes]);
 
-  return { bakes, isLoading, addBake, updateBake, deleteBake, getBake };
+  return { bakes, isLoading, addBake, updateBake, deleteBake, getBake, isDemo };
 }

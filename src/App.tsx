@@ -49,6 +49,10 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /><BottomNav /></ProtectedRoute>} />
             <Route path="/bake/new/:step" element={<ProtectedRoute><NewBakeWizard /></ProtectedRoute>} />
             <Route path="/bake/:id" element={<ProtectedRoute><BakeDetail /></ProtectedRoute>} />
+            {/* Demo routes */}
+            <Route path="/demo" element={<><Journal demo /><BottomNav demo /></>} />
+            <Route path="/demo/dashboard" element={<><Dashboard demo /><BottomNav demo /></>} />
+            <Route path="/demo/bake/:id" element={<BakeDetail demo />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
