@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface Step3Props {
   date: string;
@@ -9,7 +10,7 @@ interface Step3Props {
 }
 
 export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props) {
-
+  const { tempUnit } = useSettings();
   const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   const isPastDate = date < today;
 
@@ -91,7 +92,7 @@ export default function Step3Baking({ date, onNext, onSkip, onBack }: Step3Props
         {/* Two input fields side by side */}
         <div className="flex gap-3">
           <div className="flex-1">
-            <label className="crumb-label">Oven Temp (°C)</label>
+            <label className="crumb-label">Oven Temp ({tempUnit === 'F' ? '°F' : '°C'})</label>
             <input
               className="crumb-input tabular-nums"
               type="number"

@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
 import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
+import { useSettings, displayTemp } from '@/contexts/SettingsContext';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -39,6 +40,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const location = useLocation();
   const isDemo = demo || location.pathname.startsWith('/demo');
   const { bakes, updateBake, deleteBake } = useBakes(isDemo);
+  const { tempUnit } = useSettings();
 
   const bake = bakes.find(b => b.id === id);
 
@@ -254,7 +256,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                 {bake.bake_temp_c > 0 && (
                   <div className="flex justify-between text-[14px]">
                     <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Oven temp</span>
-                    <span className="font-semibold tabular-nums">{bake.bake_temp_c}°C</span>
+                    <span className="font-semibold tabular-nums">{displayTemp(bake.bake_temp_c, tempUnit)}</span>
                   </div>
                 )}
                 {bake.bake_time_mins > 0 && (

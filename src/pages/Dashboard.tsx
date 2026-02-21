@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
 import { Bake } from '@/types/bake';
-import { Star } from 'lucide-react';
+import { Star, Settings } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 
 function formatDate(dateStr: string): string {
@@ -73,12 +73,21 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
       {demo && <DemoBanner />}
 
       <header
-        className="px-4 py-4 border-b border-border bg-background"
+        className="px-4 py-4 border-b border-border bg-background flex items-start justify-between"
         style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
-        <span className="wordmark">DASHBOARD</span>
-        <p className="text-[12px] text-muted-foreground mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-          Your sourdough journal
-        </p>
+        <div>
+          <span className="wordmark">DASHBOARD</span>
+          <p className="text-[12px] text-muted-foreground mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+            Your sourdough journal
+          </p>
+        </div>
+        <button
+          onClick={() => navigate(`${prefix}/settings`)}
+          className="p-2 mt-1"
+          aria-label="Settings"
+        >
+          <Settings size={22} strokeWidth={2} className="text-foreground" />
+        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
