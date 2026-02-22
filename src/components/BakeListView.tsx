@@ -53,7 +53,8 @@ export default function BakeListView({ bakes, demo = false, onToggleFavourite }:
           </button>
 
           {/* Thumbnail */}
-          <div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
+          <div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden border border-border"
+            style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
             {bake.photo_base64 ? (
               <img src={bake.photo_base64} alt={bake.name} className="w-full h-full object-cover" />
             ) : (

@@ -1,26 +1,28 @@
 
 
-# Remove Thumbnail Borders in Journal
+# Remove ChevronDown from Year Selector
 
 ## What changes
 
-Remove the border from bake thumbnails in the list view so they appear borderless.
+Remove the `ChevronDown` icon from the year dropdown trigger so it just shows the plain year number (e.g. "2026"). The year remains clickable and opens the same dropdown. It stays left-aligned under "CRUMB".
 
 ## Technical Details
 
-**File: `src/components/BakeListView.tsx`**
+**File: `src/pages/Journal.tsx`**
 
-On the thumbnail container div (around line 55), remove `border border-border` from the className and remove the `boxShadow` style:
+1. Remove `ChevronDown` from the lucide-react import (line 3).
+2. In the dropdown trigger button, remove the `<ChevronDown>` element and the `gap-1` class (no longer needed since there's only one child).
 
+The trigger becomes:
 ```tsx
-// Before:
-<div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden border border-border"
-  style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
-
-// After:
-<div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden">
+<button className="flex items-center text-[13px] font-bold tabular-nums mt-0.5"
+  style={{ fontFamily: 'DM Sans, sans-serif' }}>
+  {year}
+</button>
 ```
 
+No other changes needed -- the dropdown menu, year filtering, and left alignment all remain as-is.
+
 ## Files Modified
-- `src/components/BakeListView.tsx` -- remove border and box-shadow from thumbnail container
+- `src/pages/Journal.tsx` -- remove ChevronDown icon from year selector trigger
 
