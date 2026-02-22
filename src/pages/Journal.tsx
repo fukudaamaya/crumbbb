@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { LayoutGrid, List, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutGrid, List, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useBakes } from '@/hooks/useBakes';
 import DotCalendar from '@/components/DotCalendar';
 import BakeListView from '@/components/BakeListView';
@@ -42,26 +43,29 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
         style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <h1 className="wordmark">CRUMB</h1>
-          <div className="flex items-center gap-2 mt-0.5">
-            <button
-              onClick={() => setYear(y => y - 1)}
-              disabled={year <= minYear}
-              className="p-0.5 disabled:opacity-30"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <span className="text-[13px] font-bold tabular-nums" style={{ fontFamily: 'DM Sans, sans-serif' }}>{year}</span>
-            <button
-              onClick={() => setYear(y => y + 1)}
-              disabled={year >= currentYear}
-              className="p-0.5 disabled:opacity-30"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-          <p className="text-[12px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            {yearBakes.length} {yearBakes.length === 1 ? 'bake' : 'bakes'}
-          </p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 text-[13px] font-bold tabular-nums mt-0.5"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                {year}
+                <ChevronDown size={12} className="text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[80px]">
+              {Array.from(
+                { length: currentYear - minYear + 1 },
+                (_, i) => currentYear - i
+              ).map((y) => (
+                <DropdownMenuItem
+                  key={y}
+                  onClick={() => setYear(y)}
+                  className={y === year ? 'font-bold' : ''}
+                >
+                  {y}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* View toggle */}
