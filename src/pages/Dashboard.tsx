@@ -10,22 +10,35 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
+function getISOWeek(date: Date): { year: number; week: number } {
+  const d = new Date(date.getTime());
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+  const yearStart = new Date(d.getFullYear(), 0, 4);
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { year: d.getFullYear(), week };
+}
+
 function calcStreak(bakes: Bake[]): number {
   if (bakes.length === 0) return 0;
+
   const weekSet = new Set<string>();
   bakes.forEach((b) => {
     const d = new Date(b.date + 'T00:00:00');
-    const jan1 = new Date(d.getFullYear(), 0, 1);
-    const week = Math.ceil(((d.getTime() - jan1.getTime()) / 86400000 + jan1.getDay() + 1) / 7);
-    weekSet.add(`${d.getFullYear()}-W${week}`);
+    const { year, week } = getISOWeek(d);
+    weekSet.add(`${year}-W${week}`);
   });
+
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const jan1Now = new Date(now.getFullYear(), 0, 1);
-  const currentWeek = Math.ceil(((now.getTime() - jan1Now.getTime()) / 86400000 + jan1Now.getDay() + 1) / 7);
+  let { year: y, week: w } = getISOWeek(now);
+
+  // If no bake this week, allow starting from last week
+  if (!weekSet.has(`${y}-W${w}`)) {
+    w--;
+    if (w < 1) { y--; w = 52; }
+  }
+
   let streak = 0;
-  let w = currentWeek;
-  let y = now.getFullYear();
   while (weekSet.has(`${y}-W${w}`)) {
     streak++;
     w--;
