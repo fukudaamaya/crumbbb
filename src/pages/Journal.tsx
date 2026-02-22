@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { LayoutGrid, List, ChevronDown } from 'lucide-react';
+import { LayoutGrid, List } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useBakes } from '@/hooks/useBakes';
 import DotCalendar from '@/components/DotCalendar';
@@ -45,10 +45,9 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
           <h1 className="wordmark">CRUMB</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-1 text-[13px] font-bold tabular-nums mt-0.5"
+              <button className="flex items-center text-[13px] font-bold tabular-nums mt-0.5"
                 style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 {year}
-                <ChevronDown size={12} className="text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[80px]">
