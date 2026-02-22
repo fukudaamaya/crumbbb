@@ -22,9 +22,20 @@ export default function Login() {
     <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <h1 className="wordmark text-center mb-2">CRUMB</h1>
-        <p className="text-center text-muted-foreground text-[14px] mb-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+        <p className="text-center text-muted-foreground text-[14px] mb-6" style={{ fontFamily: 'DM Sans, sans-serif' }}>
           Welcome back, baker.
         </p>
+
+        <Link
+          to="/demo"
+          className="crumb-card flex items-center justify-between px-4 py-3 mb-6 hover:bg-muted transition-colors"
+          style={{ fontFamily: 'DM Sans, sans-serif' }}
+        >
+          <span className="text-[14px] text-foreground font-medium">
+            New here? Explore the demo first
+          </span>
+          <span className="text-muted-foreground text-[16px]">→</span>
+        </Link>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -91,17 +102,12 @@ export default function Login() {
           Continue with Google
         </button>
 
-        <div className="mt-6 text-center space-y-2">
+        <div className="mt-6 text-center space-y-3">
           <p className="text-[13px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary font-semibold underline">Sign up</Link>
+            Don't have an account?
           </p>
-          <Link
-            to="/demo"
-            className="inline-block text-[13px] text-muted-foreground underline mt-2"
-            style={{ fontFamily: 'DM Sans, sans-serif' }}
-          >
-            Explore demo →
+          <Link to="/signup" className="btn-secondary w-full py-3 text-[15px] block text-center">
+            Create an Account
           </Link>
         </div>
       </div>
