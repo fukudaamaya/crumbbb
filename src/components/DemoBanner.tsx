@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export default function DemoBanner() {
   return (
     <div
-      className="bg-primary text-primary-foreground px-4 py-2.5 flex items-center justify-between gap-3 z-50"
+      className="sticky top-0 bg-primary text-primary-foreground px-4 py-2.5 flex items-center justify-between gap-3 z-50"
       style={{ fontFamily: 'DM Sans, sans-serif' }}
     >
       <p className="text-[13px] font-medium">
