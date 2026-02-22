@@ -123,7 +123,7 @@ export const sampleBakes: Bake[] = [
     proofing_time_mins: 270,
     bake_temp_c: 240,
     bake_time_mins: 40,
-    photo_base64: 'https://images.unsplash.com/photo-1590137876181-2a5a7e340de2?w=400&h=400&fit=crop',
+    photo_base64: 'https://images.unsplash.com/photo-1549931319-a545753467c8?w=400&h=400&fit=crop',
     crumb_photo_base64: '',
     notes: 'Beautiful golden crust from the semolina. The sesame seeds added a lovely crunch.',
     rating: 4,
