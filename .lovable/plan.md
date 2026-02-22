@@ -1,28 +1,31 @@
 
-
-# Remove ChevronDown from Year Selector
+# Remove Border from Bake Thumbnail in Grid View
 
 ## What changes
-
-Remove the `ChevronDown` icon from the year dropdown trigger so it just shows the plain year number (e.g. "2026"). The year remains clickable and opens the same dropdown. It stays left-aligned under "CRUMB".
+Remove the border from bake photo thumbnails in the dot calendar (grid view) so they appear borderless.
 
 ## Technical Details
 
-**File: `src/pages/Journal.tsx`**
+**File: `src/components/DotCalendar.tsx`**
 
-1. Remove `ChevronDown` from the lucide-react import (line 3).
-2. In the dropdown trigger button, remove the `<ChevronDown>` element and the `gap-1` class (no longer needed since there's only one child).
+On line 104, remove the inline `style` attribute from the `<img>` element:
 
-The trigger becomes:
 ```tsx
-<button className="flex items-center text-[13px] font-bold tabular-nums mt-0.5"
-  style={{ fontFamily: 'DM Sans, sans-serif' }}>
-  {year}
-</button>
+// Before
+<img
+  src={bake.photo_base64}
+  alt={bake.name}
+  className="w-full h-full rounded-full object-cover"
+  style={{ border: '1.5px solid hsl(var(--border))' }}
+/>
+
+// After
+<img
+  src={bake.photo_base64}
+  alt={bake.name}
+  className="w-full h-full rounded-full object-cover"
+/>
 ```
 
-No other changes needed -- the dropdown menu, year filtering, and left alignment all remain as-is.
-
 ## Files Modified
-- `src/pages/Journal.tsx` -- remove ChevronDown icon from year selector trigger
-
+- `src/components/DotCalendar.tsx` -- remove inline border style from thumbnail image
