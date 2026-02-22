@@ -39,12 +39,7 @@ export default function Login() {
             />
           </div>
           <div>
-            <div className="flex items-center justify-between">
-              <label className="crumb-label">Password</label>
-              <Link to="/forgot-password" className="text-[13px] text-muted-foreground underline" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                Forgot password?
-              </Link>
-            </div>
+            <label className="crumb-label">Password</label>
             <input
               type="password"
               className="crumb-input"
@@ -53,6 +48,9 @@ export default function Login() {
               required
               autoComplete="current-password"
             />
+            <Link to="/forgot-password" className="text-[13px] text-muted-foreground underline mt-1 inline-block" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+              Forgot password
+            </Link>
           </div>
 
           {error && (
