@@ -49,8 +49,8 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
     initialData?.flours ?? [{ type: 'White bread flour', grams: 500 }]
   );
   const [water, setWater] = useState(initialData?.water_g ?? 375);
-  const [starter, setStarter] = useState(initialData?.starter_g ?? 100);
-  const [leaven, setLeaven] = useState(initialData?.leaven_g ?? 0);
+  const [starter, setStarter] = useState(initialData?.starter_g ?? 10);
+  const [leaven, setLeaven] = useState(initialData?.leaven_g ?? 100);
 
   const totalFlour = flours.reduce((s, f) => s + (f.grams || 0), 0);
 
