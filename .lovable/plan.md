@@ -1,73 +1,58 @@
 
-# Add Year Selector to the Journal
+# Replace Year Selector with Clickable Dropdown
 
-## Overview
-Add a year indicator with left/right chevron arrows in the Journal header, allowing you to switch between 2025 and 2026 (and any future years). The bake count subtitle will update to reflect the selected year.
+## What changes
+
+Replace the chevron arrows and "X bakes" line below "CRUMB" with just the year number displayed as clickable text. Tapping it opens a small dropdown listing available years (2025, 2026). Selecting a year closes the dropdown and filters the journal.
 
 ## Design
-A small year selector placed below the "CRUMB" title, replacing the current static "X bakes this year" text:
 
 ```
-  < 2026 >
-  5 bakes this year
+CRUMB
+2026 v          [grid|list]
 ```
 
-- Left arrow goes to the previous year (minimum: 2025)
-- Right arrow goes to the next year (maximum: current year)
-- The arrows are disabled at the boundaries (no going before 2025, no going past 2026)
-- Both the dot calendar and the list view filter to show only bakes from the selected year
+Tapping "2026" opens a small popover/dropdown beneath it with:
+- 2025
+- 2026
 
-## Changes
-
-### 1. `src/pages/Journal.tsx`
-- Add a `year` state (default: current year) instead of the hardcoded `new Date().getFullYear()`
-- Filter `bakes` to only those matching the selected year before passing to child components
-- Replace the subtitle area with a row containing: left chevron, year label, right chevron, and the filtered bake count
-- Use `ChevronLeft` and `ChevronRight` icons from lucide-react
-
-### 2. `src/components/BakeListView.tsx`
-- No changes needed -- it already renders whatever bakes are passed to it
-
-### 3. `src/components/DotCalendar.tsx`
-- No changes needed -- it already accepts a `year` prop
+The selected year is highlighted. Picking one closes the dropdown and switches the view.
 
 ## Technical Details
 
-**Journal.tsx year selector UI (inserted in header):**
+**File: `src/pages/Journal.tsx`**
+
+1. Import `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem` from `@/components/ui/dropdown-menu` and `ChevronDown` from `lucide-react`.
+2. Remove `ChevronLeft`, `ChevronRight` imports (no longer needed).
+3. Replace lines 45-64 (the chevron row + bake count paragraph) with a single dropdown trigger:
+
 ```tsx
-const currentYear = new Date().getFullYear();
-const [year, setYear] = useState(currentYear);
-const minYear = 2025;
-
-const yearBakes = useMemo(
-  () => bakes.filter(b => b.date.startsWith(String(year))),
-  [bakes, year]
-);
-
-// In the header, replace the subtitle with:
-<div className="flex items-center gap-2 mt-0.5">
-  <button
-    onClick={() => setYear(y => y - 1)}
-    disabled={year <= minYear}
-    className="p-0.5 disabled:opacity-30"
-  >
-    <ChevronLeft size={14} />
-  </button>
-  <span className="text-[13px] font-bold tabular-nums">{year}</span>
-  <button
-    onClick={() => setYear(y => y + 1)}
-    disabled={year >= currentYear}
-    className="p-0.5 disabled:opacity-30"
-  >
-    <ChevronRight size={14} />
-  </button>
-</div>
-<p className="text-[12px] text-muted-foreground">
-  {yearBakes.length} {yearBakes.length === 1 ? 'bake' : 'bakes'}
-</p>
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <button className="flex items-center gap-1 text-[13px] font-bold tabular-nums mt-0.5"
+      style={{ fontFamily: 'DM Sans, sans-serif' }}>
+      {year}
+      <ChevronDown size={12} className="text-muted-foreground" />
+    </button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="start" className="min-w-[80px]">
+    {Array.from(
+      { length: currentYear - minYear + 1 },
+      (_, i) => currentYear - i
+    ).map((y) => (
+      <DropdownMenuItem
+        key={y}
+        onClick={() => setYear(y)}
+        className={y === year ? 'font-bold' : ''}
+      >
+        {y}
+      </DropdownMenuItem>
+    ))}
+  </DropdownMenuContent>
+</DropdownMenu>
 ```
 
-Then pass `yearBakes` instead of `bakes` to `DotCalendar` and `BakeListView`, and pass `year` to `DotCalendar`.
+This generates the year list dynamically from `currentYear` down to `minYear`, so future years are automatically included. The currently selected year appears bold in the menu.
 
 ## Files Modified
-- `src/pages/Journal.tsx` -- add year state, filter bakes by year, add chevron year selector UI
+- `src/pages/Journal.tsx` -- replace chevron year selector and bake count with a dropdown year picker
