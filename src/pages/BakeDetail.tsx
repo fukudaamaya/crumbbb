@@ -252,8 +252,8 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label: 'Hydration', value: `${bake.hydration_pct}%` },
-                { label: 'Starter', value: `${bake.starter_pct}%` },
                 { label: 'Leaven', value: `${bake.leaven_pct}%` },
+                { label: 'Salt', value: `${bake.starter_pct}%` },
               ].map(({ label, value }) => (
                 <div key={label} className="text-center border border-border rounded-[4px] p-2"
                   style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
