@@ -1,31 +1,38 @@
 
-# Remove Border from Bake Thumbnail in Grid View
+
+# Update Default Values in Step 1 Recipe
 
 ## What changes
-Remove the border from bake photo thumbnails in the dot calendar (grid view) so they appear borderless.
+
+Update the default ingredient values in Step 1 of the bake wizard so new bakes start with more realistic defaults.
+
+## Current vs New Defaults
+
+| Field  | Current | New |
+|--------|---------|-----|
+| Water  | 375g    | 375g (no change) |
+| Leaven | 0g      | 100g |
+| Salt   | 100g    | 10g  |
 
 ## Technical Details
 
-**File: `src/components/DotCalendar.tsx`**
+**File: `src/pages/wizard/Step1Recipe.tsx`**
 
-On line 104, remove the inline `style` attribute from the `<img>` element:
+Update two `useState` initializers (around lines 50-51):
+
+- Change `leaven` default from `0` to `100`
+- Change `starter` (salt) default from `100` to `10`
 
 ```tsx
 // Before
-<img
-  src={bake.photo_base64}
-  alt={bake.name}
-  className="w-full h-full rounded-full object-cover"
-  style={{ border: '1.5px solid hsl(var(--border))' }}
-/>
+const [starter, setStarter] = useState(initialData?.starter_g ?? 100);
+const [leaven, setLeaven] = useState(initialData?.leaven_g ?? 0);
 
 // After
-<img
-  src={bake.photo_base64}
-  alt={bake.name}
-  className="w-full h-full rounded-full object-cover"
-/>
+const [starter, setStarter] = useState(initialData?.starter_g ?? 10);
+const [leaven, setLeaven] = useState(initialData?.leaven_g ?? 100);
 ```
 
 ## Files Modified
-- `src/components/DotCalendar.tsx` -- remove inline border style from thumbnail image
+- `src/pages/wizard/Step1Recipe.tsx` -- update default values for leaven and salt
+
