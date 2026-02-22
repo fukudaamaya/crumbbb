@@ -104,7 +104,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         className="flex items-center justify-between px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
         style={{ paddingTop: isDemo ? '12px' : 'calc(env(safe-area-inset-top) + 12px)' }}
       >
-        <button onClick={() => navigate(-1)} className="p-1" aria-label="Back">
+        <button onClick={() => { if (window.history.length > 1) { navigate(-1); } else { navigate(isDemo ? '/demo' : '/'); } }} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <div className="w-8" /> {/* Spacer to balance header */}
