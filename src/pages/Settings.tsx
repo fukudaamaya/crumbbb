@@ -1,13 +1,15 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, LogOut } from 'lucide-react';
 import { useSettings, ACCENT_COLORS, type WeekStart, type TempUnit } from '@/contexts/SettingsContext';
 import DemoBanner from '@/components/DemoBanner';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Settings({ demo = false }: { demo?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isDemo = demo || location.pathname.startsWith('/demo');
   const { weekStart, tempUnit, accentColor, setWeekStart, setTempUnit, setAccentColor } = useSettings();
+  const { signOut } = useAuth();
 
   const backPath = isDemo ? '/demo/dashboard' : '/dashboard';
 
@@ -109,6 +111,19 @@ export default function Settings({ demo = false }: { demo?: boolean }) {
             })}
           </div>
         </div>
+
+        {/* Log Out */}
+        <button
+          onClick={async () => {
+            if (!isDemo) await signOut();
+            navigate('/login');
+          }}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-[6px] border border-border text-destructive font-semibold text-[14px] hover:bg-destructive/10 transition-colors"
+          style={{ fontFamily: 'DM Sans, sans-serif' }}
+        >
+          <LogOut size={18} />
+          Log Out
+        </button>
       </div>
     </div>
   );
