@@ -1,33 +1,28 @@
 
-
-# Fix Broken Sesame Semolina Boule Photo
+# Fix Baker's Percentages Labels
 
 ## Problem
+The Baker's Percentages box on the bake detail page shows **Hydration, Starter, Leaven** but the recipe setup (Step 1) labels these fields as **Water, Leaven, Salt**. The labels should match: **Hydration, Leaven, Salt**.
 
-The demo-5 "Sesame Semolina Boule" entry in `src/data/sampleBakes.ts` uses the Unsplash image `photo-1590137876181-2a5a7e340de2` which no longer resolves, resulting in a broken image.
+## Change
 
-## Fix
+**File: `src/pages/BakeDetail.tsx` (lines 253-256)**
 
-Replace the broken URL on line 126 of `src/data/sampleBakes.ts` with a working Unsplash image of a seeded bread loaf:
-
-**Current (broken):**
-```
-https://images.unsplash.com/photo-1590137876181-2a5a7e340de2?w=400&h=400&fit=crop
-```
-
-**Replacement (working -- seeded bread loaf):**
-```
-https://images.unsplash.com/photo-1549931319-a545753467c8?w=400&h=400&fit=crop
+Update the array from:
+```typescript
+{ label: 'Hydration', value: `${bake.hydration_pct}%` },
+{ label: 'Starter', value: `${bake.starter_pct}%` },
+{ label: 'Leaven', value: `${bake.leaven_pct}%` },
 ```
 
-If that ID also fails, a second alternative using a confirmed-working sesame bread close-up:
+To:
+```typescript
+{ label: 'Hydration', value: `${bake.hydration_pct}%` },
+{ label: 'Leaven', value: `${bake.leaven_pct}%` },
+{ label: 'Salt', value: `${bake.starter_pct}%` },
 ```
-https://images.unsplash.com/photo-1608198093002-ad4e005571d5?w=400&h=400&fit=crop
-```
 
-## File Changed
+This reorders the items to match the recipe setup and renames "Starter" to "Salt". The underlying data fields (`starter_pct`, `leaven_pct`) stay the same -- only the display labels and order change.
 
-- `src/data/sampleBakes.ts` -- line 126, swap the `photo_base64` URL.
-
-No other files or backend changes needed.
-
+## Files Modified
+- `src/pages/BakeDetail.tsx` -- 1 line change (swap labels and order)
