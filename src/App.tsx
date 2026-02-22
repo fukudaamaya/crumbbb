@@ -43,23 +43,25 @@ const App = () => (
       <SettingsProvider>
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-              <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-              <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/" element={<ProtectedRoute><Journal /><BottomNav /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /><BottomNav /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/bake/new/:step" element={<ProtectedRoute><NewBakeWizard /></ProtectedRoute>} />
-              <Route path="/bake/:id" element={<ProtectedRoute><BakeDetail /></ProtectedRoute>} />
-              {/* Demo routes */}
-              <Route path="/demo" element={<><Journal demo /><BottomNav demo /></>} />
-              <Route path="/demo/dashboard" element={<><Dashboard demo /><BottomNav demo /></>} />
-              <Route path="/demo/settings" element={<Settings demo />} />
-              <Route path="/demo/bake/:id" element={<BakeDetail demo />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <div className="relative mx-auto w-full max-w-[430px] min-h-dvh bg-background shadow-[4px_0_0_hsl(var(--border)),_-4px_0_0_hsl(var(--border))]">
+              <Routes>
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+                <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/" element={<ProtectedRoute><Journal /><BottomNav /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /><BottomNav /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/bake/new/:step" element={<ProtectedRoute><NewBakeWizard /></ProtectedRoute>} />
+                <Route path="/bake/:id" element={<ProtectedRoute><BakeDetail /></ProtectedRoute>} />
+                {/* Demo routes */}
+                <Route path="/demo" element={<><Journal demo /><BottomNav demo /></>} />
+                <Route path="/demo/dashboard" element={<><Dashboard demo /><BottomNav demo /></>} />
+                <Route path="/demo/settings" element={<Settings demo />} />
+                <Route path="/demo/bake/:id" element={<BakeDetail demo />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
           </AuthProvider>
         </BrowserRouter>
       </SettingsProvider>

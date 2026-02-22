@@ -19,7 +19,7 @@ export default function FAB({ date }: FABProps) {
       className="crumb-fab fixed z-40 flex items-center gap-2 px-5 py-3"
       style={{
         bottom: `calc(env(safe-area-inset-bottom) + 64px + 20px)`,
-        right: '20px',
+        right: 'max(20px, calc(50% - 215px + 20px))',
       }}
       aria-label="Start a new bake"
     >
