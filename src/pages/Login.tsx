@@ -39,7 +39,12 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="crumb-label">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="crumb-label">Password</label>
+              <Link to="/forgot-password" className="text-[13px] text-muted-foreground underline" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               className="crumb-input"
@@ -87,9 +92,6 @@ export default function Login() {
         </button>
 
         <div className="mt-6 text-center space-y-2">
-          <Link to="/forgot-password" className="text-[13px] text-muted-foreground underline" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Forgot password?
-          </Link>
           <p className="text-[13px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
             Don't have an account?{' '}
             <Link to="/signup" className="text-primary font-semibold underline">Sign up</Link>
