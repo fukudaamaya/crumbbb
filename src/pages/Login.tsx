@@ -19,28 +19,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
-      <Link
-        to="/demo"
-        className="bg-primary text-primary-foreground px-4 py-2.5 flex items-center justify-between gap-3 z-50"
-        style={{ fontFamily: 'DM Sans, sans-serif' }}
-      >
-        <p className="text-[13px] font-medium">
-          New here? Explore the demo first
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-sm">
+        <h1 className="wordmark text-center mb-2">CRUMB</h1>
+        <p className="text-center text-muted-foreground text-[14px] mb-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+          Welcome back, baker.
         </p>
-        <span className="shrink-0 text-[13px] font-bold underline underline-offset-2">
-          Try It
-        </span>
-      </Link>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm">
-          <h1 className="wordmark text-center mb-2">CRUMB</h1>
-          <p className="text-center text-muted-foreground text-[14px] mb-6" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Welcome back, baker.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="crumb-label">Email</label>
             <input
@@ -105,14 +91,18 @@ export default function Login() {
           Continue with Google
         </button>
 
-        <div className="mt-6 text-center space-y-3">
+        <div className="mt-6 text-center space-y-2">
           <p className="text-[13px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Don't have an account?
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-primary font-semibold underline">Sign up</Link>
           </p>
-          <Link to="/signup" className="btn-secondary w-full py-3 text-[15px] block text-center">
-            Create an Account
+          <Link
+            to="/demo"
+            className="inline-block text-[13px] text-muted-foreground underline mt-2"
+            style={{ fontFamily: 'DM Sans, sans-serif' }}
+          >
+            Explore demo →
           </Link>
-        </div>
         </div>
       </div>
     </div>
