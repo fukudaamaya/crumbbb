@@ -1,69 +1,73 @@
 
+# Add Year Selector to the Journal
 
-# Fix Baking Streak Calculation
+## Overview
+Add a year indicator with left/right chevron arrows in the Journal header, allowing you to switch between 2025 and 2026 (and any future years). The bake count subtitle will update to reflect the selected year.
 
-## Problem
+## Design
+A small year selector placed below the "CRUMB" title, replacing the current static "X bakes this year" text:
 
-The `calcStreak` function uses a custom week-number formula that puts Saturday Feb 21 and Sunday Feb 22 into different weeks. It starts checking from the current week, and since there is no bake in today's computed week, the streak immediately returns 0 -- even though there was a bake yesterday.
-
-## Root Cause
-
-The week formula `Math.ceil((daysSinceJan1 + jan1.getDay() + 1) / 7)` does not align with calendar week boundaries consistently. Saturday and Sunday can end up in different "weeks," causing the streak to reset prematurely.
-
-## Fix
-
-**File: `src/pages/Dashboard.tsx` (lines 13-36, `calcStreak` function)**
-
-Replace the current week-number approach with an ISO-week-based calculation, which uses Monday as the start of each week. This is the standard used in baking/journaling contexts and avoids the Saturday/Sunday split issue.
-
-Updated logic:
-1. For each bake date, compute its ISO week number and year, and add it to a Set.
-2. Compute the current ISO week.
-3. Start checking from the current week. If the current week has no bakes, allow starting from the previous week (so the streak isn't broken just because you haven't baked yet this week).
-4. Count consecutive weeks backward.
-
-```typescript
-function getISOWeek(date: Date): { year: number; week: number } {
-  const d = new Date(date.getTime());
-  d.setHours(0, 0, 0, 0);
-  // Set to nearest Thursday (ISO weeks are Thursday-based)
-  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
-  const yearStart = new Date(d.getFullYear(), 0, 4);
-  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return { year: d.getFullYear(), week };
-}
-
-function calcStreak(bakes: Bake[]): number {
-  if (bakes.length === 0) return 0;
-
-  const weekSet = new Set<string>();
-  bakes.forEach((b) => {
-    const d = new Date(b.date + 'T00:00:00');
-    const { year, week } = getISOWeek(d);
-    weekSet.add(`${year}-W${week}`);
-  });
-
-  const now = new Date();
-  let { year: y, week: w } = getISOWeek(now);
-
-  // If no bake this week, allow starting from last week
-  if (!weekSet.has(`${y}-W${w}`)) {
-    w--;
-    if (w < 1) { y--; w = 52; }
-  }
-
-  let streak = 0;
-  while (weekSet.has(`${y}-W${w}`)) {
-    streak++;
-    w--;
-    if (w < 1) { y--; w = 52; }
-    if (streak > 52) break;
-  }
-  return streak;
-}
+```
+  < 2026 >
+  5 bakes this year
 ```
 
-This ensures your bake on Feb 21 (Saturday) and today Feb 22 (Sunday) are in the same ISO week (week 8), so the streak correctly shows **1 week**.
+- Left arrow goes to the previous year (minimum: 2025)
+- Right arrow goes to the next year (maximum: current year)
+- The arrows are disabled at the boundaries (no going before 2025, no going past 2026)
+- Both the dot calendar and the list view filter to show only bakes from the selected year
+
+## Changes
+
+### 1. `src/pages/Journal.tsx`
+- Add a `year` state (default: current year) instead of the hardcoded `new Date().getFullYear()`
+- Filter `bakes` to only those matching the selected year before passing to child components
+- Replace the subtitle area with a row containing: left chevron, year label, right chevron, and the filtered bake count
+- Use `ChevronLeft` and `ChevronRight` icons from lucide-react
+
+### 2. `src/components/BakeListView.tsx`
+- No changes needed -- it already renders whatever bakes are passed to it
+
+### 3. `src/components/DotCalendar.tsx`
+- No changes needed -- it already accepts a `year` prop
+
+## Technical Details
+
+**Journal.tsx year selector UI (inserted in header):**
+```tsx
+const currentYear = new Date().getFullYear();
+const [year, setYear] = useState(currentYear);
+const minYear = 2025;
+
+const yearBakes = useMemo(
+  () => bakes.filter(b => b.date.startsWith(String(year))),
+  [bakes, year]
+);
+
+// In the header, replace the subtitle with:
+<div className="flex items-center gap-2 mt-0.5">
+  <button
+    onClick={() => setYear(y => y - 1)}
+    disabled={year <= minYear}
+    className="p-0.5 disabled:opacity-30"
+  >
+    <ChevronLeft size={14} />
+  </button>
+  <span className="text-[13px] font-bold tabular-nums">{year}</span>
+  <button
+    onClick={() => setYear(y => y + 1)}
+    disabled={year >= currentYear}
+    className="p-0.5 disabled:opacity-30"
+  >
+    <ChevronRight size={14} />
+  </button>
+</div>
+<p className="text-[12px] text-muted-foreground">
+  {yearBakes.length} {yearBakes.length === 1 ? 'bake' : 'bakes'}
+</p>
+```
+
+Then pass `yearBakes` instead of `bakes` to `DotCalendar` and `BakeListView`, and pass `year` to `DotCalendar`.
 
 ## Files Modified
-- `src/pages/Dashboard.tsx` -- replace `calcStreak` with ISO-week-based version
+- `src/pages/Journal.tsx` -- add year state, filter bakes by year, add chevron year selector UI
