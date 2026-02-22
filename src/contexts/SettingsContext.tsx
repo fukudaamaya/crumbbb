@@ -7,17 +7,18 @@ export interface AccentColor {
   name: string;
   primary: string;       // HSL values for --primary
   accent: string;        // HSL values for --accent
+  muted: string;         // HSL values for --muted-foreground
 }
 
 export const ACCENT_COLORS: AccentColor[] = [
-  { name: 'Maroon',       primary: '0 46% 33%',    accent: '0 46% 33%' },
-  { name: 'Terracotta',   primary: '16 60% 40%',   accent: '16 60% 40%' },
-  { name: 'Forest',       primary: '152 40% 28%',  accent: '152 40% 28%' },
-  { name: 'Navy',         primary: '220 50% 30%',  accent: '220 50% 30%' },
-  { name: 'Charcoal',     primary: '0 0% 25%',     accent: '0 0% 25%' },
-  { name: 'Teal',         primary: '180 45% 30%',  accent: '180 45% 30%' },
-  { name: 'Plum',         primary: '290 35% 35%',  accent: '290 35% 35%' },
-  { name: 'Burnt Orange', primary: '25 80% 42%',   accent: '25 80% 42%' },
+  { name: 'Maroon',       primary: '0 46% 33%',    accent: '0 46% 33%',   muted: '28 40% 35%' },
+  { name: 'Terracotta',   primary: '16 60% 40%',   accent: '16 60% 40%',  muted: '16 30% 38%' },
+  { name: 'Forest',       primary: '152 40% 28%',  accent: '152 40% 28%', muted: '152 25% 32%' },
+  { name: 'Navy',         primary: '220 50% 30%',  accent: '220 50% 30%', muted: '220 30% 35%' },
+  { name: 'Charcoal',     primary: '0 0% 25%',     accent: '0 0% 25%',    muted: '0 0% 35%' },
+  { name: 'Teal',         primary: '180 45% 30%',  accent: '180 45% 30%', muted: '180 25% 35%' },
+  { name: 'Plum',         primary: '290 35% 35%',  accent: '290 35% 35%', muted: '290 20% 38%' },
+  { name: 'Burnt Orange', primary: '25 80% 42%',   accent: '25 80% 42%',  muted: '25 35% 38%' },
 ];
 
 interface SettingsState {
@@ -51,6 +52,7 @@ function applyAccent(name: string) {
   document.documentElement.style.setProperty('--accent', color.accent);
   document.documentElement.style.setProperty('--ring', color.primary);
   document.documentElement.style.setProperty('--secondary-foreground', color.primary);
+  document.documentElement.style.setProperty('--muted-foreground', color.muted);
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
