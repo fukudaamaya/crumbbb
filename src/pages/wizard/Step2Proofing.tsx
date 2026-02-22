@@ -113,8 +113,8 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
 
   const scheduleNotifications = (mins: number, permission: NotificationPermission) => {
     if (!notifSupported || permission !== 'granted') return;
-    const intervals = INTERVALS.filter(m => m <= mins);
-    intervals.forEach(m => {
+    const intervals = INTERVALS.filter((m) => m <= mins);
+    intervals.forEach((m) => {
       const id = setTimeout(() => {
         if (m < mins) {
           new Notification(`Crumb — Proofing check: ${m} min`, { body: `${mins - m} minutes remaining.` });
@@ -157,30 +157,30 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
   return (
     <div
       className="flex flex-col min-h-dvh bg-background"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+
       {/* Header */}
       <header
         className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
-      >
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}>
+
         <button onClick={onBack} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <div className="flex-1">
           <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold"
-            style={{ fontFamily: 'DM Sans, sans-serif' }}>
+          style={{ fontFamily: 'DM Sans, sans-serif' }}>
             Step 2 of 4
           </p>
-          <h2 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
-            Proofing Timer
+          <h2 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>Proofing Timer
+
           </h2>
         </div>
         <button
           onClick={onSkip}
           className="text-[14px] font-semibold text-primary underline-offset-2"
-          style={{ fontFamily: 'DM Sans, sans-serif' }}
-        >
+          style={{ fontFamily: 'DM Sans, sans-serif' }}>
+
           Skip
         </button>
       </header>
@@ -191,37 +191,37 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-        {!notifSupported && (
-          <div className="crumb-card p-3 text-[13px] text-muted-foreground"
-            style={{ fontFamily: 'DM Sans, sans-serif' }}>
+        {!notifSupported &&
+        <div className="crumb-card p-3 text-[13px] text-muted-foreground"
+        style={{ fontFamily: 'DM Sans, sans-serif' }}>
             For timer notifications, open Crumb in Safari.
           </div>
-        )}
+        }
 
         {/* Autolyse */}
         <div className="crumb-card p-4">
           <h3 className="text-[15px] font-bold mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>
             Autolyse
           </h3>
-          <p className="text-[13px] text-muted-foreground mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Mix flour and water, rest 30 minutes before adding starter.
+          <p className="text-[13px] text-muted-foreground mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>Mix leaven and water, add flour and rest 30 minutes before adding salt.
+
           </p>
           <div className="text-5xl font-bold tabular-nums text-center my-4"
-            style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
+          style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
             {autolyseDone ? 'Done ✓' : fmtTime(autolyseSecsLeft)}
           </div>
-          {!autolyseDone && (
-            <button
-              onClick={() => {
-                if (autolyseActive) pauseAutolyse();
-                else if (autolyseSecsLeft < 30 * 60) resumeAutolyse();
-                else startAutolyse();
-              }}
-              className={autolyseActive ? 'btn-secondary w-full py-3 text-[15px]' : 'btn-primary w-full py-3 text-[15px]'}
-            >
+          {!autolyseDone &&
+          <button
+            onClick={() => {
+              if (autolyseActive) pauseAutolyse();else
+              if (autolyseSecsLeft < 30 * 60) resumeAutolyse();else
+              startAutolyse();
+            }}
+            className={autolyseActive ? 'btn-secondary w-full py-3 text-[15px]' : 'btn-primary w-full py-3 text-[15px]'}>
+
               {autolyseActive ? 'Pause' : 'Start Autolyse'}
             </button>
-          )}
+          }
         </div>
 
         {/* Proofing */}
@@ -234,45 +234,45 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
           </p>
 
           {/* Duration selector */}
-          {!proofingActive && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {INTERVALS.map(m => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    setProofingMins(m);
-                    setProofingSecsLeft(m * 60);
-                  }}
-                  className={`px-3 py-1.5 rounded-[4px] border text-[13px] font-semibold ${
-                    proofingMins === m
-                      ? 'bg-primary text-primary-foreground border-border'
-                      : 'bg-background text-foreground border-border'
-                  }`}
-                  style={{
-                    boxShadow: '2px 2px 0px hsl(var(--border))',
-                    fontFamily: 'DM Sans, sans-serif',
-                  }}
-                >
+          {!proofingActive &&
+          <div className="flex flex-wrap gap-2 mb-4">
+              {INTERVALS.map((m) =>
+            <button
+              key={m}
+              onClick={() => {
+                setProofingMins(m);
+                setProofingSecsLeft(m * 60);
+              }}
+              className={`px-3 py-1.5 rounded-[4px] border text-[13px] font-semibold ${
+              proofingMins === m ?
+              'bg-primary text-primary-foreground border-border' :
+              'bg-background text-foreground border-border'}`
+              }
+              style={{
+                boxShadow: '2px 2px 0px hsl(var(--border))',
+                fontFamily: 'DM Sans, sans-serif'
+              }}>
+
                   {m < 60 ? `${m}m` : `${m / 60}h`}
                 </button>
-              ))}
+            )}
             </div>
-          )}
+          }
 
           <div className="text-5xl font-bold tabular-nums text-center my-4"
-            style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
+          style={{ fontFamily: 'DM Sans, sans-serif', color: 'hsl(var(--primary))' }}>
             {fmtTime(proofingSecsLeft)}
           </div>
 
-          {proofingActive ? (
-            <button onClick={stopAll} className="btn-secondary w-full py-3 text-[15px]">
+          {proofingActive ?
+          <button onClick={stopAll} className="btn-secondary w-full py-3 text-[15px]">
               Stop
-            </button>
-          ) : (
-            <button onClick={startProofing} className="btn-primary w-full py-3 text-[15px]">
+            </button> :
+
+          <button onClick={startProofing} className="btn-primary w-full py-3 text-[15px]">
               Start Proofing
             </button>
-          )}
+          }
         </div>
       </div>
 
@@ -283,11 +283,11 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
             stopAll();
             onNext(proofingMins);
           }}
-          className="btn-primary w-full py-4 text-[16px]"
-        >
+          className="btn-primary w-full py-4 text-[16px]">
+
           Next — Baking
         </button>
       </div>
-    </div>
-  );
+    </div>);
+
 }
