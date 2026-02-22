@@ -101,7 +101,6 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
                   src={bake.photo_base64}
                   alt={bake.name}
                   className="w-full h-full rounded-full object-cover"
-                  style={{ border: '1.5px solid hsl(var(--border))' }}
                 />
               ) : (
                 <div
