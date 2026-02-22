@@ -1,39 +1,69 @@
 
 
-# Fix Back Button on Bake Detail Page
+# Fix Baking Streak Calculation
 
 ## Problem
 
-The back button on the Bake Detail page calls `navigate(-1)`, which relies on browser history. If the page is opened directly (via refresh, shared link, or bookmark), there is no previous history entry, so the button silently does nothing.
+The `calcStreak` function uses a custom week-number formula that puts Saturday Feb 21 and Sunday Feb 22 into different weeks. It starts checking from the current week, and since there is no bake in today's computed week, the streak immediately returns 0 -- even though there was a bake yesterday.
+
+## Root Cause
+
+The week formula `Math.ceil((daysSinceJan1 + jan1.getDay() + 1) / 7)` does not align with calendar week boundaries consistently. Saturday and Sunday can end up in different "weeks," causing the streak to reset prematurely.
 
 ## Fix
 
-Update the back button handler in `src/pages/BakeDetail.tsx` to detect whether there is browser history to go back to. If not, fall back to navigating to the Journal page (`/` or `/demo` for demo mode).
+**File: `src/pages/Dashboard.tsx` (lines 13-36, `calcStreak` function)**
 
-**File: `src/pages/BakeDetail.tsx` (line ~107)**
+Replace the current week-number approach with an ISO-week-based calculation, which uses Monday as the start of each week. This is the standard used in baking/journaling contexts and avoids the Saturday/Sunday split issue.
 
-Change:
+Updated logic:
+1. For each bake date, compute its ISO week number and year, and add it to a Set.
+2. Compute the current ISO week.
+3. Start checking from the current week. If the current week has no bakes, allow starting from the previous week (so the streak isn't broken just because you haven't baked yet this week).
+4. Count consecutive weeks backward.
+
 ```typescript
-<button onClick={() => navigate(-1)} className="p-1" aria-label="Back">
+function getISOWeek(date: Date): { year: number; week: number } {
+  const d = new Date(date.getTime());
+  d.setHours(0, 0, 0, 0);
+  // Set to nearest Thursday (ISO weeks are Thursday-based)
+  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+  const yearStart = new Date(d.getFullYear(), 0, 4);
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { year: d.getFullYear(), week };
+}
+
+function calcStreak(bakes: Bake[]): number {
+  if (bakes.length === 0) return 0;
+
+  const weekSet = new Set<string>();
+  bakes.forEach((b) => {
+    const d = new Date(b.date + 'T00:00:00');
+    const { year, week } = getISOWeek(d);
+    weekSet.add(`${year}-W${week}`);
+  });
+
+  const now = new Date();
+  let { year: y, week: w } = getISOWeek(now);
+
+  // If no bake this week, allow starting from last week
+  if (!weekSet.has(`${y}-W${w}`)) {
+    w--;
+    if (w < 1) { y--; w = 52; }
+  }
+
+  let streak = 0;
+  while (weekSet.has(`${y}-W${w}`)) {
+    streak++;
+    w--;
+    if (w < 1) { y--; w = 52; }
+    if (streak > 52) break;
+  }
+  return streak;
+}
 ```
 
-To logic like:
-```typescript
-<button
-  onClick={() => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate(isDemo ? '/demo' : '/');
-    }
-  }}
-  className="p-1"
-  aria-label="Back"
->
-```
-
-This preserves the existing behavior (going back to wherever the user came from, maintaining scroll/state) while adding a safe fallback when there is no history.
+This ensures your bake on Feb 21 (Saturday) and today Feb 22 (Sunday) are in the same ISO week (week 8), so the streak correctly shows **1 week**.
 
 ## Files Modified
-- `src/pages/BakeDetail.tsx` -- update the back button click handler (~1 line change)
-
+- `src/pages/Dashboard.tsx` -- replace `calcStreak` with ISO-week-based version
