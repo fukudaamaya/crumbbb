@@ -1,5 +1,5 @@
 const FLOUR_TYPES_KEY = 'crumb_flour_types';
-const DEFAULTS = ['White bread flour'];
+const DEFAULTS = ['White bread flour', 'Whole wheat', 'Spelt', 'Rye', 'Buckwheat', 'Tipo 00'];
 
 function load(): string[] {
   try {
