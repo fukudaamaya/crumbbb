@@ -39,7 +39,7 @@ export default function Journal({ demo = false }: {demo?: boolean;}) {
       {demo && <DemoBanner />}
 
       {/* Header */}
-      <header className={`sticky ${demo ? 'top-[44px]' : 'top-0'} z-30 bg-background border-b border-border px-4 py-3 flex items-center justify-between`}
+      <header className="z-30 bg-background border-b border-border px-4 py-3 flex items-center justify-between"
       style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <h1 className="wordmark font-extrabold text-left">CRUMB</h1>
