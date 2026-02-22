@@ -6,7 +6,7 @@ export default function BottomNav({ demo = false }: { demo?: boolean }) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background max-w-[430px] mx-auto"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="flex">
