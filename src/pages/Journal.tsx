@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useBakes } from '@/hooks/useBakes';
 import DotCalendar from '@/components/DotCalendar';
 import BakeListView from '@/components/BakeListView';
@@ -16,11 +16,19 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
     (searchParams.get('view') as ViewMode) || 'grid'
   );
 
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
+  const minYear = 2025;
+
+  const yearBakes = useMemo(
+    () => bakes.filter(b => b.date.startsWith(String(year))),
+    [bakes, year]
+  );
+
   const handleSetView = (v: ViewMode) => {
     setView(v);
     setSearchParams({ view: v }, { replace: true });
   };
-  const year = new Date().getFullYear();
 
   return (
     <div
@@ -34,8 +42,25 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
         style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <h1 className="wordmark">CRUMB</h1>
-          <p className="text-[12px] text-muted-foreground mt-0.5" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            {bakes.length} {bakes.length === 1 ? 'bake' : 'bakes'} this year
+          <div className="flex items-center gap-2 mt-0.5">
+            <button
+              onClick={() => setYear(y => y - 1)}
+              disabled={year <= minYear}
+              className="p-0.5 disabled:opacity-30"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span className="text-[13px] font-bold tabular-nums" style={{ fontFamily: 'DM Sans, sans-serif' }}>{year}</span>
+            <button
+              onClick={() => setYear(y => y + 1)}
+              disabled={year >= currentYear}
+              className="p-0.5 disabled:opacity-30"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+          <p className="text-[12px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+            {yearBakes.length} {yearBakes.length === 1 ? 'bake' : 'bakes'}
           </p>
         </div>
 
@@ -71,9 +96,9 @@ export default function Journal({ demo = false }: { demo?: boolean }) {
       {/* Content */}
       <main className="flex-1 pt-4">
         {view === 'grid' ? (
-          <DotCalendar bakes={bakes} year={year} demo={demo} />
+          <DotCalendar bakes={yearBakes} year={year} demo={demo} />
         ) : (
-          <BakeListView bakes={bakes} demo={demo} onToggleFavourite={(id, current) => updateBake(id, { is_favourite: !current })} />
+          <BakeListView bakes={yearBakes} demo={demo} onToggleFavourite={(id, current) => updateBake(id, { is_favourite: !current })} />
         )}
       </main>
 
