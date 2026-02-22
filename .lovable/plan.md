@@ -1,28 +1,40 @@
 
-# Move "Forgot password?" Link Above Password Field
+
+# Move "Forgot password" Below Password Input
 
 ## What changes
 
-Relocate the "Forgot password?" link from the bottom of the login form to just above the password input field, aligned to the right.
+1. Remove the question mark from "Forgot password?" so it reads "Forgot password"
+2. Move the link from above the password input to below it, left-aligned
+3. Restore the password label to a standalone element (remove the flex wrapper)
 
 ## Technical Details
 
 **File: `src/pages/Login.tsx`**
 
-1. Remove the "Forgot password?" `<Link>` from the bottom section (around line 88)
-2. Add it above the password input, as a right-aligned label row:
+Replace the current password field block (flex row with label + link, then input) with:
 
 ```tsx
 <div>
-  <div className="flex items-center justify-between">
-    <label className="crumb-label">Password</label>
-    <Link to="/forgot-password" className="text-[13px] text-muted-foreground underline" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-      Forgot password?
-    </Link>
-  </div>
-  <input type="password" ... />
+  <label className="crumb-label">Password</label>
+  <input
+    type="password"
+    className="crumb-input"
+    value={password}
+    onChange={e => setPassword(e.target.value)}
+    required
+    autoComplete="current-password"
+  />
+  <Link
+    to="/forgot-password"
+    className="text-[13px] text-muted-foreground underline mt-1 inline-block"
+    style={{ fontFamily: 'DM Sans, sans-serif' }}
+  >
+    Forgot password
+  </Link>
 </div>
 ```
 
 ## Files Modified
-- `src/pages/Login.tsx` -- move forgot password link above password field
+- `src/pages/Login.tsx`
+
