@@ -26,6 +26,7 @@ function rowToBake(row: any): Bake {
     bake_time_mins: row.bake_time_mins,
     photo_base64: row.photo_base64,
     crumb_photo_base64: row.crumb_photo_base64,
+    photos: (row.photos ?? []) as string[],
     notes: row.notes,
     rating: row.rating,
     is_favourite: row.is_favourite,
@@ -64,11 +65,12 @@ export function useBakes(demo = false) {
   const addBakeMutation = useMutation({
     mutationFn: async (bake: Bake) => {
       if (isDemo) { demoNoop(); return; }
-      const { id, created_at, ...rest } = bake;
+      const { id, created_at, photos, ...rest } = bake;
       const { error } = await supabase.from('bakes').insert({
         ...rest,
         user_id: user!.id,
         flours: rest.flours as any,
+        photos: photos as any,
       });
       if (error) throw error;
     },
@@ -78,9 +80,10 @@ export function useBakes(demo = false) {
   const updateBakeMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Bake> }) => {
       if (isDemo) { demoNoop(); return; }
-      const { flours, ...rest } = updates;
+      const { flours, photos, ...rest } = updates;
       const payload: any = { ...rest };
       if (flours !== undefined) payload.flours = flours as any;
+      if (photos !== undefined) payload.photos = photos as any;
       const { error } = await supabase.from('bakes').update(payload).eq('id', id);
       if (error) throw error;
     },

@@ -1,0 +1,1 @@
+ALTER TABLE public.bakes ADD COLUMN photos jsonb NOT NULL DEFAULT '[]'::jsonb;

@@ -79,8 +79,7 @@ export default function NewBakeWizard() {
   };
 
   const handleSave = (data: {
-    photo_base64: string;
-    crumb_photo_base64: string;
+    photos: string[];
     notes: string;
     rating: number;
   }) => {
@@ -100,8 +99,9 @@ export default function NewBakeWizard() {
       proofing_time_mins: bakeData.proofing_time_mins ?? 0,
       bake_temp_c: bakeData.bake_temp_c ?? 0,
       bake_time_mins: bakeData.bake_time_mins ?? 0,
-      photo_base64: data.photo_base64,
-      crumb_photo_base64: data.crumb_photo_base64,
+      photo_base64: data.photos[0] ?? '',
+      crumb_photo_base64: '',
+      photos: data.photos,
       notes: data.notes,
       rating: data.rating,
       is_favourite: false,

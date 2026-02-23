@@ -1,18 +1,25 @@
-import { useState, useRef } from 'react';
-import { ArrowLeft, Star, Camera, ImageIcon } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { ArrowLeft, Star, Camera, ImageIcon, Plus, X } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from '@/components/ui/carousel';
 
 interface Step4Props {
   onSave: (data: {
-    photo_base64: string;
-    crumb_photo_base64: string;
+    photos: string[];
     notes: string;
     rating: number;
   }) => void;
   onBack: () => void;
 }
 
+const MAX_PHOTOS = 5;
+
 async function compressImage(file: File): Promise<string> {
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
   if (file.size > MAX_FILE_SIZE) {
     throw new Error('Image file too large. Please select a smaller image (max 10MB).');
   }
@@ -36,7 +43,7 @@ async function compressImage(file: File): Promise<string> {
       URL.revokeObjectURL(url);
 
       const base64 = canvas.toDataURL('image/jpeg', 0.7);
-      const MAX_BASE64_SIZE = 500 * 1024; // 500KB
+      const MAX_BASE64_SIZE = 500 * 1024;
       if (base64.length > MAX_BASE64_SIZE) {
         reject(new Error('Compressed image still too large. Try a simpler image.'));
       } else {
@@ -50,29 +57,44 @@ async function compressImage(file: File): Promise<string> {
 
 export default function Step4Capture({ onSave, onBack }: Step4Props) {
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
-
-  const [loafPhoto, setLoafPhoto] = useState('');
-  const [crumbPhoto] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [api, setApi] = useState<CarouselApi>();
 
-  const loafInputRef = useRef<HTMLInputElement>(null);
-  const loafLibraryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const libraryRef = useRef<HTMLInputElement>(null);
 
+  const onApiChange = useCallback((emblaApi: CarouselApi) => {
+    setApi(emblaApi);
+    if (!emblaApi) return;
+    emblaApi.on('select', () => setCurrentSlide(emblaApi.selectedScrollSnap()));
+  }, []);
 
-  const handlePhoto = async (file: File, setter: (s: string) => void) => {
+  const handleAddPhoto = async (file: File) => {
     try {
       const compressed = await compressImage(file);
-      setter(compressed);
+      if (photos.length < MAX_PHOTOS) {
+        setPhotos(prev => [...prev, compressed]);
+      }
     } catch (e) {
       console.error('Image compression failed', e);
+    }
+    setShowPhotoOptions(false);
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+    if (currentSlide >= photos.length - 1 && currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
     }
   };
 
   const handleSave = async () => {
     setSaving(true);
-    onSave({ photo_base64: loafPhoto, crumb_photo_base64: crumbPhoto, notes, rating });
+    onSave({ photos, notes, rating });
   };
 
   return (
@@ -105,52 +127,106 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-        {/* Loaf photo */}
+        {/* Photos */}
         <div>
-          <label className="crumb-label">Loaf Photo</label>
-          {/* Camera input */}
+          <label className="crumb-label">Photos <span className="text-muted-foreground font-normal">({photos.length}/{MAX_PHOTOS})</span></label>
+
+          {/* Hidden file inputs */}
           <input
-            ref={loafInputRef}
+            ref={cameraRef}
             type="file"
             accept="image/*"
             capture="environment"
             className="hidden"
-            onChange={e => { e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto); setShowPhotoOptions(false); }}
+            onChange={e => { e.target.files?.[0] && handleAddPhoto(e.target.files[0]); }}
           />
-          {/* Library input */}
           <input
-            ref={loafLibraryRef}
+            ref={libraryRef}
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={e => { e.target.files?.[0] && handlePhoto(e.target.files[0], setLoafPhoto); setShowPhotoOptions(false); }}
+            onChange={e => { e.target.files?.[0] && handleAddPhoto(e.target.files[0]); }}
           />
-          {loafPhoto ? (
-            <div className="relative">
-              <img
-                src={loafPhoto}
-                alt="Loaf"
-                className="w-full rounded-[6px] border border-border object-cover"
-                style={{ maxHeight: 280, boxShadow: '4px 4px 0px hsl(var(--border))' }}
-              />
-              <button
-                onClick={() => setLoafPhoto('')}
-                className="absolute top-2 right-2 bg-background border border-border rounded-[4px] px-2 py-1 text-[12px] font-semibold"
-                style={{ boxShadow: '2px 2px 0px hsl(var(--border))', fontFamily: 'DM Sans, sans-serif' }}
-              >
-                Retake
-              </button>
-            </div>
-          ) : (
+
+          {photos.length === 0 && (
             <button
               onClick={() => setShowPhotoOptions(true)}
               className="w-full rounded-[6px] border-2 border-dashed border-border bg-muted/40 flex flex-col items-center justify-center gap-2 py-10"
-              style={{ boxShadow: 'none' }}
             >
               <Camera size={32} strokeWidth={1.5} className="text-muted-foreground" />
               <span className="text-[14px] font-semibold text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 Tap to add photo
               </span>
+            </button>
+          )}
+
+          {photos.length === 1 && (
+            <div className="relative">
+              <img
+                src={photos[0]}
+                alt="Bake photo"
+                className="w-full rounded-[6px] border border-border object-cover"
+                style={{ maxHeight: 280, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+              />
+              <button
+                onClick={() => handleRemovePhoto(0)}
+                className="absolute top-2 right-2 bg-background border border-border rounded-full w-7 h-7 flex items-center justify-center"
+                style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+                aria-label="Remove photo"
+              >
+                <X size={14} strokeWidth={2.5} />
+              </button>
+            </div>
+          )}
+
+          {photos.length >= 2 && (
+            <div>
+              <Carousel setApi={onApiChange} className="w-full">
+                <CarouselContent>
+                  {photos.map((photo, i) => (
+                    <CarouselItem key={i}>
+                      <div className="relative">
+                        <img
+                          src={photo}
+                          alt={`Bake photo ${i + 1}`}
+                          className="w-full rounded-[6px] border border-border object-cover"
+                          style={{ maxHeight: 280, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+                        />
+                        <button
+                          onClick={() => handleRemovePhoto(i)}
+                          className="absolute top-2 right-2 bg-background border border-border rounded-full w-7 h-7 flex items-center justify-center"
+                          style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+                          aria-label="Remove photo"
+                        >
+                          <X size={14} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+              {/* Dot indicators */}
+              <div className="flex justify-center gap-1.5 mt-3">
+                {photos.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
+                    onClick={() => api?.scrollTo(i)}
+                    aria-label={`Go to photo ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add more button */}
+          {photos.length > 0 && photos.length < MAX_PHOTOS && (
+            <button
+              onClick={() => setShowPhotoOptions(true)}
+              className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-primary"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              <Plus size={16} strokeWidth={2.5} /> Add photo
             </button>
           )}
         </div>
@@ -215,13 +291,13 @@ export default function Step4Capture({ onSave, onBack }: Step4Props) {
             <p className="text-center text-[13px] text-muted-foreground font-semibold uppercase tracking-widest mb-4"
               style={{ fontFamily: 'DM Sans, sans-serif' }}>Add Photo</p>
             <button
-              onClick={() => loafInputRef.current?.click()}
+              onClick={() => cameraRef.current?.click()}
               className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-2"
             >
               <Camera size={18} strokeWidth={2} /> Camera
             </button>
             <button
-              onClick={() => loafLibraryRef.current?.click()}
+              onClick={() => libraryRef.current?.click()}
               className="btn-secondary w-full py-4 text-[15px] flex items-center justify-center gap-2 mb-3"
             >
               <ImageIcon size={18} strokeWidth={2} /> Photo Library
