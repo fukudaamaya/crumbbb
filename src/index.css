@@ -63,8 +63,16 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html, body, #root {
+  html, body {
     height: 100%;
+    overscroll-behavior: none;
+  }
+
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overscroll-behavior: none;
   }
 
