@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
 import { Bake } from '@/types/bake';
@@ -53,19 +53,27 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
   const navigate = useNavigate();
   const prefix = demo ? '/demo' : '';
 
-  const thisMonth = useMemo(() => {
+  const [range, setRange] = useState<'month' | 'year'>('month');
+
+  const filteredBakes = useMemo(() => {
     const now = new Date();
     return bakes.filter((b) => {
       const d = new Date(b.date + 'T00:00:00');
+      if (range === 'year') return d.getFullYear() === now.getFullYear();
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
-  }, [bakes]);
+  }, [bakes, range]);
+
+  const totalLoaves = useMemo(() =>
+    filteredBakes.reduce((s, b) => s + (b.loaf_count || 1), 0),
+    [filteredBakes]
+  );
 
   const avgRating = useMemo(() => {
-    const rated = thisMonth.filter((b) => b.rating > 0);
+    const rated = filteredBakes.filter((b) => b.rating > 0);
     if (!rated.length) return 0;
     return (rated.reduce((s, b) => s + b.rating, 0) / rated.length).toFixed(1);
-  }, [thisMonth]);
+  }, [filteredBakes]);
 
   const topBakes = useMemo(() =>
     [...bakes].sort((a, b) => b.rating - a.rating).slice(0, 3),
@@ -123,12 +131,34 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
 
         {/* This month */}
         <div>
-          <h2 className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-            style={{ fontFamily: 'DM Sans, sans-serif' }}>This Month</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => setRange('month')}
+              className={`text-[13px] font-bold uppercase tracking-widest px-3 py-1 rounded-full transition-colors ${
+                range === 'month'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => setRange('year')}
+              className={`text-[13px] font-bold uppercase tracking-widest px-3 py-1 rounded-full transition-colors ${
+                range === 'year'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              This Year
+            </button>
+          </div>
           <div className="flex gap-3">
             <div className="crumb-card flex-1 p-4 text-center">
               <p className="text-3xl font-bold text-primary tabular-nums" style={{ fontFamily: 'Raleway, sans-serif' }}>
-                {thisMonth.length}
+                {totalLoaves}
               </p>
               <p className="text-[12px] text-muted-foreground uppercase tracking-wide mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>Loaves</p>
             </div>
