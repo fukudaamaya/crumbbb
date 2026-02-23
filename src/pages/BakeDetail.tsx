@@ -1,9 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useSettings, displayTemp } from '@/contexts/SettingsContext';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from '@/components/ui/carousel';
+
+const MAX_PHOTOS = 5;
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -48,6 +56,8 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const [editingDate, setEditingDate] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
 
   const [localName, setLocalName] = useState('');
   const [localDate, setLocalDate] = useState('');
@@ -57,6 +67,12 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
 
   const backPath = isDemo ? '/demo' : '/';
 
+  const onApiChange = useCallback((emblaApi: CarouselApi) => {
+    setCarouselApi(emblaApi);
+    if (!emblaApi) return;
+    emblaApi.on('select', () => setCurrentSlide(emblaApi.selectedScrollSnap()));
+  }, []);
+
   if (!bake) {
     return (
       <div className="flex items-center justify-center min-h-dvh">
@@ -65,16 +81,29 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     );
   }
 
+  // Resolve photos: prefer photos array, fall back to legacy photo_base64
+  const photos: string[] = (bake.photos && bake.photos.length > 0)
+    ? bake.photos
+    : [bake.photo_base64].filter(Boolean);
+
   const toggleFavourite = () => updateBake(bake.id, { is_favourite: !bake.is_favourite });
 
-  const handlePhoto = async (file: File) => {
+  const handleAddPhoto = async (file: File) => {
     try {
       const compressed = await compressImage(file);
-      updateBake(bake.id, { photo_base64: compressed });
+      if (photos.length < MAX_PHOTOS) {
+        const newPhotos = [...photos, compressed];
+        updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+      }
     } catch (e) {
       console.error('Image compression failed', e);
     }
     setShowPhotoOptions(false);
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    const newPhotos = photos.filter((_, i) => i !== index);
+    updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
   };
 
   const saveName = () => {
@@ -107,33 +136,97 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         <button onClick={() => { const idx = (window.history.state as any)?.idx; if (typeof idx === 'number' && idx > 0) { navigate(-1); } else { navigate(backPath, { replace: true }); } }} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <div className="w-8" /> {/* Spacer to balance header */}
+        <div className="w-8" />
       </header>
 
       <div className="flex-1 overflow-y-auto">
-        {/* Tappable photo */}
-        <div className="px-4 pt-4 relative" onClick={() => setShowPhotoOptions(true)}>
-          {bake.photo_base64 ? (
-            <>
-              <img
-                src={bake.photo_base64}
-                alt={bake.name}
-                className="w-full rounded-[6px] border border-border object-cover"
-                style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
-              />
-              <div className="absolute top-6 right-6 bg-background/80 border border-border rounded-full p-1.5"
-                style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
-                <Camera size={16} strokeWidth={2} />
-              </div>
-            </>
-          ) : (
-            <div className="h-48 bg-muted rounded-[6px] border border-border flex flex-col items-center justify-center gap-2"
-              style={{ boxShadow: '4px 4px 0px hsl(var(--border))' }}>
+        {/* Photos section */}
+        <div className="px-4 pt-4">
+          {photos.length === 0 && (
+            <div
+              className="h-48 bg-muted rounded-[6px] border border-border flex flex-col items-center justify-center gap-2 cursor-pointer"
+              style={{ boxShadow: '4px 4px 0px hsl(var(--border))' }}
+              onClick={() => setShowPhotoOptions(true)}
+            >
               <Camera size={28} strokeWidth={1.5} className="text-muted-foreground" />
               <span className="text-[14px] font-semibold text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 Tap to add photo
               </span>
             </div>
+          )}
+
+          {photos.length === 1 && (
+            <div className="relative">
+              <img
+                src={photos[0]}
+                alt={bake.name}
+                className="w-full rounded-[6px] border border-border object-cover"
+                style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+              />
+              {!isDemo && (
+                <button
+                  onClick={() => handleRemovePhoto(0)}
+                  className="absolute top-2 right-2 bg-background border border-border rounded-full w-7 h-7 flex items-center justify-center"
+                  style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+                  aria-label="Remove photo"
+                >
+                  <X size={14} strokeWidth={2.5} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {photos.length >= 2 && (
+            <div>
+              <Carousel setApi={onApiChange} className="w-full">
+                <CarouselContent>
+                  {photos.map((photo, i) => (
+                    <CarouselItem key={i}>
+                      <div className="relative">
+                        <img
+                          src={photo}
+                          alt={`${bake.name} photo ${i + 1}`}
+                          className="w-full rounded-[6px] border border-border object-cover"
+                          style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+                        />
+                        {!isDemo && (
+                          <button
+                            onClick={() => handleRemovePhoto(i)}
+                            className="absolute top-2 right-2 bg-background border border-border rounded-full w-7 h-7 flex items-center justify-center"
+                            style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+                            aria-label="Remove photo"
+                          >
+                            <X size={14} strokeWidth={2.5} />
+                          </button>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+              {/* Dot indicators */}
+              <div className="flex justify-center gap-1.5 mt-3">
+                {photos.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
+                    onClick={() => carouselApi?.scrollTo(i)}
+                    aria-label={`Go to photo ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add more photos */}
+          {!isDemo && photos.length > 0 && photos.length < MAX_PHOTOS && (
+            <button
+              onClick={() => setShowPhotoOptions(true)}
+              className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-primary"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              <Plus size={16} strokeWidth={2.5} /> Add photo ({photos.length}/{MAX_PHOTOS})
+            </button>
           )}
         </div>
 
@@ -292,7 +385,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             </div>
           )}
 
-          {/* Delete — hidden in demo */}
+          {/* Delete */}
           {!isDemo && (
             <button
               onClick={() => setShowDelete(true)}
@@ -307,9 +400,9 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
 
       {/* Hidden file inputs */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
+        onChange={e => e.target.files?.[0] && handleAddPhoto(e.target.files[0])} />
       <input ref={libraryRef} type="file" accept="image/*" className="hidden"
-        onChange={e => e.target.files?.[0] && handlePhoto(e.target.files[0])} />
+        onChange={e => e.target.files?.[0] && handleAddPhoto(e.target.files[0])} />
 
       {/* Photo source sheet */}
       {showPhotoOptions && (

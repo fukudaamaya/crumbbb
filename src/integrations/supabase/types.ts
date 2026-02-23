@@ -32,6 +32,7 @@ export type Database = {
           name: string
           notes: string
           photo_base64: string
+          photos: Json
           proofing_time_mins: number
           rating: number
           starter_g: number
@@ -56,6 +57,7 @@ export type Database = {
           name?: string
           notes?: string
           photo_base64?: string
+          photos?: Json
           proofing_time_mins?: number
           rating?: number
           starter_g?: number
@@ -80,6 +82,7 @@ export type Database = {
           name?: string
           notes?: string
           photo_base64?: string
+          photos?: Json
           proofing_time_mins?: number
           rating?: number
           starter_g?: number
