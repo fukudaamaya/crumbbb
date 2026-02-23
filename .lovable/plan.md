@@ -1,28 +1,24 @@
 
 
-# Constrain App to Mobile Size on Desktop
+# Fix App Shell to Fixed Mobile Height
 
 ## What changes
 
-On desktop screens, the app currently stretches vertically to fill the entire viewport because of `min-h-dvh`. We'll cap the height and center the app shell so it looks like a phone-sized container on large screens.
+Instead of using `max-h-dvh` (which stretches to full viewport height on desktop), the app container will have a fixed maximum height typical of a mobile device (e.g. `max-h-[844px]`), so it looks like a phone on desktop screens. On actual small screens, it will still fill the viewport.
 
 ## Technical Details
 
 **File: `src/App.tsx` (line 46)**
 
-Update the wrapper div classes:
-- Keep `max-w-[430px]` (already constrains width)
-- Add `max-h-dvh` and `overflow-hidden` to prevent vertical stretching
-- The inner pages already handle their own scrolling, so clipping at the shell level is safe
+Change the wrapper div classes:
+- Replace `min-h-dvh max-h-dvh` with `h-[844px] max-h-dvh`
+- This sets the container to 844px tall (iPhone 14 size), but on short viewports it won't exceed the screen
 
-**File: `src/index.css`**
-
-Add styles to the `body` or `#root` to center the app shell vertically on desktop:
-- Set `#root` to use flexbox centering (`flex items-center justify-center min-h-dvh`)
-
-This way the app appears as a phone-sized frame centered on the page when viewed on a desktop browser.
+The class list becomes:
+```
+relative mx-auto w-full max-w-[430px] h-[844px] max-h-dvh overflow-hidden bg-background shadow-[...] flex flex-col
+```
 
 ## Files Modified
-- `src/App.tsx` -- add `max-h-dvh overflow-hidden` to wrapper div
-- `src/index.css` -- add vertical centering to `#root`
+- `src/App.tsx` -- replace `min-h-dvh max-h-dvh` with `h-[844px] max-h-dvh`
 
