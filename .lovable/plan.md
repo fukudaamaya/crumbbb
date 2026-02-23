@@ -1,58 +1,49 @@
 
 
-# Stretch-and-Fold Proofing Timer
+# Stretch & Fold Cards -- 3x2 Grid Layout
 
 ## What changes
 
-The Bulk Ferment section currently lets you pick a single total duration and counts down. Instead, it should work as a stretch-and-fold timer: when you tap "Start Proofing", it starts a 3-hour countdown and automatically fires a notification every 30 minutes (at 30m, 1h, 1h30, 2h, 2h30, 3h) to remind you to stretch and fold.
+Replace the 6-row vertical checklist with a 3x2 grid of 6 individual cards. Each card represents one stretch-and-fold interval, shows the target clock time, and gets a checkmark when complete.
 
-The duration selector pills (30m, 1h, etc.) will be replaced with a visual checklist showing all 6 stretch-and-fold intervals, each checking off as its notification fires.
+## How it looks
 
-## How it works for the user
+```text
+Row 1:
++----------+  +----------+  +----------+
+| S&F #1   |  | S&F #2   |  | S&F #3   |
+| 12:30    |  | 13:00    |  | 13:30    |
++----------+  +----------+  +----------+
 
-1. Tap **Start Proofing** -- a single 3-hour countdown begins
-2. Every 30 minutes, a notification fires: "Stretch & fold #1 (30 min)", "Stretch & fold #2 (1 hr)", etc.
-3. The UI shows 6 interval markers. As each one is reached, it gets a checkmark
-4. At 3 hours, the final notification says "Bulk ferment complete!"
-5. A **Stop** button cancels everything
+Row 2:
++----------+  +----------+  +----------+
+| S&F #4   |  | S&F #5   |  | Done!    |
+| 14:00    |  | 14:30    |  | 15:00    |
++----------+  +----------+  +----------+
+```
+
+- Before proofing starts, times are projected based on "if started now"
+- Once started, times lock to actual schedule
+- Completed intervals show a checkmark with highlighted styling
 
 ## Technical Details
 
 **File: `src/pages/wizard/Step2Proofing.tsx`**
 
-1. **Remove the duration selector pills** -- no more choosing between 30m/1h/etc. The total duration is always 3 hours (180 min).
+1. **Add `proofingStartTime` state** (number or null) to lock clock times when "Start Proofing" is tapped. Set it in `startProofing`, clear it in `stopAll`.
 
-2. **Add state to track completed folds:**
-   ```tsx
-   const [completedFolds, setCompletedFolds] = useState<number[]>([]);
-   ```
+2. **Derive clock times** for each interval:
+   - Base = `proofingStartTime ?? Date.now()`
+   - Each interval's time = `new Date(base + m * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })`
 
-3. **Update `recalcProofing`** to check elapsed time and mark folds as complete:
-   - Calculate `elapsed = totalDuration - remaining`
-   - For each interval in `[30, 60, 90, 120, 150, 180]`, if elapsed >= interval and not already in `completedFolds`, add it
+3. **Replace the checklist** with a `grid grid-cols-3 gap-3` containing 6 cards:
+   - Each card uses `crumb-card` styling (compact padding)
+   - Shows: fold number or "Done!" label, checkmark circle when complete, and the target clock time
+   - Completed cards get `bg-primary/10` tint and a check icon
+   - Pending cards show the number in a muted circle
 
-4. **Update `scheduleNotifications`** to send stretch-and-fold messages:
-   - At 30m: "Stretch & fold #1 -- 2h 30m remaining"
-   - At 60m: "Stretch & fold #2 -- 2h remaining"
-   - ...through to 180m: "Bulk ferment complete!"
-
-5. **Replace the duration pills UI** with a vertical checklist of the 6 intervals:
-   ```tsx
-   <div className="space-y-2 mb-4">
-     {INTERVALS.map((m, i) => (
-       <div key={m} className="flex items-center gap-3 text-[13px]">
-         <div className={completedFolds.includes(m) ? 'checkmark-done' : 'checkmark-pending'}>
-           {completedFolds.includes(m) ? '✓' : (i + 1)}
-         </div>
-         <span>Stretch & fold at {m < 60 ? `${m}m` : `${m/60}h${m%60 ? ` ${m%60}m` : ''}`}</span>
-       </div>
-     ))}
-   </div>
-   ```
-
-6. **Set `proofingMins` to a fixed 180** (remove the selector logic). The main countdown still shows the full remaining time.
-
-7. **Pass `proofingMins` (180) to `onNext`** when proceeding to the next step.
+4. **Keep all existing timer logic unchanged** -- the countdown, notifications, and `completedFolds` tracking remain the same.
 
 ## Files Modified
-- `src/pages/wizard/Step2Proofing.tsx` -- replace duration selector with stretch-and-fold checklist, update notification messages, fix proofing to always be 3 hours with 30-min interval alerts
+- `src/pages/wizard/Step2Proofing.tsx` -- replace 6-row checklist with a 3-column, 2-row grid of 6 individual interval cards, add start-time tracking for clock-time display
+
