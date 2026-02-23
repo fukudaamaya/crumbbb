@@ -39,6 +39,7 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
   const [proofingSecsLeft, setProofingSecsLeft] = useState(TOTAL_MINS * 60);
   const [completedFolds, setCompletedFolds] = useState<number[]>([]);
   const proofingEndRef = useRef<number>(0);
+  const [proofingStartTime, setProofingStartTime] = useState<number | null>(null);
 
   const [notifSupported, setNotifSupported] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
@@ -149,7 +150,9 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
   };
 
   const startProofing = async () => {
-    proofingEndRef.current = Date.now() + TOTAL_MINS * 60 * 1000;
+    const now = Date.now();
+    proofingEndRef.current = now + TOTAL_MINS * 60 * 1000;
+    setProofingStartTime(now);
     setProofingSecsLeft(TOTAL_MINS * 60);
     setCompletedFolds([]);
     let permission = notifPermission;
@@ -167,6 +170,7 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
     proofingEndRef.current = 0;
     setProofingActive(false);
     setAutolyseActive(false);
+    setProofingStartTime(null);
   };
 
   const fmtTime = (secs: number) => {
@@ -253,25 +257,32 @@ export default function Step2Proofing({ date, onNext, onSkip, onBack }: Step2Pro
             3-hour timer with stretch & fold reminders every 30 minutes.
           </p>
 
-          {/* Stretch & fold checklist */}
-          <div className="space-y-2 mb-4">
+          {/* Stretch & fold grid */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
             {INTERVALS.map((m, i) => {
               const done = completedFolds.includes(m);
+              const base = proofingStartTime ?? Date.now();
+              const targetTime = new Date(base + m * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const isLast = m === TOTAL_MINS;
               return (
-                <div key={m} className="flex items-center gap-3" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                <div
+                  key={m}
+                  className={`crumb-card p-2 flex flex-col items-center gap-1 text-center ${
+                    done ? 'bg-primary/10' : ''
+                  }`}
+                  style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: 'var(--shadow-sm)' }}>
                   <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
                       done
                         ? 'bg-primary text-primary-foreground'
                         : 'border-2 border-border text-muted-foreground'
                     }`}>
-                    {done ? <Check size={14} strokeWidth={3} /> : i + 1}
+                    {done ? <Check size={12} strokeWidth={3} /> : i + 1}
                   </div>
-                  <span className={`text-[13px] ${done ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
-                    {m < TOTAL_MINS
-                      ? `Stretch & fold at ${foldLabel(m)}`
-                      : 'Bulk ferment complete'}
+                  <span className={`text-[11px] font-semibold leading-tight ${done ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {isLast ? 'Done!' : `S&F #${i + 1}`}
                   </span>
+                  <span className="text-[11px] text-muted-foreground tabular-nums">{targetTime}</span>
                 </div>
               );
             })}
