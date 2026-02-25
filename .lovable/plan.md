@@ -1,49 +1,45 @@
 
 
-# Stretch & Fold Cards -- 3x2 Grid Layout
+# Fix Signup "Database Error Saving New User"
 
-## What changes
+## Problem
 
-Replace the 6-row vertical checklist with a 3x2 grid of 6 individual cards. Each card represents one stretch-and-fold interval, shows the target clock time, and gets a checkmark when complete.
+The `handle_new_user` database trigger inserts an empty string (`''`) as the `username` when no username is provided during signup. The `profiles` table has a unique constraint on `username`, so only the very first user can sign up -- every subsequent user fails with a duplicate key violation.
 
-## How it looks
+## Solution
 
-```text
-Row 1:
-+----------+  +----------+  +----------+
-| S&F #1   |  | S&F #2   |  | S&F #3   |
-| 12:30    |  | 13:00    |  | 13:30    |
-+----------+  +----------+  +----------+
-
-Row 2:
-+----------+  +----------+  +----------+
-| S&F #4   |  | S&F #5   |  | Done!    |
-| 14:00    |  | 14:30    |  | 15:00    |
-+----------+  +----------+  +----------+
-```
-
-- Before proofing starts, times are projected based on "if started now"
-- Once started, times lock to actual schedule
-- Completed intervals show a checkmark with highlighted styling
+Update the `handle_new_user` trigger function to generate a unique default username when none is provided. This way every new user gets a unique profile row without requiring a username at signup.
 
 ## Technical Details
 
-**File: `src/pages/wizard/Step2Proofing.tsx`**
+**Database migration** -- alter the `handle_new_user` function:
 
-1. **Add `proofingStartTime` state** (number or null) to lock clock times when "Start Proofing" is tapped. Set it in `startProofing`, clear it in `stopAll`.
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  SECURITY DEFINER
+  SET search_path TO 'public'
+AS $function$
+BEGIN
+  INSERT INTO public.profiles (id, display_name, username)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'display_name', ''),
+    COALESCE(
+      NULLIF(NEW.raw_user_meta_data->>'username', ''),
+      'user_' || substr(NEW.id::text, 1, 8)
+    )
+  );
+  RETURN NEW;
+END;
+$function$;
+```
 
-2. **Derive clock times** for each interval:
-   - Base = `proofingStartTime ?? Date.now()`
-   - Each interval's time = `new Date(base + m * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })`
+This changes the username fallback from an empty string to `user_` + the first 8 characters of the user's UUID, which is unique per user.
 
-3. **Replace the checklist** with a `grid grid-cols-3 gap-3` containing 6 cards:
-   - Each card uses `crumb-card` styling (compact padding)
-   - Shows: fold number or "Done!" label, checkmark circle when complete, and the target clock time
-   - Completed cards get `bg-primary/10` tint and a check icon
-   - Pending cards show the number in a muted circle
-
-4. **Keep all existing timer logic unchanged** -- the countdown, notifications, and `completedFolds` tracking remain the same.
+**No frontend code changes needed.**
 
 ## Files Modified
-- `src/pages/wizard/Step2Proofing.tsx` -- replace 6-row checklist with a 3-column, 2-row grid of 6 individual interval cards, add start-time tracking for clock-time display
+- Database migration only (update `handle_new_user` function)
 
