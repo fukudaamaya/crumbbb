@@ -1,45 +1,46 @@
 
 
-# Fix Signup "Database Error Saving New User"
+# Dot Calendar Zoom Toggle
 
-## Problem
+## What it does
 
-The `handle_new_user` database trigger inserts an empty string (`''`) as the `username` when no username is provided during signup. The `profiles` table has a unique constraint on `username`, so only the very first user can sign up -- every subsequent user fails with a duplicate key violation.
+Adds a small toggle icon in the top-right corner of the dot calendar grid. Clicking it switches between two modes:
 
-## Solution
+- **Normal view** (current default): 7-column grid with larger dots/thumbnails, scrollable
+- **Zoomed-out view**: Compact grid showing the entire year at a glance with smaller dots/thumbnails, no scrolling needed
 
-Update the `handle_new_user` trigger function to generate a unique default username when none is provided. This way every new user gets a unique profile row without requiring a username at signup.
+The icon uses `Minimize2` (arrows pointing inward) when in normal view (click to zoom out) and `Maximize2` (arrows pointing outward) when zoomed out (click to zoom back in).
+
+## How it looks
+
+```text
+Normal view (current):                 Zoomed-out view:
++---------------------------[><]--+    +---------------------------[<>]--+
+|  o  o  o  o  o  o  o           |    | oooooooo ooooooo ooooooo        |
+|  o  o  o  o  o  o  o           |    | ooooooo ooooooo oooooooo        |
+|  o  o  o  o  o  o  o           |    | ooooooo ooooooo ooooooo         |
+|  ...scrolls...                  |    | ...entire year visible...       |
++---------------------------------+    +---------------------------------+
+```
 
 ## Technical Details
 
-**Database migration** -- alter the `handle_new_user` function:
+**File: `src/components/DotCalendar.tsx`**
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-  RETURNS trigger
-  LANGUAGE plpgsql
-  SECURITY DEFINER
-  SET search_path TO 'public'
-AS $function$
-BEGIN
-  INSERT INTO public.profiles (id, display_name, username)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'display_name', ''),
-    COALESCE(
-      NULLIF(NEW.raw_user_meta_data->>'username', ''),
-      'user_' || substr(NEW.id::text, 1, 8)
-    )
-  );
-  RETURN NEW;
-END;
-$function$;
-```
+1. Add `compact` boolean state (default `false`).
 
-This changes the username fallback from an empty string to `user_` + the first 8 characters of the user's UUID, which is unique per user.
+2. Add a toggle button positioned in the top-right corner above the grid:
+   - Normal mode: show `Minimize2` icon from lucide-react
+   - Compact mode: show `Maximize2` icon from lucide-react
 
-**No frontend code changes needed.**
+3. When `compact` is true:
+   - Reduce grid gap from `5px` to `2px`
+   - Shrink dot size from `w-2 h-2` to `w-1 h-1`
+   - Shrink photo thumbnails proportionally
+   - Remove `aspect-square` from cells or use a smaller fixed size so the full year fits on screen
+
+4. Add a CSS transition on the grid container for smooth scaling between modes.
 
 ## Files Modified
-- Database migration only (update `handle_new_user` function)
+- `src/components/DotCalendar.tsx` -- add compact state, toggle button, and conditional sizing
 
