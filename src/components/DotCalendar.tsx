@@ -44,14 +44,23 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
 
   const days = useMemo(() => getYearDays(year), [year]);
 
+  const compactCols = 15;
+
   const firstDayOffset = getDayOfWeek(days[0]);
 
-  const cells: (Date | null)[] = [
+  // Normal mode: 7-col with weekday alignment
+  const normalCells: (Date | null)[] = [
     ...Array(firstDayOffset).fill(null),
     ...days,
   ];
+  while (normalCells.length % 7 !== 0) normalCells.push(null);
 
-  while (cells.length % 7 !== 0) cells.push(null);
+  // Compact mode: sequential, no weekday alignment
+  const compactCells: (Date | null)[] = [...days];
+  while (compactCells.length % compactCols !== 0) compactCells.push(null);
+
+  const cells = compact ? compactCells : normalCells;
+  const cols = compact ? compactCols : 7;
 
   const today = toLocalDateString(new Date());
 
@@ -65,7 +74,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
     }
   };
 
-  const dotSize = compact ? 'w-1 h-1' : 'w-2 h-2';
+  const dotSize = compact ? 'w-1.5 h-1.5' : 'w-2 h-2';
 
   return (
     <div className="px-4 pb-4">
@@ -84,7 +93,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
       <div
         className="grid transition-all duration-300"
         style={{
-          gridTemplateColumns: 'repeat(7, 1fr)',
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
           gap: compact ? '2px' : '5px',
         }}
       >
