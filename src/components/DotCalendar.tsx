@@ -128,7 +128,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
                 <img
                   src={bake.photo_base64}
                   alt={bake.name}
-                  className={`rounded-full object-cover w-full h-full transition-transform ${!compact ? 'scale-150 z-10' : ''}`}
+                  className="rounded-full object-cover w-full h-full"
                 />
               ) : (
                 <div
