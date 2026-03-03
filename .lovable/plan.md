@@ -1,18 +1,9 @@
+# Make Bake Thumbnails Larger in Zoomed-In View
 
+## Change
 
-# Scrollable Zoomed-In View
+In `src/components/DotCalendar.tsx`, when not in compact mode, scale up photo thumbnails to ~1.5× the cell size so baked loaves visually pop against the regular dots.
 
-## Problem
-The normal (zoomed-in) 7-column grid currently shows all days but doesn't have explicit scroll behavior. The user wants to scroll vertically through the year, with the bottom of the scroll reaching the last day.
+**Approach:** In normal mode, apply `scale-150` (Tailwind's 1.5× transform) to the `<img>` element. This enlarges the photo beyond its cell without affecting grid layout. Add `z-10` so enlarged thumbnails render above neighboring cells. In compact mode, keep `w-full h-full` (no scale).
 
-## Solution
-Wrap the grid in a scroll container with a fixed height (e.g., `max-h-[60vh]` or similar) in normal mode so it becomes scrollable. The compact mode should remain as-is (fits on screen without scrolling).
-
-## Technical Details
-
-**File: `src/components/DotCalendar.tsx`**
-
-1. Wrap the grid `div` in a container with `overflow-y-auto` and a `max-h` constraint, but only in normal (non-compact) mode
-2. In compact mode, no height constraint — the dense grid fits naturally
-3. Use a reasonable max height like `max-h-[65vh]` so the grid is tall but scrollable within the page layout
-
+**File:** `src/components/DotCalendar.tsx` — line 128-132, add conditional scale class to the `<img>`.
