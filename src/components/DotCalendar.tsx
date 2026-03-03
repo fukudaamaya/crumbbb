@@ -74,7 +74,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
     }
   };
 
-  const dotSize = compact ? 'w-1.5 h-1.5' : 'w-2 h-2';
+  const dotSize = 'w-2 h-2';
 
   return (
     <div className="px-4 pb-4">
@@ -94,7 +94,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
         className="grid transition-all duration-300"
         style={{
           gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gap: compact ? '2px' : '5px',
+          gap: compact ? '3px' : '5px',
         }}
       >
         {cells.map((d, i) => {
@@ -102,8 +102,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
             return (
               <div
                 key={`pad-${i}`}
-                className={`flex items-center justify-center ${compact ? '' : 'aspect-square'}`}
-                style={compact ? { height: '6px' } : undefined}
+                className="flex items-center justify-center aspect-square"
               >
                 <div className={`${dotSize} rounded-full`} style={{ backgroundColor: 'hsl(var(--primary) / 0.08)' }} />
               </div>
@@ -121,15 +120,14 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
               key={ds}
               onClick={() => !isFuture && handleDayTap(d)}
               disabled={isFuture}
-              className={`relative flex items-center justify-center disabled:cursor-default ${compact ? '' : 'aspect-square'}`}
-              style={compact ? { height: '6px' } : undefined}
+              className="relative flex items-center justify-center disabled:cursor-default aspect-square"
               aria-label={ds}
             >
               {bake?.photo_base64 ? (
                 <img
                   src={bake.photo_base64}
                   alt={bake.name}
-                  className={`rounded-full object-cover ${compact ? 'w-[5px] h-[5px]' : 'w-full h-full'}`}
+                  className="rounded-full object-cover w-full h-full"
                 />
               ) : (
                 <div
