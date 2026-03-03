@@ -1,23 +1,18 @@
 
 
-# Fix Compact Grid Spacing
+# Scrollable Zoomed-In View
 
 ## Problem
-In compact mode, the grid cells use a fixed `height: 6px` with `gap: 2px`, making dots cramped vertically while the grid doesn't fill the viewport. The horizontal spacing (governed by `1fr` columns) is also uneven compared to vertical.
+The normal (zoomed-in) 7-column grid currently shows all days but doesn't have explicit scroll behavior. The user wants to scroll vertically through the year, with the bottom of the scroll reaching the last day.
 
 ## Solution
-Use `aspect-square` on compact cells too (same as normal mode) so horizontal and vertical spacing are equal. Remove the fixed `height: 6px`. The dots will naturally space out to fill the available width, and since each cell is square, vertical spacing matches horizontal. Increase the dot size slightly to `w-2 h-2` in compact mode so dots are visible and the grid fills more vertical space.
+Wrap the grid in a scroll container with a fixed height (e.g., `max-h-[60vh]` or similar) in normal mode so it becomes scrollable. The compact mode should remain as-is (fits on screen without scrolling).
 
 ## Technical Details
 
 **File: `src/components/DotCalendar.tsx`**
 
-1. Remove the `compact ? '' : 'aspect-square'` conditional — always use `aspect-square` on cells
-2. Remove the `style={compact ? { height: '6px' } : undefined}` — let aspect-square handle sizing
-3. Use uniform gap for compact mode: `3px` instead of `2px` for breathing room
-4. Keep dot size at `w-2 h-2` for both modes (the grid columns being narrower in compact mode will naturally make the squares smaller)
-5. Adjust compact photo size from `w-[5px] h-[5px]` to `w-full h-full` so thumbnails fill their cell like in normal mode
-
-## Files Modified
-- `src/components/DotCalendar.tsx`
+1. Wrap the grid `div` in a container with `overflow-y-auto` and a `max-h` constraint, but only in normal (non-compact) mode
+2. In compact mode, no height constraint — the dense grid fits naturally
+3. Use a reasonable max height like `max-h-[65vh]` so the grid is tall but scrollable within the page layout
 
