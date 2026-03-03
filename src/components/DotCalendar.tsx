@@ -90,6 +90,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
         </button>
       </div>
 
+      <div className={compact ? '' : 'max-h-[65vh] overflow-y-auto'}>
       <div
         className="grid transition-all duration-300"
         style={{
@@ -146,6 +147,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
             </button>
           );
         })}
+      </div>
       </div>
     </div>
   );
