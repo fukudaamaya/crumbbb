@@ -12,6 +12,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Settings from "./pages/Settings";
+import RecipeHistory from "./pages/RecipeHistory";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
