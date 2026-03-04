@@ -122,6 +122,15 @@ export default function NewBakeWizard() {
         onNext={handleStep1}
         initialData={{
           date: searchParams.get('date') ?? undefined,
+          ...(recipe ? {
+            name: recipe.name,
+            loaf_count: recipe.loaf_count,
+            loaf_weight_g: recipe.loaf_weight_g,
+            flours: recipe.flours,
+            water_g: recipe.water_g,
+            starter_g: recipe.starter_g,
+            leaven_g: recipe.leaven_g,
+          } : {}),
           ...bakeData,
         }}
       />

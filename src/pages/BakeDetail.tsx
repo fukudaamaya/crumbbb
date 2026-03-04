@@ -343,6 +343,28 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             )}
           </div>
 
+          {/* Save recipe button */}
+          {!isDemo && bake.flours.length > 0 && (
+            <button
+              onClick={handleSaveRecipe}
+              disabled={isRecipeSaved}
+              className="crumb-card w-full p-3 flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors disabled:opacity-50"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              {isRecipeSaved ? (
+                <>
+                  <BookmarkCheck size={18} strokeWidth={2} className="text-primary" />
+                  <span className="text-primary">Recipe Saved</span>
+                </>
+              ) : (
+                <>
+                  <BookmarkPlus size={18} strokeWidth={2} className="text-foreground" />
+                  <span>Save Recipe</span>
+                </>
+              )}
+            </button>
+          )}
+
           {/* Flour blend */}
           <div className="crumb-card p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"

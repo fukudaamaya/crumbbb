@@ -232,6 +232,19 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
           </div>
         )}
 
+        {/* Saved Recipes */}
+        {!demo && recipes.length > 0 && (
+          <div>
+            <h2 className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Saved Recipes</h2>
+            <div className="space-y-3">
+              {recipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Empty state */}
         {bakes.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
