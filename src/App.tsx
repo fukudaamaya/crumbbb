@@ -12,6 +12,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Settings from "./pages/Settings";
+import RecipeHistory from "./pages/RecipeHistory";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
 
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/" element={<ProtectedRoute><Journal /><BottomNav /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /><BottomNav /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/recipe/:id" element={<ProtectedRoute><RecipeHistory /></ProtectedRoute>} />
                 <Route path="/bake/new/:step" element={<ProtectedRoute><NewBakeWizard /></ProtectedRoute>} />
                 <Route path="/bake/:id" element={<ProtectedRoute><BakeDetail /></ProtectedRoute>} />
                 {/* Demo routes */}

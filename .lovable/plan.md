@@ -1,26 +1,18 @@
 
 
-# Recipe History Page
+# Scrollable Zoomed-In View
 
-## Overview
-When a user taps a saved recipe on the Dashboard, navigate to a new page that shows all past bakes matching that recipe name. The list reuses the same visual style as the Journal list view (thumbnail, date, star rating, notes).
+## Problem
+The normal (zoomed-in) 7-column grid currently shows all days but doesn't have explicit scroll behavior. The user wants to scroll vertically through the year, with the bottom of the scroll reaching the last day.
 
-## Changes
+## Solution
+Wrap the grid in a scroll container with a fixed height (e.g., `max-h-[60vh]` or similar) in normal mode so it becomes scrollable. The compact mode should remain as-is (fits on screen without scrolling).
 
-### New Route & Page
-- **`src/pages/RecipeHistory.tsx`** — New page that:
-  - Reads `recipeId` from URL params
-  - Uses `useRecipes().getRecipe(recipeId)` to get recipe name
-  - Uses `useBakes()` to filter bakes where `bake.name === recipe.name`
-  - Renders a header with back arrow and recipe name
-  - Renders matching bakes in a list identical to `BakeListView` (photo thumbnail, date, stars, notes)
-  - Shows empty state if no matching bakes found
-  - "Bake Again" button at the bottom
+## Technical Details
 
-### Modified Files
-- **`src/App.tsx`** — Add route `/recipe/:id` → `<RecipeHistory />`
-- **`src/components/RecipeCard.tsx`** — Make the card itself tappable (navigates to `/recipe/${recipe.id}`). Keep "Bake Again" as a separate button, or move it to the history page.
+**File: `src/components/DotCalendar.tsx`**
 
-### No database changes needed
-Bakes are matched to recipes by name. All data already exists.
+1. Wrap the grid `div` in a container with `overflow-y-auto` and a `max-h` constraint, but only in normal (non-compact) mode
+2. In compact mode, no height constraint — the dense grid fits naturally
+3. Use a reasonable max height like `max-h-[65vh]` so the grid is tall but scrollable within the page layout
 
