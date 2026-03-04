@@ -35,6 +35,10 @@ export default function NewBakeWizard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addBake } = useBakes();
+  const { getRecipe } = useRecipes();
+
+  const recipeId = searchParams.get('recipe');
+  const recipe = recipeId ? getRecipe(recipeId) : null;
 
   const [step, setStep] = useState(1);
   const [bakeData, setBakeData] = useState<Partial<BakeData>>({});
