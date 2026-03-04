@@ -52,6 +52,7 @@ function calcStreak(bakes: Bake[]): number {
 
 export default function Dashboard({ demo = false }: { demo?: boolean }) {
   const { bakes } = useBakes(demo);
+  const { recipes, deleteRecipe } = useRecipes();
   const navigate = useNavigate();
   const prefix = demo ? '/demo' : '';
 
