@@ -52,6 +52,8 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const { tempUnit } = useSettings();
   const { recipes, addRecipe } = useRecipes();
 
+  const bake = bakes.find(b => b.id === id);
+
   const isRecipeSaved = bake ? recipes.some(r => r.name === bake.name) : false;
 
   const handleSaveRecipe = () => {
@@ -66,8 +68,6 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
       leaven_g: bake.leaven_g,
     });
   };
-
-  const bake = bakes.find(b => b.id === id);
 
   const [editingName, setEditingName] = useState(false);
   const [editingDate, setEditingDate] = useState(false);
