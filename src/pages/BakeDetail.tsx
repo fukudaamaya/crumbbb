@@ -50,6 +50,22 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const isDemo = demo || location.pathname.startsWith('/demo');
   const { bakes, updateBake, deleteBake } = useBakes(isDemo);
   const { tempUnit } = useSettings();
+  const { recipes, addRecipe } = useRecipes();
+
+  const isRecipeSaved = bake ? recipes.some(r => r.name === bake.name) : false;
+
+  const handleSaveRecipe = () => {
+    if (!bake || isDemo) return;
+    addRecipe({
+      name: bake.name,
+      loaf_count: bake.loaf_count,
+      loaf_weight_g: bake.loaf_weight_g,
+      flours: bake.flours,
+      water_g: bake.water_g,
+      starter_g: bake.starter_g,
+      leaven_g: bake.leaven_g,
+    });
+  };
 
   const bake = bakes.find(b => b.id === id);
 
