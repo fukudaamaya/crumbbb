@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
+import { useRecipes } from '@/hooks/useRecipes';
 import { useSettings, displayTemp } from '@/contexts/SettingsContext';
 import {
   Carousel,
@@ -49,8 +50,24 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const isDemo = demo || location.pathname.startsWith('/demo');
   const { bakes, updateBake, deleteBake } = useBakes(isDemo);
   const { tempUnit } = useSettings();
+  const { recipes, addRecipe } = useRecipes();
 
   const bake = bakes.find(b => b.id === id);
+
+  const isRecipeSaved = bake ? recipes.some(r => r.name === bake.name) : false;
+
+  const handleSaveRecipe = () => {
+    if (!bake || isDemo) return;
+    addRecipe({
+      name: bake.name,
+      loaf_count: bake.loaf_count,
+      loaf_weight_g: bake.loaf_weight_g,
+      flours: bake.flours,
+      water_g: bake.water_g,
+      starter_g: bake.starter_g,
+      leaven_g: bake.leaven_g,
+    });
+  };
 
   const [editingName, setEditingName] = useState(false);
   const [editingDate, setEditingDate] = useState(false);
@@ -325,6 +342,28 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
               />
             )}
           </div>
+
+          {/* Save recipe button */}
+          {!isDemo && bake.flours.length > 0 && (
+            <button
+              onClick={handleSaveRecipe}
+              disabled={isRecipeSaved}
+              className="crumb-card w-full p-3 flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors disabled:opacity-50"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              {isRecipeSaved ? (
+                <>
+                  <BookmarkCheck size={18} strokeWidth={2} className="text-primary" />
+                  <span className="text-primary">Recipe Saved</span>
+                </>
+              ) : (
+                <>
+                  <BookmarkPlus size={18} strokeWidth={2} className="text-foreground" />
+                  <span>Save Recipe</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Flour blend */}
           <div className="crumb-card p-4">

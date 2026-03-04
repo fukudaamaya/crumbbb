@@ -4,6 +4,8 @@ import { useBakes } from '@/hooks/useBakes';
 import { Bake } from '@/types/bake';
 import { Star, Settings } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
+import { useRecipes } from '@/hooks/useRecipes';
+import RecipeCard from '@/components/RecipeCard';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
@@ -50,6 +52,7 @@ function calcStreak(bakes: Bake[]): number {
 
 export default function Dashboard({ demo = false }: { demo?: boolean }) {
   const { bakes } = useBakes(demo);
+  const { recipes, deleteRecipe } = useRecipes();
   const navigate = useNavigate();
   const prefix = demo ? '/demo' : '';
 
@@ -224,6 +227,19 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
                   <p className="text-[12px] font-bold truncate" style={{ fontFamily: 'Raleway, sans-serif' }}>{bake.name}</p>
                   <p className="text-[11px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>{formatDate(bake.date)}</p>
                 </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Saved Recipes */}
+        {!demo && recipes.length > 0 && (
+          <div>
+            <h2 className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}>Saved Recipes</h2>
+            <div className="space-y-3">
+              {recipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} />
               ))}
             </div>
           </div>

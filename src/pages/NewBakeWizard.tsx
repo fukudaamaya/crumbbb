@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useBakes } from '@/hooks/useBakes';
+import { useRecipes } from '@/hooks/useRecipes';
 import { Bake, Flour } from '@/types/bake';
 import Step1Recipe from './wizard/Step1Recipe';
 import Step2Proofing from './wizard/Step2Proofing';
@@ -34,6 +35,10 @@ export default function NewBakeWizard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addBake } = useBakes();
+  const { getRecipe } = useRecipes();
+
+  const recipeId = searchParams.get('recipe');
+  const recipe = recipeId ? getRecipe(recipeId) : null;
 
   const [step, setStep] = useState(1);
   const [bakeData, setBakeData] = useState<Partial<BakeData>>({});
@@ -117,6 +122,15 @@ export default function NewBakeWizard() {
         onNext={handleStep1}
         initialData={{
           date: searchParams.get('date') ?? undefined,
+          ...(recipe ? {
+            name: recipe.name,
+            loaf_count: recipe.loaf_count,
+            loaf_weight_g: recipe.loaf_weight_g,
+            flours: recipe.flours,
+            water_g: recipe.water_g,
+            starter_g: recipe.starter_g,
+            leaven_g: recipe.leaven_g,
+          } : {}),
           ...bakeData,
         }}
       />

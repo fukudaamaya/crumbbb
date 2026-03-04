@@ -113,6 +113,45 @@ export type Database = {
         }
         Relationships: []
       }
+      recipes: {
+        Row: {
+          created_at: string
+          flours: Json
+          id: string
+          leaven_g: number
+          loaf_count: number
+          loaf_weight_g: number
+          name: string
+          starter_g: number
+          user_id: string
+          water_g: number
+        }
+        Insert: {
+          created_at?: string
+          flours?: Json
+          id?: string
+          leaven_g?: number
+          loaf_count?: number
+          loaf_weight_g?: number
+          name?: string
+          starter_g?: number
+          user_id: string
+          water_g?: number
+        }
+        Update: {
+          created_at?: string
+          flours?: Json
+          id?: string
+          leaven_g?: number
+          loaf_count?: number
+          loaf_weight_g?: number
+          name?: string
+          starter_g?: number
+          user_id?: string
+          water_g?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
