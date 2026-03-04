@@ -4,6 +4,8 @@ import { useBakes } from '@/hooks/useBakes';
 import { Bake } from '@/types/bake';
 import { Star, Settings } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
+import { useRecipes } from '@/hooks/useRecipes';
+import RecipeCard from '@/components/RecipeCard';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
