@@ -111,32 +111,57 @@ export default function NewBakeWizard() {
     notes: string;
     rating: number;
   }) => {
-    const bake: Bake = {
-      id: uuidv4(),
-      name: bakeData.name ?? '',
-      date: bakeData.date ?? today,
-      loaf_count: bakeData.loaf_count ?? 1,
-      loaf_weight_g: bakeData.loaf_weight_g ?? 500,
-      flours: bakeData.flours ?? [],
-      water_g: bakeData.water_g ?? 0,
-      starter_g: bakeData.starter_g ?? 0,
-      leaven_g: bakeData.leaven_g ?? 0,
-      hydration_pct: bakeData.hydration_pct ?? 0,
-      starter_pct: bakeData.starter_pct ?? 0,
-      leaven_pct: bakeData.leaven_pct ?? 0,
-      proofing_time_mins: bakeData.proofing_time_mins ?? 0,
-      bake_temp_c: bakeData.bake_temp_c ?? 0,
-      bake_time_mins: bakeData.bake_time_mins ?? 0,
-      photo_base64: data.photos[0] ?? '',
-      crumb_photo_base64: '',
-      photos: data.photos,
-      notes: data.notes,
-      rating: data.rating,
-      is_favourite: false,
-      created_at: new Date().toISOString(),
-    };
-    addBake(bake);
-    navigate('/', { replace: true });
+    if (editId) {
+      // Update existing bake
+      updateBake(editId, {
+        name: bakeData.name,
+        date: bakeData.date,
+        loaf_count: bakeData.loaf_count,
+        loaf_weight_g: bakeData.loaf_weight_g,
+        flours: bakeData.flours,
+        water_g: bakeData.water_g,
+        starter_g: bakeData.starter_g,
+        leaven_g: bakeData.leaven_g,
+        hydration_pct: bakeData.hydration_pct,
+        starter_pct: bakeData.starter_pct,
+        leaven_pct: bakeData.leaven_pct,
+        proofing_time_mins: bakeData.proofing_time_mins,
+        bake_temp_c: bakeData.bake_temp_c,
+        bake_time_mins: bakeData.bake_time_mins,
+        photos: data.photos,
+        photo_base64: data.photos[0] ?? '',
+        notes: data.notes,
+        rating: data.rating,
+      });
+      navigate(`/bake/${editId}`, { replace: true });
+    } else {
+      const bake: Bake = {
+        id: uuidv4(),
+        name: bakeData.name ?? '',
+        date: bakeData.date ?? today,
+        loaf_count: bakeData.loaf_count ?? 1,
+        loaf_weight_g: bakeData.loaf_weight_g ?? 500,
+        flours: bakeData.flours ?? [],
+        water_g: bakeData.water_g ?? 0,
+        starter_g: bakeData.starter_g ?? 0,
+        leaven_g: bakeData.leaven_g ?? 0,
+        hydration_pct: bakeData.hydration_pct ?? 0,
+        starter_pct: bakeData.starter_pct ?? 0,
+        leaven_pct: bakeData.leaven_pct ?? 0,
+        proofing_time_mins: bakeData.proofing_time_mins ?? 0,
+        bake_temp_c: bakeData.bake_temp_c ?? 0,
+        bake_time_mins: bakeData.bake_time_mins ?? 0,
+        photo_base64: data.photos[0] ?? '',
+        crumb_photo_base64: '',
+        photos: data.photos,
+        notes: data.notes,
+        rating: data.rating,
+        is_favourite: false,
+        created_at: new Date().toISOString(),
+      };
+      addBake(bake);
+      navigate('/', { replace: true });
+    }
   };
 
   if (step === 1) {

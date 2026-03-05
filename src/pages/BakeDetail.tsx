@@ -118,16 +118,6 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
   };
 
-  const saveName = () => {
-    if (localName.trim()) updateBake(bake.id, { name: localName.trim() });
-    setEditingName(false);
-  };
-
-  const saveDate = () => {
-    if (localDate) updateBake(bake.id, { date: localDate });
-    setEditingDate(false);
-  };
-
   const confirmDelete = () => {
     deleteBake(bake.id);
     navigate(backPath, { replace: true });
