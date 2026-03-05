@@ -14,6 +14,11 @@ interface Step4Props {
     rating: number;
   }) => void;
   onBack: () => void;
+  initialData?: {
+    photos?: string[];
+    notes?: string;
+    rating?: number;
+  };
 }
 
 const MAX_PHOTOS = 5;
