@@ -153,7 +153,14 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         <button onClick={() => { const idx = (window.history.state as any)?.idx; if (typeof idx === 'number' && idx > 0) { navigate(-1); } else { navigate(backPath, { replace: true }); } }} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <div className="w-8" />
+        <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
+          <Heart
+            size={24}
+            fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
+            stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+            strokeWidth={1.8}
+          />
+        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto">
