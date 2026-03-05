@@ -14,6 +14,11 @@ interface Step4Props {
     rating: number;
   }) => void;
   onBack: () => void;
+  initialData?: {
+    photos?: string[];
+    notes?: string;
+    rating?: number;
+  };
 }
 
 const MAX_PHOTOS = 5;
@@ -55,11 +60,11 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
-export default function Step4Capture({ onSave, onBack }: Step4Props) {
+export default function Step4Capture({ onSave, onBack, initialData }: Step4Props) {
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [notes, setNotes] = useState('');
-  const [rating, setRating] = useState(0);
+  const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
+  const [notes, setNotes] = useState(initialData?.notes ?? '');
+  const [rating, setRating] = useState(initialData?.rating ?? 0);
   const [saving, setSaving] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [api, setApi] = useState<CarouselApi>();

@@ -34,14 +34,37 @@ function calcPct(grams: number, totalFlour: number): number {
 export default function NewBakeWizard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addBake } = useBakes();
+  const { addBake, updateBake, getBake } = useBakes();
   const { getRecipe } = useRecipes();
+
+  const editId = searchParams.get('edit');
+  const editBake = editId ? getBake(editId) : null;
 
   const recipeId = searchParams.get('recipe');
   const recipe = recipeId ? getRecipe(recipeId) : null;
 
   const [step, setStep] = useState(1);
-  const [bakeData, setBakeData] = useState<Partial<BakeData>>({});
+  const [bakeData, setBakeData] = useState<Partial<BakeData>>(() => {
+    if (editBake) {
+      return {
+        name: editBake.name,
+        date: editBake.date,
+        loaf_count: editBake.loaf_count,
+        loaf_weight_g: editBake.loaf_weight_g,
+        flours: editBake.flours,
+        water_g: editBake.water_g,
+        starter_g: editBake.starter_g,
+        leaven_g: editBake.leaven_g,
+        hydration_pct: editBake.hydration_pct,
+        starter_pct: editBake.starter_pct,
+        leaven_pct: editBake.leaven_pct,
+        proofing_time_mins: editBake.proofing_time_mins,
+        bake_temp_c: editBake.bake_temp_c,
+        bake_time_mins: editBake.bake_time_mins,
+      };
+    }
+    return {};
+  });
 
   const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   const bakeDate = bakeData.date ?? searchParams.get('date') ?? today;
@@ -88,32 +111,57 @@ export default function NewBakeWizard() {
     notes: string;
     rating: number;
   }) => {
-    const bake: Bake = {
-      id: uuidv4(),
-      name: bakeData.name ?? '',
-      date: bakeData.date ?? today,
-      loaf_count: bakeData.loaf_count ?? 1,
-      loaf_weight_g: bakeData.loaf_weight_g ?? 500,
-      flours: bakeData.flours ?? [],
-      water_g: bakeData.water_g ?? 0,
-      starter_g: bakeData.starter_g ?? 0,
-      leaven_g: bakeData.leaven_g ?? 0,
-      hydration_pct: bakeData.hydration_pct ?? 0,
-      starter_pct: bakeData.starter_pct ?? 0,
-      leaven_pct: bakeData.leaven_pct ?? 0,
-      proofing_time_mins: bakeData.proofing_time_mins ?? 0,
-      bake_temp_c: bakeData.bake_temp_c ?? 0,
-      bake_time_mins: bakeData.bake_time_mins ?? 0,
-      photo_base64: data.photos[0] ?? '',
-      crumb_photo_base64: '',
-      photos: data.photos,
-      notes: data.notes,
-      rating: data.rating,
-      is_favourite: false,
-      created_at: new Date().toISOString(),
-    };
-    addBake(bake);
-    navigate('/', { replace: true });
+    if (editId) {
+      // Update existing bake
+      updateBake(editId, {
+        name: bakeData.name,
+        date: bakeData.date,
+        loaf_count: bakeData.loaf_count,
+        loaf_weight_g: bakeData.loaf_weight_g,
+        flours: bakeData.flours,
+        water_g: bakeData.water_g,
+        starter_g: bakeData.starter_g,
+        leaven_g: bakeData.leaven_g,
+        hydration_pct: bakeData.hydration_pct,
+        starter_pct: bakeData.starter_pct,
+        leaven_pct: bakeData.leaven_pct,
+        proofing_time_mins: bakeData.proofing_time_mins,
+        bake_temp_c: bakeData.bake_temp_c,
+        bake_time_mins: bakeData.bake_time_mins,
+        photos: data.photos,
+        photo_base64: data.photos[0] ?? '',
+        notes: data.notes,
+        rating: data.rating,
+      });
+      navigate(`/bake/${editId}`, { replace: true });
+    } else {
+      const bake: Bake = {
+        id: uuidv4(),
+        name: bakeData.name ?? '',
+        date: bakeData.date ?? today,
+        loaf_count: bakeData.loaf_count ?? 1,
+        loaf_weight_g: bakeData.loaf_weight_g ?? 500,
+        flours: bakeData.flours ?? [],
+        water_g: bakeData.water_g ?? 0,
+        starter_g: bakeData.starter_g ?? 0,
+        leaven_g: bakeData.leaven_g ?? 0,
+        hydration_pct: bakeData.hydration_pct ?? 0,
+        starter_pct: bakeData.starter_pct ?? 0,
+        leaven_pct: bakeData.leaven_pct ?? 0,
+        proofing_time_mins: bakeData.proofing_time_mins ?? 0,
+        bake_temp_c: bakeData.bake_temp_c ?? 0,
+        bake_time_mins: bakeData.bake_time_mins ?? 0,
+        photo_base64: data.photos[0] ?? '',
+        crumb_photo_base64: '',
+        photos: data.photos,
+        notes: data.notes,
+        rating: data.rating,
+        is_favourite: false,
+        created_at: new Date().toISOString(),
+      };
+      addBake(bake);
+      navigate('/', { replace: true });
+    }
   };
 
   if (step === 1) {
@@ -163,6 +211,11 @@ export default function NewBakeWizard() {
     <Step4Capture
       onSave={handleSave}
       onBack={() => setStep(isPastDate ? 1 : 3)}
+      initialData={editBake ? {
+        photos: editBake.photos,
+        notes: editBake.notes,
+        rating: editBake.rating,
+      } : undefined}
     />
   );
 }

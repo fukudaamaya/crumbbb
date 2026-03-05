@@ -69,15 +69,10 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     });
   };
 
-  const [editingName, setEditingName] = useState(false);
-  const [editingDate, setEditingDate] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-
-  const [localName, setLocalName] = useState('');
-  const [localDate, setLocalDate] = useState('');
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
@@ -123,16 +118,6 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
   };
 
-  const saveName = () => {
-    if (localName.trim()) updateBake(bake.id, { name: localName.trim() });
-    setEditingName(false);
-  };
-
-  const saveDate = () => {
-    if (localDate) updateBake(bake.id, { date: localDate });
-    setEditingDate(false);
-  };
-
   const confirmDelete = () => {
     deleteBake(bake.id);
     navigate(backPath, { replace: true });
@@ -153,7 +138,14 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         <button onClick={() => { const idx = (window.history.state as any)?.idx; if (typeof idx === 'number' && idx > 0) { navigate(-1); } else { navigate(backPath, { replace: true }); } }} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <div className="w-8" />
+        <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
+          <Heart
+            size={24}
+            fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
+            stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+            strokeWidth={1.8}
+          />
+        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto">
@@ -250,61 +242,29 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
         <div className="px-4 py-5 space-y-6">
           {/* Tappable name */}
           <div>
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                {editingName ? (
-                  <input
-                    autoFocus
-                    className="crumb-input text-2xl font-bold w-full"
-                    style={{ fontFamily: 'Raleway, sans-serif' }}
-                    value={localName}
-                    onChange={e => setLocalName(e.target.value)}
-                    onBlur={saveName}
-                    onKeyDown={e => e.key === 'Enter' && saveName()}
-                  />
-                ) : (
-                  <button
-                    className="flex items-center gap-2 w-full text-left group"
-                    onClick={() => { setLocalName(bake.name); setEditingName(true); }}
-                  >
-                    <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
-                      {bake.name}
-                    </h1>
-                    {!isDemo && <Pencil size={15} strokeWidth={2} className="text-muted-foreground shrink-0" />}
-                  </button>
-                )}
+                <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                  {bake.name}
+                </h1>
               </div>
-              <button onClick={toggleFavourite} className="p-1 shrink-0 ml-2" aria-label="Toggle favourite">
-                <Heart
-                  size={24}
-                  fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
-                  stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
-                  strokeWidth={1.8}
-                />
-              </button>
+              {!isDemo && (
+                <button
+                  onClick={() => navigate(`/bake/new/1?edit=${bake.id}`)}
+                  className="p-1 shrink-0 ml-2 flex items-center gap-1 text-[13px] font-semibold text-primary"
+                  style={{ fontFamily: 'DM Sans, sans-serif' }}
+                  aria-label="Edit bake"
+                >
+                  <Pencil size={16} strokeWidth={2} />
+                  Edit
+                </button>
+              )}
             </div>
 
-            {/* Tappable date */}
-            {editingDate ? (
-              <input
-                autoFocus
-                type="date"
-                className="crumb-input mt-1 text-[14px]"
-                value={localDate}
-                onChange={e => setLocalDate(e.target.value)}
-                onBlur={saveDate}
-              />
-            ) : (
-              <button
-                className="flex items-center gap-1.5 mt-1"
-                onClick={() => { setLocalDate(bake.date); setEditingDate(true); }}
-              >
-                <p className="text-muted-foreground text-[14px]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                  {formatDate(bake.date)}
-                </p>
-                {!isDemo && <Pencil size={12} strokeWidth={2} className="text-muted-foreground" />}
-              </button>
-            )}
+            {/* Date (read-only) */}
+            <p className="text-muted-foreground text-[14px] mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+              {formatDate(bake.date)}
+            </p>
 
             {/* Tappable rating */}
             <div className="flex gap-1 mt-2">
