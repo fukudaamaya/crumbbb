@@ -69,15 +69,10 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     });
   };
 
-  const [editingName, setEditingName] = useState(false);
-  const [editingDate, setEditingDate] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-
-  const [localName, setLocalName] = useState('');
-  const [localDate, setLocalDate] = useState('');
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
