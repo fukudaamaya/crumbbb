@@ -211,6 +211,11 @@ export default function NewBakeWizard() {
     <Step4Capture
       onSave={handleSave}
       onBack={() => setStep(isPastDate ? 1 : 3)}
+      initialData={editBake ? {
+        photos: editBake.photos,
+        notes: editBake.notes,
+        rating: editBake.rating,
+      } : undefined}
     />
   );
 }
