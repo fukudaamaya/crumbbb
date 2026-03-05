@@ -34,14 +34,37 @@ function calcPct(grams: number, totalFlour: number): number {
 export default function NewBakeWizard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addBake } = useBakes();
+  const { addBake, updateBake, getBake } = useBakes();
   const { getRecipe } = useRecipes();
+
+  const editId = searchParams.get('edit');
+  const editBake = editId ? getBake(editId) : null;
 
   const recipeId = searchParams.get('recipe');
   const recipe = recipeId ? getRecipe(recipeId) : null;
 
   const [step, setStep] = useState(1);
-  const [bakeData, setBakeData] = useState<Partial<BakeData>>({});
+  const [bakeData, setBakeData] = useState<Partial<BakeData>>(() => {
+    if (editBake) {
+      return {
+        name: editBake.name,
+        date: editBake.date,
+        loaf_count: editBake.loaf_count,
+        loaf_weight_g: editBake.loaf_weight_g,
+        flours: editBake.flours,
+        water_g: editBake.water_g,
+        starter_g: editBake.starter_g,
+        leaven_g: editBake.leaven_g,
+        hydration_pct: editBake.hydration_pct,
+        starter_pct: editBake.starter_pct,
+        leaven_pct: editBake.leaven_pct,
+        proofing_time_mins: editBake.proofing_time_mins,
+        bake_temp_c: editBake.bake_temp_c,
+        bake_time_mins: editBake.bake_time_mins,
+      };
+    }
+    return {};
+  });
 
   const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
   const bakeDate = bakeData.date ?? searchParams.get('date') ?? today;
