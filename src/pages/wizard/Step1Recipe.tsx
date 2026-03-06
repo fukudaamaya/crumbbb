@@ -336,6 +336,17 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                   <span className="font-semibold tabular-nums">{f.grams}g</span>
                 </div>
             )}
+              {addIns.filter(a => a.name.trim()).length > 0 && (
+                <>
+                  <div className="h-px bg-border my-2" />
+                  {addIns.filter(a => a.name.trim()).map((a, i) => (
+                    <div key={`addin-${i}`} className="flex justify-between text-[14px]">
+                      <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{a.name}</span>
+                      <span className="font-semibold tabular-nums">{a.grams}g</span>
+                    </div>
+                  ))}
+                </>
+              )}
               <div className="h-px bg-border my-2" />
               <div className="flex justify-between text-[14px]">
                 <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Hydration</span>
