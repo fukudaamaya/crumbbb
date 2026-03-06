@@ -3,6 +3,11 @@ export interface Flour {
   grams: number;
 }
 
+export interface AddIn {
+  name: string;
+  grams: number;
+}
+
 export interface Bake {
   id: string;
   name: string;
