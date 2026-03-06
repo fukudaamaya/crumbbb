@@ -211,9 +211,6 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
               Total: {totalFlour}g
             </span>
           </div>
-          <datalist id="flour-types-list">
-            {flourTypes.map(t => <option key={t} value={t} />)}
-          </datalist>
           <div className="space-y-2">
             {flours.map((f, i) =>
             <div key={i} className="flex gap-2 items-center">
