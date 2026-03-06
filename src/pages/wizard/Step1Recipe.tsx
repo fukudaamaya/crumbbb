@@ -273,10 +273,6 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                   value={a.grams || ''}
                   onChange={(e) => updateAddIn(i, 'grams', Number(e.target.value))}
                   onFocus={(e) => e.target.select()} />
-                <span className="text-primary font-bold tabular-nums text-[13px] w-10 text-right"
-                  style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                  {calcPct(a.grams, totalFlour)}%
-                </span>
                 <button
                   onClick={() => removeAddIn(i)}
                   className="text-muted-foreground text-xl leading-none px-1"
