@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Bake } from '@/types/bake';
+import { Bake, AddIn } from '@/types/bake';
 import { sampleBakes } from '@/data/sampleBakes';
 import { toast } from 'sonner';
 
