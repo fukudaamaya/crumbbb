@@ -350,7 +350,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                 </div>
               ))}
             </div>
-          )
+          )}
 
           {/* Baker's percentages */}
           <div className="crumb-card p-4">
