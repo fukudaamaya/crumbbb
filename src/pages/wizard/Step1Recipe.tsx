@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Flour, AddIn } from '@/types/bake';
-import { getFlourTypes, saveFlourTypes } from '@/hooks/useFlourTypes';
+import { saveFlourTypes } from '@/hooks/useFlourTypes';
 
 interface Step1Data {
   name: string;
@@ -33,7 +33,7 @@ function calcPct(grams: number, totalFlour: number): number {
 export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [flourTypes] = useState<string[]>(() => getFlourTypes());
+  
 
   const [name, setName] = useState(initialData?.name ?? '');
   const [date, setDate] = useState(
@@ -211,16 +211,12 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
               Total: {totalFlour}g
             </span>
           </div>
-          <datalist id="flour-types-list">
-            {flourTypes.map(t => <option key={t} value={t} />)}
-          </datalist>
           <div className="space-y-2">
             {flours.map((f, i) =>
             <div key={i} className="flex gap-2 items-center">
                 <input
                 className="crumb-input flex-1"
                 type="text"
-                list="flour-types-list"
                 placeholder="Flour type"
                 value={f.type}
                 onChange={(e) => updateFlour(i, 'type', e.target.value)} />
@@ -277,10 +273,6 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                   value={a.grams || ''}
                   onChange={(e) => updateAddIn(i, 'grams', Number(e.target.value))}
                   onFocus={(e) => e.target.select()} />
-                <span className="text-primary font-bold tabular-nums text-[13px] w-10 text-right"
-                  style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                  {calcPct(a.grams, totalFlour)}%
-                </span>
                 <button
                   onClick={() => removeAddIn(i)}
                   className="text-muted-foreground text-xl leading-none px-1"
