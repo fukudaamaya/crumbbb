@@ -51,6 +51,7 @@ export const sampleBakes: Bake[] = [
     photo_base64: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop',
     crumb_photo_base64: '',
     photos: ['https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=400&fit=crop'],
+    add_ins: [],
     notes: 'Dense but flavourful. The caraway really came through. Might reduce rye to 30% next time.',
     rating: 4,
     is_favourite: false,
