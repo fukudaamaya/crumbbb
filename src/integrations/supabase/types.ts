@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       bakes: {
         Row: {
+          add_ins: Json
           bake_temp_c: number
           bake_time_mins: number
           created_at: string
@@ -41,6 +42,7 @@ export type Database = {
           water_g: number
         }
         Insert: {
+          add_ins?: Json
           bake_temp_c?: number
           bake_time_mins?: number
           created_at?: string
@@ -66,6 +68,7 @@ export type Database = {
           water_g?: number
         }
         Update: {
+          add_ins?: Json
           bake_temp_c?: number
           bake_time_mins?: number
           created_at?: string
@@ -115,6 +118,7 @@ export type Database = {
       }
       recipes: {
         Row: {
+          add_ins: Json
           created_at: string
           flours: Json
           id: string
@@ -127,6 +131,7 @@ export type Database = {
           water_g: number
         }
         Insert: {
+          add_ins?: Json
           created_at?: string
           flours?: Json
           id?: string
@@ -139,6 +144,7 @@ export type Database = {
           water_g?: number
         }
         Update: {
+          add_ins?: Json
           created_at?: string
           flours?: Json
           id?: string
