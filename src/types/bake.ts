@@ -28,6 +28,7 @@ export interface Bake {
   bake_time_mins: number;
   photo_base64: string;
   crumb_photo_base64: string;
+  add_ins: AddIn[];
   photos: string[];
   notes: string;
   rating: number; // 1-5

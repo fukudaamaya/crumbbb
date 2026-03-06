@@ -255,6 +255,49 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
           </button>
         </div>
 
+        {/* Add-ins */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="crumb-label mb-0">Add-ins <span className="font-normal text-muted-foreground">(optional)</span></label>
+          </div>
+          <div className="space-y-2">
+            {addIns.map((a, i) =>
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  className="crumb-input flex-1"
+                  type="text"
+                  placeholder="e.g. Poppy seeds"
+                  value={a.name}
+                  onChange={(e) => updateAddIn(i, 'name', e.target.value)} />
+                <input
+                  className="crumb-input w-20 text-right"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="g"
+                  value={a.grams || ''}
+                  onChange={(e) => updateAddIn(i, 'grams', Number(e.target.value))}
+                  onFocus={(e) => e.target.select()} />
+                <span className="text-primary font-bold tabular-nums text-[13px] w-10 text-right"
+                  style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {calcPct(a.grams, totalFlour)}%
+                </span>
+                <button
+                  onClick={() => removeAddIn(i)}
+                  className="text-muted-foreground text-xl leading-none px-1"
+                  aria-label="Remove add-in">
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={addAddIn}
+            className="mt-2 text-[13px] font-semibold text-primary underline underline-offset-2"
+            style={{ fontFamily: 'DM Sans, sans-serif' }}>
+            + Add ingredient
+          </button>
+        </div>
+
         {/* Water, leaven, salt */}
         <div className="flex gap-2">
           {[
