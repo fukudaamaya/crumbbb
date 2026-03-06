@@ -217,7 +217,6 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                 <input
                 className="crumb-input flex-1"
                 type="text"
-                list="flour-types-list"
                 placeholder="Flour type"
                 value={f.type}
                 onChange={(e) => updateFlour(i, 'type', e.target.value)} />
