@@ -122,6 +122,7 @@ export default function NewBakeWizard() {
         loaf_count: bakeData.loaf_count,
         loaf_weight_g: bakeData.loaf_weight_g,
         flours: bakeData.flours,
+        add_ins: bakeData.add_ins,
         water_g: bakeData.water_g,
         starter_g: bakeData.starter_g,
         leaven_g: bakeData.leaven_g,
