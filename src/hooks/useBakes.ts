@@ -27,6 +27,7 @@ function rowToBake(row: any): Bake {
     photo_base64: row.photo_base64,
     crumb_photo_base64: row.crumb_photo_base64,
     photos: (row.photos ?? []) as string[],
+    add_ins: (row.add_ins ?? []) as AddIn[],
     notes: row.notes,
     rating: row.rating,
     is_favourite: row.is_favourite,
