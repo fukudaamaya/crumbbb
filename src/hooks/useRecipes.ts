@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Flour } from '@/types/bake';
+import { Flour, AddIn } from '@/types/bake';
 import { toast } from 'sonner';
 
 export interface Recipe {
@@ -12,6 +12,7 @@ export interface Recipe {
   loaf_count: number;
   loaf_weight_g: number;
   flours: Flour[];
+  add_ins: AddIn[];
   water_g: number;
   starter_g: number;
   leaven_g: number;
@@ -26,6 +27,7 @@ function rowToRecipe(row: any): Recipe {
     loaf_count: row.loaf_count,
     loaf_weight_g: row.loaf_weight_g,
     flours: (row.flours ?? []) as Flour[],
+    add_ins: (row.add_ins ?? []) as AddIn[],
     water_g: row.water_g,
     starter_g: row.starter_g,
     leaven_g: row.leaven_g,
@@ -57,6 +59,7 @@ export function useRecipes() {
         ...recipe,
         user_id: user.id,
         flours: recipe.flours as any,
+        add_ins: recipe.add_ins as any,
       });
       if (error) throw error;
     },

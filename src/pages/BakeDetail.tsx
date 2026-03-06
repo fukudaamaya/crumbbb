@@ -63,6 +63,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
       loaf_count: bake.loaf_count,
       loaf_weight_g: bake.loaf_weight_g,
       flours: bake.flours,
+      add_ins: bake.add_ins ?? [],
       water_g: bake.water_g,
       starter_g: bake.starter_g,
       leaven_g: bake.leaven_g,
@@ -336,6 +337,20 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
               </div>
             ))}
           </div>
+
+          {/* Add-ins */}
+          {bake.add_ins && bake.add_ins.length > 0 && (
+            <div className="crumb-card p-4">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>Add-ins</h3>
+              {bake.add_ins.map((a, i) => (
+                <div key={i} className="flex justify-between text-[14px] py-1">
+                  <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{a.name}</span>
+                  <span className="font-semibold tabular-nums">{a.grams}g</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Baker's percentages */}
           <div className="crumb-card p-4">

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useBakes } from '@/hooks/useBakes';
 import { useRecipes } from '@/hooks/useRecipes';
-import { Bake, Flour } from '@/types/bake';
+import { Bake, Flour, AddIn } from '@/types/bake';
 import Step1Recipe from './wizard/Step1Recipe';
 import Step2Proofing from './wizard/Step2Proofing';
 import Step3Baking from './wizard/Step3Baking';
@@ -15,6 +15,7 @@ interface BakeData {
   loaf_count: number;
   loaf_weight_g: number;
   flours: Flour[];
+  add_ins: AddIn[];
   water_g: number;
   starter_g: number;
   leaven_g: number;
@@ -52,6 +53,7 @@ export default function NewBakeWizard() {
         loaf_count: editBake.loaf_count,
         loaf_weight_g: editBake.loaf_weight_g,
         flours: editBake.flours,
+        add_ins: editBake.add_ins,
         water_g: editBake.water_g,
         starter_g: editBake.starter_g,
         leaven_g: editBake.leaven_g,
@@ -76,6 +78,7 @@ export default function NewBakeWizard() {
     loaf_count: number;
     loaf_weight_g: number;
     flours: Flour[];
+    add_ins: AddIn[];
     water_g: number;
     starter_g: number;
     leaven_g: number;
@@ -119,6 +122,7 @@ export default function NewBakeWizard() {
         loaf_count: bakeData.loaf_count,
         loaf_weight_g: bakeData.loaf_weight_g,
         flours: bakeData.flours,
+        add_ins: bakeData.add_ins,
         water_g: bakeData.water_g,
         starter_g: bakeData.starter_g,
         leaven_g: bakeData.leaven_g,
@@ -142,6 +146,7 @@ export default function NewBakeWizard() {
         loaf_count: bakeData.loaf_count ?? 1,
         loaf_weight_g: bakeData.loaf_weight_g ?? 500,
         flours: bakeData.flours ?? [],
+        add_ins: bakeData.add_ins ?? [],
         water_g: bakeData.water_g ?? 0,
         starter_g: bakeData.starter_g ?? 0,
         leaven_g: bakeData.leaven_g ?? 0,
@@ -175,6 +180,7 @@ export default function NewBakeWizard() {
             loaf_count: recipe.loaf_count,
             loaf_weight_g: recipe.loaf_weight_g,
             flours: recipe.flours,
+            add_ins: (recipe as any).add_ins ?? [],
             water_g: recipe.water_g,
             starter_g: recipe.starter_g,
             leaven_g: recipe.leaven_g,

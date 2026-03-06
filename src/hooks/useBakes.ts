@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Bake } from '@/types/bake';
+import { Bake, AddIn } from '@/types/bake';
 import { sampleBakes } from '@/data/sampleBakes';
 import { toast } from 'sonner';
 
@@ -27,6 +27,7 @@ function rowToBake(row: any): Bake {
     photo_base64: row.photo_base64,
     crumb_photo_base64: row.crumb_photo_base64,
     photos: (row.photos ?? []) as string[],
+    add_ins: (row.add_ins ?? []) as AddIn[],
     notes: row.notes,
     rating: row.rating,
     is_favourite: row.is_favourite,
@@ -65,12 +66,13 @@ export function useBakes(demo = false) {
   const addBakeMutation = useMutation({
     mutationFn: async (bake: Bake) => {
       if (isDemo) { demoNoop(); return; }
-      const { id, created_at, photos, ...rest } = bake;
+      const { id, created_at, photos, add_ins, ...rest } = bake;
       const { error } = await supabase.from('bakes').insert({
         ...rest,
         user_id: user!.id,
         flours: rest.flours as any,
         photos: photos as any,
+        add_ins: add_ins as any,
       });
       if (error) throw error;
     },
@@ -80,10 +82,11 @@ export function useBakes(demo = false) {
   const updateBakeMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Bake> }) => {
       if (isDemo) { demoNoop(); return; }
-      const { flours, photos, ...rest } = updates;
+      const { flours, photos, add_ins, ...rest } = updates;
       const payload: any = { ...rest };
       if (flours !== undefined) payload.flours = flours as any;
       if (photos !== undefined) payload.photos = photos as any;
+      if (add_ins !== undefined) payload.add_ins = add_ins as any;
       const { error } = await supabase.from('bakes').update(payload).eq('id', id);
       if (error) throw error;
     },

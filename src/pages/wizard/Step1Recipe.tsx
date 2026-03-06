@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Flour } from '@/types/bake';
+import { Flour, AddIn } from '@/types/bake';
 import { getFlourTypes, saveFlourTypes } from '@/hooks/useFlourTypes';
 
 interface Step1Data {
@@ -10,6 +10,7 @@ interface Step1Data {
   loaf_count: number;
   loaf_weight_g: number;
   flours: Flour[];
+  add_ins: AddIn[];
   water_g: number;
   starter_g: number;
   leaven_g: number;
@@ -48,6 +49,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const [flours, setFlours] = useState<Flour[]>(
     initialData?.flours ?? [{ type: 'White bread flour', grams: 500 }]
   );
+  const [addIns, setAddIns] = useState<AddIn[]>(initialData?.add_ins ?? []);
   const [water, setWater] = useState(initialData?.water_g ?? 375);
   const [starter, setStarter] = useState(initialData?.starter_g ?? 10);
   const [leaven, setLeaven] = useState(initialData?.leaven_g ?? 100);
@@ -73,6 +75,11 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const starterPct = calcPct(starter, totalFlour);
   const leavenPct = calcPct(leaven, totalFlour);
 
+  const addAddIn = () => setAddIns(a => [...a, { name: '', grams: 0 }]);
+  const removeAddIn = (i: number) => setAddIns(a => a.filter((_, idx) => idx !== i));
+  const updateAddIn = (i: number, field: keyof AddIn, value: string | number) =>
+    setAddIns(a => a.map((item, idx) => idx !== i ? item : { ...item, [field]: field === 'grams' ? Number(value) : String(value) }));
+
   const addFlour = () => setFlours((f) => [...f, { type: '', grams: 0 }]);
   const removeFlour = (i: number) => setFlours((f) => f.filter((_, idx) => idx !== i));
   const updateFlour = (i: number, field: keyof Flour, value: string | number) =>
@@ -97,6 +104,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
       loaf_count: loafCount,
       loaf_weight_g: loafWeight,
       flours,
+      add_ins: addIns.filter(a => a.name.trim()),
       water_g: water,
       starter_g: starter,
       leaven_g: leaven
@@ -247,6 +255,49 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
           </button>
         </div>
 
+        {/* Add-ins */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="crumb-label mb-0">Add-ins <span className="font-normal text-muted-foreground">(optional)</span></label>
+          </div>
+          <div className="space-y-2">
+            {addIns.map((a, i) =>
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  className="crumb-input flex-1"
+                  type="text"
+                  placeholder="e.g. Poppy seeds"
+                  value={a.name}
+                  onChange={(e) => updateAddIn(i, 'name', e.target.value)} />
+                <input
+                  className="crumb-input w-20 text-right"
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="g"
+                  value={a.grams || ''}
+                  onChange={(e) => updateAddIn(i, 'grams', Number(e.target.value))}
+                  onFocus={(e) => e.target.select()} />
+                <span className="text-primary font-bold tabular-nums text-[13px] w-10 text-right"
+                  style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {calcPct(a.grams, totalFlour)}%
+                </span>
+                <button
+                  onClick={() => removeAddIn(i)}
+                  className="text-muted-foreground text-xl leading-none px-1"
+                  aria-label="Remove add-in">
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={addAddIn}
+            className="mt-2 text-[13px] font-semibold text-primary underline underline-offset-2"
+            style={{ fontFamily: 'DM Sans, sans-serif' }}>
+            + Add ingredient
+          </button>
+        </div>
+
         {/* Water, leaven, salt */}
         <div className="flex gap-2">
           {[
@@ -285,6 +336,17 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
                   <span className="font-semibold tabular-nums">{f.grams}g</span>
                 </div>
             )}
+              {addIns.filter(a => a.name.trim()).length > 0 && (
+                <>
+                  <div className="h-px bg-border my-2" />
+                  {addIns.filter(a => a.name.trim()).map((a, i) => (
+                    <div key={`addin-${i}`} className="flex justify-between text-[14px]">
+                      <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{a.name}</span>
+                      <span className="font-semibold tabular-nums">{a.grams}g</span>
+                    </div>
+                  ))}
+                </>
+              )}
               <div className="h-px bg-border my-2" />
               <div className="flex justify-between text-[14px]">
                 <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Hydration</span>
