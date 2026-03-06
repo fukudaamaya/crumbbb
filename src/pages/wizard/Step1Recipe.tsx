@@ -10,6 +10,7 @@ interface Step1Data {
   loaf_count: number;
   loaf_weight_g: number;
   flours: Flour[];
+  add_ins: AddIn[];
   water_g: number;
   starter_g: number;
   leaven_g: number;
