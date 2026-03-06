@@ -75,6 +75,11 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const starterPct = calcPct(starter, totalFlour);
   const leavenPct = calcPct(leaven, totalFlour);
 
+  const addAddIn = () => setAddIns(a => [...a, { name: '', grams: 0 }]);
+  const removeAddIn = (i: number) => setAddIns(a => a.filter((_, idx) => idx !== i));
+  const updateAddIn = (i: number, field: keyof AddIn, value: string | number) =>
+    setAddIns(a => a.map((item, idx) => idx !== i ? item : { ...item, [field]: field === 'grams' ? Number(value) : String(value) }));
+
   const addFlour = () => setFlours((f) => [...f, { type: '', grams: 0 }]);
   const removeFlour = (i: number) => setFlours((f) => f.filter((_, idx) => idx !== i));
   const updateFlour = (i: number, field: keyof Flour, value: string | number) =>
