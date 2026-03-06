@@ -104,6 +104,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
       loaf_count: loafCount,
       loaf_weight_g: loafWeight,
       flours,
+      add_ins: addIns.filter(a => a.name.trim()),
       water_g: water,
       starter_g: starter,
       leaven_g: leaven
