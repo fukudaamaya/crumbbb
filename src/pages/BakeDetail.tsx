@@ -63,6 +63,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
       loaf_count: bake.loaf_count,
       loaf_weight_g: bake.loaf_weight_g,
       flours: bake.flours,
+      add_ins: bake.add_ins ?? [],
       water_g: bake.water_g,
       starter_g: bake.starter_g,
       leaven_g: bake.leaven_g,

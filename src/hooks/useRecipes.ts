@@ -59,6 +59,7 @@ export function useRecipes() {
         ...recipe,
         user_id: user.id,
         flours: recipe.flours as any,
+        add_ins: recipe.add_ins as any,
       });
       if (error) throw error;
     },
