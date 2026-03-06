@@ -337,6 +337,20 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             ))}
           </div>
 
+          {/* Add-ins */}
+          {bake.add_ins && bake.add_ins.length > 0 && (
+            <div className="crumb-card p-4">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>Add-ins</h3>
+              {bake.add_ins.map((a, i) => (
+                <div key={i} className="flex justify-between text-[14px] py-1">
+                  <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{a.name}</span>
+                  <span className="font-semibold tabular-nums">{a.grams}g</span>
+                </div>
+              ))}
+            </div>
+          )
+
           {/* Baker's percentages */}
           <div className="crumb-card p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
