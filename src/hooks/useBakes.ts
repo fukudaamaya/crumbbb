@@ -82,10 +82,11 @@ export function useBakes(demo = false) {
   const updateBakeMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Bake> }) => {
       if (isDemo) { demoNoop(); return; }
-      const { flours, photos, ...rest } = updates;
+      const { flours, photos, add_ins, ...rest } = updates;
       const payload: any = { ...rest };
       if (flours !== undefined) payload.flours = flours as any;
       if (photos !== undefined) payload.photos = photos as any;
+      if (add_ins !== undefined) payload.add_ins = add_ins as any;
       const { error } = await supabase.from('bakes').update(payload).eq('id', id);
       if (error) throw error;
     },

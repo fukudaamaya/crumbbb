@@ -106,6 +106,7 @@ export const sampleBakes: Bake[] = [
     photo_base64: 'https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=400&h=400&fit=crop',
     crumb_photo_base64: '',
     photos: ['https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=400&h=400&fit=crop'],
+    add_ins: [],
     notes: 'Perfect for sandwiches. Soft crumb with a nutty flavour. Kids loved it.',
     rating: 3,
     is_favourite: false,
