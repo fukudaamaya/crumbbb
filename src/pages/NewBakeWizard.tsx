@@ -53,6 +53,7 @@ export default function NewBakeWizard() {
         loaf_count: editBake.loaf_count,
         loaf_weight_g: editBake.loaf_weight_g,
         flours: editBake.flours,
+        add_ins: editBake.add_ins,
         water_g: editBake.water_g,
         starter_g: editBake.starter_g,
         leaven_g: editBake.leaven_g,
