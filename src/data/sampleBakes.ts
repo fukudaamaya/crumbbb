@@ -78,6 +78,7 @@ export const sampleBakes: Bake[] = [
     photo_base64: 'https://images.unsplash.com/photo-1568471173242-461f0a730452?w=400&h=400&fit=crop',
     crumb_photo_base64: '',
     photos: ['https://images.unsplash.com/photo-1568471173242-461f0a730452?w=400&h=400&fit=crop'],
+    add_ins: [],
     notes: 'Incredibly open crumb and crispy bottom. Used a generous amount of olive oil in the pan.',
     rating: 5,
     is_favourite: true,
