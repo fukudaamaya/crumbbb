@@ -23,6 +23,7 @@ export const sampleBakes: Bake[] = [
     photo_base64: 'https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=400&h=400&fit=crop',
     crumb_photo_base64: '',
     photos: ['https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=400&h=400&fit=crop'],
+    add_ins: [],
     notes: 'Great oven spring! The crust was beautifully caramelised. Next time try a longer autolyse.',
     rating: 5,
     is_favourite: true,
