@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useBakes } from '@/hooks/useBakes';
 import { useRecipes } from '@/hooks/useRecipes';
-import { Bake, Flour } from '@/types/bake';
+import { Bake, Flour, AddIn } from '@/types/bake';
 import Step1Recipe from './wizard/Step1Recipe';
 import Step2Proofing from './wizard/Step2Proofing';
 import Step3Baking from './wizard/Step3Baking';
