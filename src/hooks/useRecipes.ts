@@ -27,6 +27,7 @@ function rowToRecipe(row: any): Recipe {
     loaf_count: row.loaf_count,
     loaf_weight_g: row.loaf_weight_g,
     flours: (row.flours ?? []) as Flour[],
+    add_ins: (row.add_ins ?? []) as AddIn[],
     water_g: row.water_g,
     starter_g: row.starter_g,
     leaven_g: row.leaven_g,
