@@ -33,7 +33,7 @@ function calcPct(grams: number, totalFlour: number): number {
 export default function Step1Recipe({ onNext, initialData }: Step1Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [flourTypes] = useState<string[]>(() => getFlourTypes());
+  
 
   const [name, setName] = useState(initialData?.name ?? '');
   const [date, setDate] = useState(
