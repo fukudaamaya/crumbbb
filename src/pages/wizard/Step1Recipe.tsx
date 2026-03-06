@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Flour, AddIn } from '@/types/bake';
-import { getFlourTypes, saveFlourTypes } from '@/hooks/useFlourTypes';
+import { saveFlourTypes } from '@/hooks/useFlourTypes';
 
 interface Step1Data {
   name: string;
