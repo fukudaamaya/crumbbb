@@ -20,7 +20,7 @@ function getISOWeek(date: Date): { year: number; week: number } {
   return { year: d.getFullYear(), week };
 }
 
-function calcStreak(bakes: Bake[]): number {
+function calcStreak(bakes: { date: string }[]): number {
   if (bakes.length === 0) return 0;
 
   const weekSet = new Set<string>();
