@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { Bake } from '@/types/bake';
-import { Star, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useRecipes } from '@/hooks/useRecipes';
 import RecipeCard from '@/components/RecipeCard';
@@ -52,7 +51,7 @@ function calcStreak(bakes: Bake[]): number {
 
 export default function Dashboard({ demo = false }: { demo?: boolean }) {
   const { bakes } = useBakes(demo);
-  const { recipes, deleteRecipe } = useRecipes();
+  const { recipes } = useRecipes();
   const navigate = useNavigate();
   const prefix = demo ? '/demo' : '';
 
