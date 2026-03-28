@@ -43,6 +43,88 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
+function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
+  bake: { proofing_time_mins: number; bake_temp_c: number; bake_time_mins: number };
+  isDemo: boolean;
+  tempUnit: 'C' | 'F';
+  onSave: (updates: Record<string, number>) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [proofing, setProofing] = useState(bake.proofing_time_mins);
+  const [temp, setTemp] = useState(bake.bake_temp_c);
+  const [time, setTime] = useState(bake.bake_time_mins);
+
+  const hasData = bake.proofing_time_mins > 0 || bake.bake_temp_c > 0 || bake.bake_time_mins > 0;
+  if (!hasData && !editing) return null;
+
+  const handleSave = () => {
+    onSave({ proofing_time_mins: proofing, bake_temp_c: temp, bake_time_mins: time });
+    setEditing(false);
+  };
+
+  const cToF = (c: number) => Math.round(c * 9 / 5 + 32);
+  const fToC = (f: number) => Math.round((f - 32) * 5 / 9);
+  const displayTempVal = tempUnit === 'F' ? cToF(temp) : temp;
+
+  return (
+    <div className="crumb-card p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+          style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
+        {!isDemo && !editing && (
+          <button onClick={() => setEditing(true)} className="p-1 text-primary">
+            <Pencil size={14} strokeWidth={2} />
+          </button>
+        )}
+        {editing && (
+          <button onClick={handleSave} className="p-1 text-primary">
+            <Check size={16} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-[14px]">
+          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Proofing time</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={proofing} onChange={e => setProofing(Number(e.target.value))}
+                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+              <span className="text-muted-foreground text-[13px]">min</span>
+            </div>
+          ) : (
+            <span className="font-semibold tabular-nums">{bake.proofing_time_mins} min</span>
+          )}
+        </div>
+        <div className="flex justify-between items-center text-[14px]">
+          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Oven temp</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={displayTempVal}
+                onChange={e => setTemp(tempUnit === 'F' ? fToC(Number(e.target.value)) : Number(e.target.value))}
+                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+              <span className="text-muted-foreground text-[13px]">°{tempUnit}</span>
+            </div>
+          ) : (
+            <span className="font-semibold tabular-nums">{displayTemp(bake.bake_temp_c, tempUnit)}</span>
+          )}
+        </div>
+        <div className="flex justify-between items-center text-[14px]">
+          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Bake time</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={time} onChange={e => setTime(Number(e.target.value))}
+                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+              <span className="text-muted-foreground text-[13px]">min</span>
+            </div>
+          ) : (
+            <span className="font-semibold tabular-nums">{bake.bake_time_mins} min</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
