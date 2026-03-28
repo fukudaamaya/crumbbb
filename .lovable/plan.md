@@ -1,35 +1,43 @@
 
 
-# Fixes and Updates
+# Fixes: Recipe Cards, Photo Management & Fullscreen View
 
-## 1. Dashboard: Remove "Top Bakes"
-**`src/pages/Dashboard.tsx`** — Delete the entire "Top Bakes" section (the `topBakes` memo and its rendering block). Keep only Streak, Month/Year stats, Favourites, and Saved Recipes.
+## 1. Recipe Cards — Show photo, name, loaves, last baked date
 
-## 2. Compact Recipe Cards + Move Actions Into Recipe History
-**`src/components/RecipeCard.tsx`** — Simplify to a compact tappable card: recipe name, flour summary, and basic stats (loaf count, weight). Remove the trash icon and "Bake Again" button entirely.
+**`src/components/RecipeCard.tsx`** — Update to show:
+- A small thumbnail (round or square) of the most recent bake's photo for that recipe (passed as a prop from Dashboard)
+- Recipe name, loaf count, and "Last baked: [date]"
+- Remove flour summary and weight
 
-**`src/pages/RecipeHistory.tsx`** — Add edit and delete options for the recipe itself (e.g., an options menu or buttons in the header/footer). Keep the existing "Bake Again" button at the bottom. Add a delete confirmation sheet.
+**`src/pages/Dashboard.tsx`** — For each recipe, find the most recent bake with a matching name to extract `photo_base64` and `date`, pass these to `RecipeCard` as props.
 
-**`src/hooks/useRecipes.ts`** — Ensure `deleteRecipe` and `updateRecipe` (if not already available) are exposed and passed through.
+## 2. Photo Library — Multi-select
 
-## 3. Fix Photo Delete + Add Reorder in BakeDetail
-**`src/pages/BakeDetail.tsx`** — The `handleRemovePhoto` function exists but may not work due to carousel state issues. Fix by:
-- After removing a photo, reset `currentSlide` to stay in bounds
-- Add drag-to-reorder or arrow buttons (move left/move right) for each photo in the carousel
-- Add a `handleMovePhoto(fromIndex, toIndex)` function that reorders the `photos` array and calls `updateBake`
+**`src/pages/BakeDetail.tsx`** — Change the library file input from single to multi-select:
+- Add `multiple` attribute to the library `<input>`
+- Update the `onChange` handler to loop through all selected files and compress/add each one (up to the MAX_PHOTOS limit)
 
-## 4. Inline Process Editing in BakeDetail
-**`src/pages/BakeDetail.tsx`** — Make the Process card (proofing time, oven temp, bake time) editable inline:
-- Add a pencil/edit toggle on the Process card header
-- When editing, show number inputs for each field
-- On blur or confirm, call `updateBake` with the new values
-- Respect the temperature unit setting for display/input
+## 3. Photo Reorder — Drag to reorder
 
-## Technical Details
+**`src/pages/BakeDetail.tsx`** — Replace the chevron left/right reorder buttons with a drag-and-drop thumbnail strip:
+- Below the carousel, render a horizontal row of small thumbnails
+- Use `touchstart`/`touchmove`/`touchend` (or a lightweight drag library) to allow tap-hold-and-drag reordering
+- On drop, reorder the `photos` array and call `updateBake`
+- Keep the dot indicators for navigation but remove the chevron buttons
 
-### Photo reorder UI
-Simple approach: show small left/right arrow buttons on either side of each carousel photo when in an "edit photos" mode, or always-visible move buttons below the carousel dots.
+Implementation approach: Use a simple state-based drag system with `onTouchStart`, `onTouchMove`, `onTouchEnd` on thumbnail items — track dragged index and drop target, swap on release. No external library needed.
 
-### Process inline edit
-Toggle between read-only display and input fields within the same card, similar to how notes already work with a textarea.
+## 4. Fullscreen Photo View with Share/Save
+
+**`src/pages/BakeDetail.tsx`** — Add a fullscreen photo lightbox:
+- Tapping a photo opens a fullscreen overlay (fixed, z-50, black background)
+- Show the photo centered and zoomable (object-contain)
+- Header with close (X) button and a share/download button
+- Share button: use `navigator.share({ files: [blob] })` if available (Web Share API), otherwise fall back to a download link (`<a download>`)
+- Save to photos: convert base64 to blob, create object URL, trigger download
+
+### Files to modify
+- `src/components/RecipeCard.tsx` — new layout with photo thumbnail
+- `src/pages/Dashboard.tsx` — pass last bake photo/date to RecipeCard
+- `src/pages/BakeDetail.tsx` — multi-select photos, drag reorder thumbnails, fullscreen lightbox with share/save
 
