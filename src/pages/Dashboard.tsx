@@ -174,39 +174,6 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
           </div>
         </div>
 
-        {/* Top bakes */}
-        {topBakes.length > 0 && (
-          <div>
-            <h2 className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>Top Bakes</h2>
-            <div className="space-y-2">
-              {topBakes.map((bake, idx) => (
-                <button
-                  key={bake.id}
-                  onClick={() => navigate(`${prefix}/bake/${bake.id}`)}
-                  className="crumb-card flex items-center gap-3 p-3 w-full text-left">
-                  <span className="text-[18px] font-bold text-muted-foreground w-6 text-center tabular-nums"
-                    style={{ fontFamily: 'DM Sans, sans-serif' }}>{idx + 1}</span>
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-border flex-shrink-0">
-                    {bake.photo_base64 ?
-                      <img src={bake.photo_base64} alt={bake.name} className="w-full h-full object-cover" /> :
-                      <div className="w-full h-full bg-muted flex items-center justify-center"><span className="text-xl">🍞</span></div>
-                    }
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-[14px] truncate" style={{ fontFamily: 'Raleway, sans-serif' }}>{bake.name}</p>
-                    <p className="text-[12px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>{formatDate(bake.date)}</p>
-                  </div>
-                  <div className="flex items-center gap-0.5">
-                    <Star size={14} fill="hsl(var(--primary))" stroke="hsl(var(--primary))" />
-                    <span className="text-[14px] font-bold tabular-nums text-primary" style={{ fontFamily: 'DM Sans, sans-serif' }}>{bake.rating}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Favourites */}
         {favourites.length > 0 && (
           <div>
@@ -239,7 +206,7 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
               style={{ fontFamily: 'DM Sans, sans-serif' }}>Saved Recipes</h2>
             <div className="space-y-3">
               {recipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} />
+                <RecipeCard key={recipe.id} recipe={recipe} />
               ))}
             </div>
           </div>
