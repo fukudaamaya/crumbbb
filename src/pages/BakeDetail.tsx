@@ -228,16 +228,38 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                   ))}
                 </CarouselContent>
               </Carousel>
-              {/* Dot indicators */}
-              <div className="flex justify-center gap-1.5 mt-3">
-                {photos.map((_, i) => (
+              {/* Dot indicators + reorder buttons */}
+              <div className="flex items-center justify-center gap-3 mt-3">
+                {!isDemo && photos.length > 1 && (
                   <button
-                    key={i}
-                    className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
-                    onClick={() => carouselApi?.scrollTo(i)}
-                    aria-label={`Go to photo ${i + 1}`}
-                  />
-                ))}
+                    onClick={() => handleMovePhoto(currentSlide, 'left')}
+                    disabled={currentSlide === 0}
+                    className="p-1 text-muted-foreground disabled:opacity-30 transition-opacity"
+                    aria-label="Move photo left"
+                  >
+                    <ChevronLeft size={18} strokeWidth={2} />
+                  </button>
+                )}
+                <div className="flex gap-1.5">
+                  {photos.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
+                      onClick={() => carouselApi?.scrollTo(i)}
+                      aria-label={`Go to photo ${i + 1}`}
+                    />
+                  ))}
+                </div>
+                {!isDemo && photos.length > 1 && (
+                  <button
+                    onClick={() => handleMovePhoto(currentSlide, 'right')}
+                    disabled={currentSlide === photos.length - 1}
+                    className="p-1 text-muted-foreground disabled:opacity-30 transition-opacity"
+                    aria-label="Move photo right"
+                  >
+                    <ChevronRight size={18} strokeWidth={2} />
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -385,33 +407,13 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             </div>
           </div>
 
-          {/* Bake stats */}
-          {(bake.proofing_time_mins > 0 || bake.bake_temp_c > 0 || bake.bake_time_mins > 0) && (
-            <div className="crumb-card p-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
-              <div className="space-y-2">
-                {bake.proofing_time_mins > 0 && (
-                  <div className="flex justify-between text-[14px]">
-                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Proofing time</span>
-                    <span className="font-semibold tabular-nums">{bake.proofing_time_mins} min</span>
-                  </div>
-                )}
-                {bake.bake_temp_c > 0 && (
-                  <div className="flex justify-between text-[14px]">
-                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Oven temp</span>
-                    <span className="font-semibold tabular-nums">{displayTemp(bake.bake_temp_c, tempUnit)}</span>
-                  </div>
-                )}
-                {bake.bake_time_mins > 0 && (
-                  <div className="flex justify-between text-[14px]">
-                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Bake time</span>
-                    <span className="font-semibold tabular-nums">{bake.bake_time_mins} min</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Bake stats - inline editable */}
+          <ProcessCard
+            bake={bake}
+            isDemo={isDemo}
+            tempUnit={tempUnit}
+            onSave={(updates) => updateBake(bake.id, updates)}
+          />
 
           {/* Delete */}
           {!isDemo && (
