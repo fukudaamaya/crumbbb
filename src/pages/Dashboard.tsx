@@ -78,10 +78,6 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
     return (rated.reduce((s, b) => s + b.rating, 0) / rated.length).toFixed(1);
   }, [filteredBakes]);
 
-  const topBakes = useMemo(() =>
-    [...bakes].sort((a, b) => b.rating - a.rating).slice(0, 3),
-    [bakes]
-  );
 
   const favourites = useMemo(() =>
     bakes.filter((b) => b.is_favourite),
