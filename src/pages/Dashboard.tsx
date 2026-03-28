@@ -200,9 +200,20 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
             <h2 className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
               style={{ fontFamily: 'DM Sans, sans-serif' }}>Saved Recipes</h2>
             <div className="space-y-3">
-              {recipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} />
-              ))}
+              {recipes.map((recipe) => {
+                const matchingBakes = bakes
+                  .filter(b => b.name === recipe.name)
+                  .sort((a, b) => b.date.localeCompare(a.date));
+                const lastBake = matchingBakes[0];
+                return (
+                  <RecipeCard
+                    key={recipe.id}
+                    recipe={recipe}
+                    lastBakePhoto={lastBake?.photo_base64}
+                    lastBakeDate={lastBake?.date}
+                  />
+                );
+              })}
             </div>
           </div>
         )}

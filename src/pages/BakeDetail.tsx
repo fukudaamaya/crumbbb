@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck, Check, Download, Share2, GripVertical } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSettings, displayTemp } from '@/contexts/SettingsContext';
@@ -41,6 +41,16 @@ async function compressImage(file: File): Promise<string> {
     img.onerror = reject;
     img.src = url;
   });
+}
+
+function base64ToBlob(base64: string): Blob {
+  const [meta, data] = base64.split(',');
+  const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const byteString = atob(data);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  return new Blob([ab], { type: mime });
 }
 
 function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
@@ -125,6 +135,169 @@ function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
   );
 }
 
+/* ─── Drag-reorder thumbnail strip ─── */
+function ReorderStrip({
+  photos,
+  currentSlide,
+  onReorder,
+  onSelect,
+}: {
+  photos: string[];
+  currentSlide: number;
+  onReorder: (newPhotos: string[]) => void;
+  onSelect: (index: number) => void;
+}) {
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchStartIdx = useRef<number | null>(null);
+
+  const getDropIndex = (clientX: number): number | null => {
+    if (!containerRef.current) return null;
+    const children = Array.from(containerRef.current.children) as HTMLElement[];
+    for (let i = 0; i < children.length; i++) {
+      const rect = children[i].getBoundingClientRect();
+      if (clientX >= rect.left && clientX <= rect.right) return i;
+    }
+    return null;
+  };
+
+  const handleTouchStart = (index: number, e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartIdx.current = index;
+    setDragIdx(index);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (dragIdx === null) return;
+    const idx = getDropIndex(e.touches[0].clientX);
+    setOverIdx(idx);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragIdx !== null && overIdx !== null && dragIdx !== overIdx) {
+      const newPhotos = [...photos];
+      const [moved] = newPhotos.splice(dragIdx, 1);
+      newPhotos.splice(overIdx, 0, moved);
+      onReorder(newPhotos);
+      onSelect(overIdx);
+    }
+    setDragIdx(null);
+    setOverIdx(null);
+    touchStartIdx.current = null;
+  };
+
+  // Also support mouse drag for desktop
+  const handleMouseDown = (index: number) => {
+    setDragIdx(index);
+  };
+
+  const handleMouseEnter = (index: number) => {
+    if (dragIdx !== null) setOverIdx(index);
+  };
+
+  const handleMouseUp = () => {
+    if (dragIdx !== null && overIdx !== null && dragIdx !== overIdx) {
+      const newPhotos = [...photos];
+      const [moved] = newPhotos.splice(dragIdx, 1);
+      newPhotos.splice(overIdx, 0, moved);
+      onReorder(newPhotos);
+      onSelect(overIdx);
+    }
+    setDragIdx(null);
+    setOverIdx(null);
+  };
+
+  if (photos.length < 2) return null;
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex gap-2 mt-3 justify-center"
+      onMouseLeave={handleMouseUp}
+      onMouseUp={handleMouseUp}
+    >
+      {photos.map((photo, i) => (
+        <div
+          key={i}
+          className={`relative w-14 h-14 rounded-[4px] overflow-hidden border-2 transition-all cursor-grab active:cursor-grabbing shrink-0 ${
+            i === currentSlide ? 'border-primary' : 'border-border'
+          } ${dragIdx === i ? 'opacity-50 scale-95' : ''} ${overIdx === i && dragIdx !== null && dragIdx !== i ? 'ring-2 ring-primary' : ''}`}
+          style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+          onTouchStart={(e) => handleTouchStart(i, e)}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={() => handleMouseDown(i)}
+          onMouseEnter={() => handleMouseEnter(i)}
+          onClick={() => { if (dragIdx === null) onSelect(i); }}
+        >
+          <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+          <div className="absolute bottom-0 left-0 right-0 bg-black/30 flex justify-center py-0.5">
+            <GripVertical size={10} className="text-white" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Fullscreen photo lightbox ─── */
+function PhotoLightbox({ photo, onClose, bakeName }: { photo: string; onClose: () => void; bakeName: string }) {
+  const handleShare = async () => {
+    const blob = base64ToBlob(photo);
+    const file = new File([blob], `${bakeName}.jpg`, { type: 'image/jpeg' });
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: bakeName });
+      } catch { /* user cancelled */ }
+    } else {
+      // fallback: download
+      handleDownload();
+    }
+  };
+
+  const handleDownload = () => {
+    const blob = base64ToBlob(photo);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${bakeName}.jpg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col" onClick={onClose}>
+      <div
+        className="flex items-center justify-between px-4 py-3 shrink-0"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="p-2 text-white" aria-label="Close">
+          <X size={24} strokeWidth={2} />
+        </button>
+        <div className="flex gap-3">
+          <button onClick={handleDownload} className="p-2 text-white" aria-label="Save photo">
+            <Download size={22} strokeWidth={2} />
+          </button>
+          <button onClick={handleShare} className="p-2 text-white" aria-label="Share photo">
+            <Share2 size={22} strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-4">
+        <img
+          src={photo}
+          alt={bakeName}
+          className="max-w-full max-h-full object-contain"
+          onClick={e => e.stopPropagation()}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -156,6 +329,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const [showDelete, setShowDelete] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
@@ -176,7 +350,6 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     );
   }
 
-  // Resolve photos: prefer photos array, fall back to legacy photo_base64
   const photos: string[] = (bake.photos && bake.photos.length > 0)
     ? bake.photos
     : [bake.photo_base64].filter(Boolean);
@@ -196,23 +369,32 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
     setShowPhotoOptions(false);
   };
 
+  const handleAddMultiplePhotos = async (files: FileList) => {
+    const remaining = MAX_PHOTOS - photos.length;
+    const filesToAdd = Array.from(files).slice(0, remaining);
+    const newPhotos = [...photos];
+    for (const file of filesToAdd) {
+      try {
+        const compressed = await compressImage(file);
+        newPhotos.push(compressed);
+      } catch (e) {
+        console.error('Image compression failed', e);
+      }
+    }
+    updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+    setShowPhotoOptions(false);
+  };
+
   const handleRemovePhoto = (index: number) => {
     const newPhotos = photos.filter((_, i) => i !== index);
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
-    // Reset slide to stay in bounds
     const newSlide = Math.min(currentSlide, Math.max(0, newPhotos.length - 1));
     setCurrentSlide(newSlide);
     setTimeout(() => carouselApi?.scrollTo(newSlide), 50);
   };
 
-  const handleMovePhoto = (fromIndex: number, direction: 'left' | 'right') => {
-    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
-    if (toIndex < 0 || toIndex >= photos.length) return;
-    const newPhotos = [...photos];
-    [newPhotos[fromIndex], newPhotos[toIndex]] = [newPhotos[toIndex], newPhotos[fromIndex]];
+  const handleReorderPhotos = (newPhotos: string[]) => {
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
-    setCurrentSlide(toIndex);
-    setTimeout(() => carouselApi?.scrollTo(toIndex), 50);
   };
 
   const confirmDelete = () => {
@@ -266,8 +448,9 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
               <img
                 src={photos[0]}
                 alt={bake.name}
-                className="w-full rounded-[6px] border border-border object-cover"
+                className="w-full rounded-[6px] border border-border object-cover cursor-pointer"
                 style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+                onClick={() => setLightboxPhoto(photos[0])}
               />
               {!isDemo && (
                 <button
@@ -292,8 +475,9 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                         <img
                           src={photo}
                           alt={`${bake.name} photo ${i + 1}`}
-                          className="w-full rounded-[6px] border border-border object-cover"
+                          className="w-full rounded-[6px] border border-border object-cover cursor-pointer"
                           style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
+                          onClick={() => setLightboxPhoto(photo)}
                         />
                         {!isDemo && (
                           <button
@@ -310,39 +494,29 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                   ))}
                 </CarouselContent>
               </Carousel>
-              {/* Dot indicators + reorder buttons */}
-              <div className="flex items-center justify-center gap-3 mt-3">
-                {!isDemo && photos.length > 1 && (
+              {/* Dot indicators */}
+              <div className="flex items-center justify-center gap-1.5 mt-3">
+                {photos.map((_, i) => (
                   <button
-                    onClick={() => handleMovePhoto(currentSlide, 'left')}
-                    disabled={currentSlide === 0}
-                    className="p-1 text-muted-foreground disabled:opacity-30 transition-opacity"
-                    aria-label="Move photo left"
-                  >
-                    <ChevronLeft size={18} strokeWidth={2} />
-                  </button>
-                )}
-                <div className="flex gap-1.5">
-                  {photos.map((_, i) => (
-                    <button
-                      key={i}
-                      className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
-                      onClick={() => carouselApi?.scrollTo(i)}
-                      aria-label={`Go to photo ${i + 1}`}
-                    />
-                  ))}
-                </div>
-                {!isDemo && photos.length > 1 && (
-                  <button
-                    onClick={() => handleMovePhoto(currentSlide, 'right')}
-                    disabled={currentSlide === photos.length - 1}
-                    className="p-1 text-muted-foreground disabled:opacity-30 transition-opacity"
-                    aria-label="Move photo right"
-                  >
-                    <ChevronRight size={18} strokeWidth={2} />
-                  </button>
-                )}
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
+                    onClick={() => carouselApi?.scrollTo(i)}
+                    aria-label={`Go to photo ${i + 1}`}
+                  />
+                ))}
               </div>
+              {/* Drag-reorder thumbnails */}
+              {!isDemo && (
+                <ReorderStrip
+                  photos={photos}
+                  currentSlide={currentSlide}
+                  onReorder={handleReorderPhotos}
+                  onSelect={(idx) => {
+                    setCurrentSlide(idx);
+                    setTimeout(() => carouselApi?.scrollTo(idx), 50);
+                  }}
+                />
+              )}
             </div>
           )}
 
@@ -380,12 +554,10 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
               )}
             </div>
 
-            {/* Date (read-only) */}
             <p className="text-muted-foreground text-[14px] mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
               {formatDate(bake.date)}
             </p>
 
-            {/* Tappable rating */}
             <div className="flex gap-1 mt-2">
               {[1,2,3,4,5].map(s => (
                 <button
@@ -513,8 +685,8 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
       {/* Hidden file inputs */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
         onChange={e => e.target.files?.[0] && handleAddPhoto(e.target.files[0])} />
-      <input ref={libraryRef} type="file" accept="image/*" className="hidden"
-        onChange={e => e.target.files?.[0] && handleAddPhoto(e.target.files[0])} />
+      <input ref={libraryRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={e => e.target.files && e.target.files.length > 0 && handleAddMultiplePhotos(e.target.files)} />
 
       {/* Photo source sheet */}
       {showPhotoOptions && (
@@ -567,6 +739,15 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             </button>
           </div>
         </>
+      )}
+
+      {/* Fullscreen lightbox */}
+      {lightboxPhoto && (
+        <PhotoLightbox
+          photo={lightboxPhoto}
+          onClose={() => setLightboxPhoto(null)}
+          bakeName={bake.name}
+        />
       )}
     </div>
   );
