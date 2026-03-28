@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSettings, displayTemp } from '@/contexts/SettingsContext';
@@ -41,6 +41,88 @@ async function compressImage(file: File): Promise<string> {
     img.onerror = reject;
     img.src = url;
   });
+}
+
+function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
+  bake: { proofing_time_mins: number; bake_temp_c: number; bake_time_mins: number };
+  isDemo: boolean;
+  tempUnit: 'C' | 'F';
+  onSave: (updates: Record<string, number>) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [proofing, setProofing] = useState(bake.proofing_time_mins);
+  const [temp, setTemp] = useState(bake.bake_temp_c);
+  const [time, setTime] = useState(bake.bake_time_mins);
+
+  const hasData = bake.proofing_time_mins > 0 || bake.bake_temp_c > 0 || bake.bake_time_mins > 0;
+  if (!hasData && !editing) return null;
+
+  const handleSave = () => {
+    onSave({ proofing_time_mins: proofing, bake_temp_c: temp, bake_time_mins: time });
+    setEditing(false);
+  };
+
+  const cToF = (c: number) => Math.round(c * 9 / 5 + 32);
+  const fToC = (f: number) => Math.round((f - 32) * 5 / 9);
+  const displayTempVal = tempUnit === 'F' ? cToF(temp) : temp;
+
+  return (
+    <div className="crumb-card p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+          style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
+        {!isDemo && !editing && (
+          <button onClick={() => setEditing(true)} className="p-1 text-primary">
+            <Pencil size={14} strokeWidth={2} />
+          </button>
+        )}
+        {editing && (
+          <button onClick={handleSave} className="p-1 text-primary">
+            <Check size={16} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-[14px]">
+          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Proofing time</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={proofing} onChange={e => setProofing(Number(e.target.value))}
+                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+              <span className="text-muted-foreground text-[13px]">min</span>
+            </div>
+          ) : (
+            <span className="font-semibold tabular-nums">{bake.proofing_time_mins} min</span>
+          )}
+        </div>
+        <div className="flex justify-between items-center text-[14px]">
+          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Oven temp</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={displayTempVal}
+                onChange={e => setTemp(tempUnit === 'F' ? fToC(Number(e.target.value)) : Number(e.target.value))}
+                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+              <span className="text-muted-foreground text-[13px]">°{tempUnit}</span>
+            </div>
+          ) : (
+            <span className="font-semibold tabular-nums">{displayTemp(bake.bake_temp_c, tempUnit)}</span>
+          )}
+        </div>
+        <div className="flex justify-between items-center text-[14px]">
+          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Bake time</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={time} onChange={e => setTime(Number(e.target.value))}
+                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+              <span className="text-muted-foreground text-[13px]">min</span>
+            </div>
+          ) : (
+            <span className="font-semibold tabular-nums">{bake.bake_time_mins} min</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function BakeDetail({ demo = false }: { demo?: boolean }) {
@@ -117,6 +199,20 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const handleRemovePhoto = (index: number) => {
     const newPhotos = photos.filter((_, i) => i !== index);
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+    // Reset slide to stay in bounds
+    const newSlide = Math.min(currentSlide, Math.max(0, newPhotos.length - 1));
+    setCurrentSlide(newSlide);
+    setTimeout(() => carouselApi?.scrollTo(newSlide), 50);
+  };
+
+  const handleMovePhoto = (fromIndex: number, direction: 'left' | 'right') => {
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= photos.length) return;
+    const newPhotos = [...photos];
+    [newPhotos[fromIndex], newPhotos[toIndex]] = [newPhotos[toIndex], newPhotos[fromIndex]];
+    updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+    setCurrentSlide(toIndex);
+    setTimeout(() => carouselApi?.scrollTo(toIndex), 50);
   };
 
   const confirmDelete = () => {
@@ -214,16 +310,38 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
                   ))}
                 </CarouselContent>
               </Carousel>
-              {/* Dot indicators */}
-              <div className="flex justify-center gap-1.5 mt-3">
-                {photos.map((_, i) => (
+              {/* Dot indicators + reorder buttons */}
+              <div className="flex items-center justify-center gap-3 mt-3">
+                {!isDemo && photos.length > 1 && (
                   <button
-                    key={i}
-                    className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
-                    onClick={() => carouselApi?.scrollTo(i)}
-                    aria-label={`Go to photo ${i + 1}`}
-                  />
-                ))}
+                    onClick={() => handleMovePhoto(currentSlide, 'left')}
+                    disabled={currentSlide === 0}
+                    className="p-1 text-muted-foreground disabled:opacity-30 transition-opacity"
+                    aria-label="Move photo left"
+                  >
+                    <ChevronLeft size={18} strokeWidth={2} />
+                  </button>
+                )}
+                <div className="flex gap-1.5">
+                  {photos.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
+                      onClick={() => carouselApi?.scrollTo(i)}
+                      aria-label={`Go to photo ${i + 1}`}
+                    />
+                  ))}
+                </div>
+                {!isDemo && photos.length > 1 && (
+                  <button
+                    onClick={() => handleMovePhoto(currentSlide, 'right')}
+                    disabled={currentSlide === photos.length - 1}
+                    className="p-1 text-muted-foreground disabled:opacity-30 transition-opacity"
+                    aria-label="Move photo right"
+                  >
+                    <ChevronRight size={18} strokeWidth={2} />
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -371,33 +489,13 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
             </div>
           </div>
 
-          {/* Bake stats */}
-          {(bake.proofing_time_mins > 0 || bake.bake_temp_c > 0 || bake.bake_time_mins > 0) && (
-            <div className="crumb-card p-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
-              <div className="space-y-2">
-                {bake.proofing_time_mins > 0 && (
-                  <div className="flex justify-between text-[14px]">
-                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Proofing time</span>
-                    <span className="font-semibold tabular-nums">{bake.proofing_time_mins} min</span>
-                  </div>
-                )}
-                {bake.bake_temp_c > 0 && (
-                  <div className="flex justify-between text-[14px]">
-                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Oven temp</span>
-                    <span className="font-semibold tabular-nums">{displayTemp(bake.bake_temp_c, tempUnit)}</span>
-                  </div>
-                )}
-                {bake.bake_time_mins > 0 && (
-                  <div className="flex justify-between text-[14px]">
-                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Bake time</span>
-                    <span className="font-semibold tabular-nums">{bake.bake_time_mins} min</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Bake stats - inline editable */}
+          <ProcessCard
+            bake={bake}
+            isDemo={isDemo}
+            tempUnit={tempUnit}
+            onSave={(updates) => updateBake(bake.id, updates)}
+          />
 
           {/* Delete */}
           {!isDemo && (

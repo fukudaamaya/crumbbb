@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { Bake } from '@/types/bake';
-import { Star, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useRecipes } from '@/hooks/useRecipes';
 import RecipeCard from '@/components/RecipeCard';
@@ -21,7 +20,7 @@ function getISOWeek(date: Date): { year: number; week: number } {
   return { year: d.getFullYear(), week };
 }
 
-function calcStreak(bakes: Bake[]): number {
+function calcStreak(bakes: { date: string }[]): number {
   if (bakes.length === 0) return 0;
 
   const weekSet = new Set<string>();
@@ -52,7 +51,7 @@ function calcStreak(bakes: Bake[]): number {
 
 export default function Dashboard({ demo = false }: { demo?: boolean }) {
   const { bakes } = useBakes(demo);
-  const { recipes, deleteRecipe } = useRecipes();
+  const { recipes } = useRecipes();
   const navigate = useNavigate();
   const prefix = demo ? '/demo' : '';
 
@@ -78,10 +77,6 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
     return (rated.reduce((s, b) => s + b.rating, 0) / rated.length).toFixed(1);
   }, [filteredBakes]);
 
-  const topBakes = useMemo(() =>
-    [...bakes].sort((a, b) => b.rating - a.rating).slice(0, 3),
-    [bakes]
-  );
 
   const favourites = useMemo(() =>
     bakes.filter((b) => b.is_favourite),
@@ -174,39 +169,6 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
           </div>
         </div>
 
-        {/* Top bakes */}
-        {topBakes.length > 0 && (
-          <div>
-            <h2 className="text-[13px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}>Top Bakes</h2>
-            <div className="space-y-2">
-              {topBakes.map((bake, idx) => (
-                <button
-                  key={bake.id}
-                  onClick={() => navigate(`${prefix}/bake/${bake.id}`)}
-                  className="crumb-card flex items-center gap-3 p-3 w-full text-left">
-                  <span className="text-[18px] font-bold text-muted-foreground w-6 text-center tabular-nums"
-                    style={{ fontFamily: 'DM Sans, sans-serif' }}>{idx + 1}</span>
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-border flex-shrink-0">
-                    {bake.photo_base64 ?
-                      <img src={bake.photo_base64} alt={bake.name} className="w-full h-full object-cover" /> :
-                      <div className="w-full h-full bg-muted flex items-center justify-center"><span className="text-xl">🍞</span></div>
-                    }
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-[14px] truncate" style={{ fontFamily: 'Raleway, sans-serif' }}>{bake.name}</p>
-                    <p className="text-[12px] text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>{formatDate(bake.date)}</p>
-                  </div>
-                  <div className="flex items-center gap-0.5">
-                    <Star size={14} fill="hsl(var(--primary))" stroke="hsl(var(--primary))" />
-                    <span className="text-[14px] font-bold tabular-nums text-primary" style={{ fontFamily: 'DM Sans, sans-serif' }}>{bake.rating}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Favourites */}
         {favourites.length > 0 && (
           <div>
@@ -239,7 +201,7 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
               style={{ fontFamily: 'DM Sans, sans-serif' }}>Saved Recipes</h2>
             <div className="space-y-3">
               {recipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} />
+                <RecipeCard key={recipe.id} recipe={recipe} />
               ))}
             </div>
           </div>
