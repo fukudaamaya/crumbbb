@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSettings, displayTemp } from '@/contexts/SettingsContext';
@@ -117,6 +117,20 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
   const handleRemovePhoto = (index: number) => {
     const newPhotos = photos.filter((_, i) => i !== index);
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+    // Reset slide to stay in bounds
+    const newSlide = Math.min(currentSlide, Math.max(0, newPhotos.length - 1));
+    setCurrentSlide(newSlide);
+    setTimeout(() => carouselApi?.scrollTo(newSlide), 50);
+  };
+
+  const handleMovePhoto = (fromIndex: number, direction: 'left' | 'right') => {
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= photos.length) return;
+    const newPhotos = [...photos];
+    [newPhotos[fromIndex], newPhotos[toIndex]] = [newPhotos[toIndex], newPhotos[fromIndex]];
+    updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+    setCurrentSlide(toIndex);
+    setTimeout(() => carouselApi?.scrollTo(toIndex), 50);
   };
 
   const confirmDelete = () => {
