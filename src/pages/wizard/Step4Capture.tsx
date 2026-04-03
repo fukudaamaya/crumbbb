@@ -118,7 +118,7 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
         <div>
           <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold"
             style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Step 4 of 4
+            Step 3 of 3
           </p>
           <h2 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
             Capture

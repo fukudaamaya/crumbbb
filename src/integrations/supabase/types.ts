@@ -28,12 +28,15 @@ export type Database = {
           is_favourite: boolean
           leaven_g: number
           leaven_pct: number
+          lid_off_mins: number
+          lid_on_mins: number
           loaf_count: number
           loaf_weight_g: number
           name: string
           notes: string
           photo_base64: string
           photos: Json
+          preheat_time_mins: number
           proofing_time_mins: number
           rating: number
           starter_g: number
@@ -54,12 +57,15 @@ export type Database = {
           is_favourite?: boolean
           leaven_g?: number
           leaven_pct?: number
+          lid_off_mins?: number
+          lid_on_mins?: number
           loaf_count?: number
           loaf_weight_g?: number
           name?: string
           notes?: string
           photo_base64?: string
           photos?: Json
+          preheat_time_mins?: number
           proofing_time_mins?: number
           rating?: number
           starter_g?: number
@@ -80,12 +86,15 @@ export type Database = {
           is_favourite?: boolean
           leaven_g?: number
           leaven_pct?: number
+          lid_off_mins?: number
+          lid_on_mins?: number
           loaf_count?: number
           loaf_weight_g?: number
           name?: string
           notes?: string
           photo_base64?: string
           photos?: Json
+          preheat_time_mins?: number
           proofing_time_mins?: number
           rating?: number
           starter_g?: number
