@@ -64,11 +64,17 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
 
   const today = toLocalDateString(new Date());
 
+  const isDraft = (bake: Bake) => (!bake.photos || bake.photos.length === 0) && bake.bake_temp_c === 0;
+
   const handleDayTap = (d: Date) => {
     const ds = toLocalDateString(d);
     const bake = bakesByDate[ds];
     if (bake) {
-      navigate(demo ? `/demo/bake/${bake.id}` : `/bake/${bake.id}`);
+      if (isDraft(bake)) {
+        navigate(demo ? `/demo/bake/${bake.id}` : `/bake/new/1?continue=${bake.id}`);
+      } else {
+        navigate(demo ? `/demo/bake/${bake.id}` : `/bake/${bake.id}`);
+      }
     } else if (!demo) {
       navigate(`/bake/new/1?date=${ds}`);
     }

@@ -368,7 +368,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
           disabled={!canProceed}
           className="btn-primary w-full py-4 text-[16px] disabled:opacity-40">
 
-          Next — Proofing Timer
+          Save
         </button>
       </div>
     </div>);

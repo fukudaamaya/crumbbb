@@ -41,11 +41,37 @@ export default function NewBakeWizard() {
   const editId = searchParams.get('edit');
   const editBake = editId ? getBake(editId) : null;
 
+  const continueId = searchParams.get('continue');
+  const continueBake = continueId ? getBake(continueId) : null;
+
   const recipeId = searchParams.get('recipe');
   const recipe = recipeId ? getRecipe(recipeId) : null;
 
-  const [step, setStep] = useState(1);
+  const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+
+  // If continuing a draft, start at step 2 (Day 2 - Baking)
+  const [step, setStep] = useState(continueId ? 2 : 1);
   const [bakeData, setBakeData] = useState<Partial<BakeData>>(() => {
+    if (continueBake) {
+      return {
+        name: continueBake.name,
+        date: continueBake.date,
+        loaf_count: continueBake.loaf_count,
+        loaf_weight_g: continueBake.loaf_weight_g,
+        flours: continueBake.flours,
+        add_ins: continueBake.add_ins,
+        water_g: continueBake.water_g,
+        starter_g: continueBake.starter_g,
+        leaven_g: continueBake.leaven_g,
+        hydration_pct: continueBake.hydration_pct,
+        starter_pct: continueBake.starter_pct,
+        leaven_pct: continueBake.leaven_pct,
+        bake_temp_c: continueBake.bake_temp_c,
+        preheat_time_mins: continueBake.preheat_time_mins,
+        lid_on_mins: continueBake.lid_on_mins,
+        lid_off_mins: continueBake.lid_off_mins,
+      };
+    }
     if (editBake) {
       return {
         name: editBake.name,
@@ -69,10 +95,6 @@ export default function NewBakeWizard() {
     return {};
   });
 
-  const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
-  const bakeDate = bakeData.date ?? searchParams.get('date') ?? today;
-  const isPastDate = bakeDate < today;
-
   const handleStep1 = (data: {
     name: string;
     date: string;
@@ -85,18 +107,51 @@ export default function NewBakeWizard() {
     leaven_g: number;
   }) => {
     const totalFlour = data.flours.reduce((s, f) => s + f.grams, 0);
-    setBakeData(prev => ({
-      ...prev,
-      ...data,
+
+    if (editId) {
+      // Edit mode: go to step 2 as before
+      setBakeData(prev => ({
+        ...prev,
+        ...data,
+        hydration_pct: calcPct(data.water_g, totalFlour),
+        starter_pct: calcPct(data.starter_g, totalFlour),
+        leaven_pct: calcPct(data.leaven_g, totalFlour),
+      }));
+      setStep(2);
+      return;
+    }
+
+    // New bake: save as draft immediately and return to calendar
+    const bake: Bake = {
+      id: uuidv4(),
+      name: data.name,
+      date: data.date,
+      loaf_count: data.loaf_count,
+      loaf_weight_g: data.loaf_weight_g,
+      flours: data.flours,
+      add_ins: data.add_ins,
+      water_g: data.water_g,
+      starter_g: data.starter_g,
+      leaven_g: data.leaven_g,
       hydration_pct: calcPct(data.water_g, totalFlour),
       starter_pct: calcPct(data.starter_g, totalFlour),
       leaven_pct: calcPct(data.leaven_g, totalFlour),
-    }));
-    if (data.date < today) {
-      setStep(3); // skip baking step for past dates
-    } else {
-      setStep(2);
-    }
+      proofing_time_mins: 0,
+      bake_temp_c: 0,
+      bake_time_mins: 0,
+      preheat_time_mins: 0,
+      lid_on_mins: 0,
+      lid_off_mins: 0,
+      photo_base64: '',
+      crumb_photo_base64: '',
+      photos: [],
+      notes: '',
+      rating: 0,
+      is_favourite: false,
+      created_at: new Date().toISOString(),
+    };
+    addBake(bake);
+    navigate('/', { replace: true });
   };
 
   const handleStep2 = (data: { bake_temp_c: number; preheat_time_mins: number; lid_on_mins: number; lid_off_mins: number }) => {
@@ -105,8 +160,9 @@ export default function NewBakeWizard() {
   };
 
   const handleSave = (data: { photos: string[]; notes: string; rating: number }) => {
-    if (editId) {
-      updateBake(editId, {
+    const targetId = editId || continueId;
+    if (targetId) {
+      updateBake(targetId, {
         name: bakeData.name,
         date: bakeData.date,
         loaf_count: bakeData.loaf_count,
@@ -130,37 +186,9 @@ export default function NewBakeWizard() {
         notes: data.notes,
         rating: data.rating,
       });
-      navigate(`/bake/${editId}`, { replace: true });
+      navigate(`/bake/${targetId}`, { replace: true });
     } else {
-      const bake: Bake = {
-        id: uuidv4(),
-        name: bakeData.name ?? '',
-        date: bakeData.date ?? today,
-        loaf_count: bakeData.loaf_count ?? 1,
-        loaf_weight_g: bakeData.loaf_weight_g ?? 500,
-        flours: bakeData.flours ?? [],
-        add_ins: bakeData.add_ins ?? [],
-        water_g: bakeData.water_g ?? 0,
-        starter_g: bakeData.starter_g ?? 0,
-        leaven_g: bakeData.leaven_g ?? 0,
-        hydration_pct: bakeData.hydration_pct ?? 0,
-        starter_pct: bakeData.starter_pct ?? 0,
-        leaven_pct: bakeData.leaven_pct ?? 0,
-        proofing_time_mins: 0,
-        bake_temp_c: bakeData.bake_temp_c ?? 0,
-        bake_time_mins: 0,
-        preheat_time_mins: bakeData.preheat_time_mins ?? 0,
-        lid_on_mins: bakeData.lid_on_mins ?? 0,
-        lid_off_mins: bakeData.lid_off_mins ?? 0,
-        photo_base64: data.photos[0] ?? '',
-        crumb_photo_base64: '',
-        photos: data.photos,
-        notes: data.notes,
-        rating: data.rating,
-        is_favourite: false,
-        created_at: new Date().toISOString(),
-      };
-      addBake(bake);
+      // Shouldn't happen in new flow, but fallback
       navigate('/', { replace: true });
     }
   };
@@ -192,7 +220,7 @@ export default function NewBakeWizard() {
       <Step3Baking
         onNext={handleStep2}
         onSkip={() => setStep(3)}
-        onBack={() => setStep(1)}
+        onBack={() => continueId ? navigate(-1) : setStep(1)}
         initialData={bakeData}
       />
     );
@@ -201,8 +229,12 @@ export default function NewBakeWizard() {
   return (
     <Step4Capture
       onSave={handleSave}
-      onBack={() => setStep(isPastDate ? 1 : 2)}
-      initialData={editBake ? {
+      onBack={() => setStep(2)}
+      initialData={continueId && continueBake ? {
+        photos: continueBake.photos,
+        notes: continueBake.notes,
+        rating: continueBake.rating,
+      } : editBake ? {
         photos: editBake.photos,
         notes: editBake.notes,
         rating: editBake.rating,
