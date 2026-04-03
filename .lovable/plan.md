@@ -1,43 +1,57 @@
+# Restructure Bake Wizard: Day 1 → Day 2 → Review
 
+## Overview
+Replace the current 4-step flow (Recipe → Proofing → Baking → Capture) with a 3-step flow (Day 1: Recipe → Day 2: Baking → Review). Remove timers entirely. Add new baking fields: preheat time, lid-on duration, lid-off duration.
 
-# Fixes: Recipe Cards, Photo Management & Fullscreen View
+## Database Migration
+Add three new columns to the `bakes` table:
+```sql
+ALTER TABLE public.bakes ADD COLUMN preheat_time_mins integer NOT NULL DEFAULT 0;
+ALTER TABLE public.bakes ADD COLUMN lid_on_mins integer NOT NULL DEFAULT 0;
+ALTER TABLE public.bakes ADD COLUMN lid_off_mins integer NOT NULL DEFAULT 0;
+```
+The existing `bake_time_mins` and `proofing_time_mins` columns stay (proofing becomes unused but harmless; `bake_time_mins` can be kept or ignored).
 
-## 1. Recipe Cards — Show photo, name, loaves, last baked date
+## Type Changes (`src/types/bake.ts`)
+Add `preheat_time_mins`, `lid_on_mins`, `lid_off_mins` to the `Bake` interface.
 
-**`src/components/RecipeCard.tsx`** — Update to show:
-- A small thumbnail (round or square) of the most recent bake's photo for that recipe (passed as a prop from Dashboard)
-- Recipe name, loaf count, and "Last baked: [date]"
-- Remove flour summary and weight
+## Delete Files
+- `src/pages/wizard/Step2Proofing.tsx` — removed entirely
 
-**`src/pages/Dashboard.tsx`** — For each recipe, find the most recent bake with a matching name to extract `photo_base64` and `date`, pass these to `RecipeCard` as props.
+## Rewrite Step 3 → Step 2: Day 2 Baking (`src/pages/wizard/Step3Baking.tsx`)
+- Rename header to "Day 2 — Baking", step "2 of 3"
+- Remove all timer logic (no start/stop/countdown)
+- Fields: Oven Temp (respecting temp unit setting), Preheat Time (min), Duration with Lid On (min), Duration with Lid Off (min)
+- Simple input form, same styling as Step 1
+- Pass all four values to `onNext`
 
-## 2. Photo Library — Multi-select
+## Update Wizard (`src/pages/NewBakeWizard.tsx`)
+- Remove Step2Proofing import and `handleStep2`
+- Step 1 header: "Day 1 — Recipe Setup" (update in Step1Recipe)
+- After Step 1 → go to Step 2 (was Step 3)
+- Step 2 (Baking) → go to Step 3 (Review/Capture)
+- Update `handleStep3` to accept new fields (`preheat_time_mins`, `lid_on_mins`, `lid_off_mins`)
+- Include new fields in `addBake` / `updateBake` calls
+- For past dates, skip from Step 1 directly to Review (step 3)
 
-**`src/pages/BakeDetail.tsx`** — Change the library file input from single to multi-select:
-- Add `multiple` attribute to the library `<input>`
-- Update the `onChange` handler to loop through all selected files and compress/add each one (up to the MAX_PHOTOS limit)
+## Update Step Headers
+- **Step1Recipe**: Change subtitle to "Day 1 — Recipe" and "Step 1 of 3"
+- **Step4Capture**: Change to "Step 3 of 3" and "Review"
 
-## 3. Photo Reorder — Drag to reorder
+## Update BakeDetail ProcessCard
+- Replace single "Bake Time" with Preheat, Lid On, Lid Off fields
+- Keep oven temp as-is
+- Remove proofing time display (or keep if value > 0 for legacy bakes)
 
-**`src/pages/BakeDetail.tsx`** — Replace the chevron left/right reorder buttons with a drag-and-drop thumbnail strip:
-- Below the carousel, render a horizontal row of small thumbnails
-- Use `touchstart`/`touchmove`/`touchend` (or a lightweight drag library) to allow tap-hold-and-drag reordering
-- On drop, reorder the `photos` array and call `updateBake`
-- Keep the dot indicators for navigation but remove the chevron buttons
+## Update `useBakes.ts`
+- Include new columns in row mapping, insert, and update calls
 
-Implementation approach: Use a simple state-based drag system with `onTouchStart`, `onTouchMove`, `onTouchEnd` on thumbnail items — track dragged index and drop target, swap on release. No external library needed.
-
-## 4. Fullscreen Photo View with Share/Save
-
-**`src/pages/BakeDetail.tsx`** — Add a fullscreen photo lightbox:
-- Tapping a photo opens a fullscreen overlay (fixed, z-50, black background)
-- Show the photo centered and zoomable (object-contain)
-- Header with close (X) button and a share/download button
-- Share button: use `navigator.share({ files: [blob] })` if available (Web Share API), otherwise fall back to a download link (`<a download>`)
-- Save to photos: convert base64 to blob, create object URL, trigger download
-
-### Files to modify
-- `src/components/RecipeCard.tsx` — new layout with photo thumbnail
-- `src/pages/Dashboard.tsx` — pass last bake photo/date to RecipeCard
-- `src/pages/BakeDetail.tsx` — multi-select photos, drag reorder thumbnails, fullscreen lightbox with share/save
-
+## Files Modified
+- `src/types/bake.ts`
+- `src/pages/wizard/Step1Recipe.tsx` (header text only)
+- `src/pages/wizard/Step3Baking.tsx` (rewrite)
+- `src/pages/wizard/Step4Capture.tsx` (header text)
+- `src/pages/NewBakeWizard.tsx`
+- `src/pages/BakeDetail.tsx` (ProcessCard)
+- `src/hooks/useBakes.ts`
+- Delete `src/pages/wizard/Step2Proofing.tsx`
