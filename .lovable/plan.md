@@ -1,57 +1,52 @@
 # Restructure Bake Wizard: Day 1 → Day 2 → Review
 
 ## Overview
-Replace the current 4-step flow (Recipe → Proofing → Baking → Capture) with a 3-step flow (Day 1: Recipe → Day 2: Baking → Review). Remove timers entirely. Add new baking fields: preheat time, lid-on duration, lid-off duration.
 
-## Database Migration
+Replace the current 4-step flow with a 3-step flow: Day 1 (Recipe), Day 2 (Baking), and Review. Remove all timers. Add new baking fields for preheat time, lid-on duration, and lid-off duration.
+
+## Database
+
 Add three new columns to the `bakes` table:
-```sql
-ALTER TABLE public.bakes ADD COLUMN preheat_time_mins integer NOT NULL DEFAULT 0;
-ALTER TABLE public.bakes ADD COLUMN lid_on_mins integer NOT NULL DEFAULT 0;
-ALTER TABLE public.bakes ADD COLUMN lid_off_mins integer NOT NULL DEFAULT 0;
-```
-The existing `bake_time_mins` and `proofing_time_mins` columns stay (proofing becomes unused but harmless; `bake_time_mins` can be kept or ignored).
 
-## Type Changes (`src/types/bake.ts`)
+- `preheat_time_mins` (integer, default 0)
+- `lid_on_mins` (integer, default 0)
+- `lid_off_mins` (integer, default 0)
+
+## Changes
+
+### Types (`src/types/bake.ts`)
+
 Add `preheat_time_mins`, `lid_on_mins`, `lid_off_mins` to the `Bake` interface.
 
-## Delete Files
-- `src/pages/wizard/Step2Proofing.tsx` — removed entirely
+### Delete `src/pages/wizard/Step2Proofing.tsx`
 
-## Rewrite Step 3 → Step 2: Day 2 Baking (`src/pages/wizard/Step3Baking.tsx`)
-- Rename header to "Day 2 — Baking", step "2 of 3"
-- Remove all timer logic (no start/stop/countdown)
-- Fields: Oven Temp (respecting temp unit setting), Preheat Time (min), Duration with Lid On (min), Duration with Lid Off (min)
-- Simple input form, same styling as Step 1
-- Pass all four values to `onNext`
+### Rewrite `src/pages/wizard/Step3Baking.tsx`
 
-## Update Wizard (`src/pages/NewBakeWizard.tsx`)
-- Remove Step2Proofing import and `handleStep2`
-- Step 1 header: "Day 1 — Recipe Setup" (update in Step1Recipe)
-- After Step 1 → go to Step 2 (was Step 3)
-- Step 2 (Baking) → go to Step 3 (Review/Capture)
-- Update `handleStep3` to accept new fields (`preheat_time_mins`, `lid_on_mins`, `lid_off_mins`)
-- Include new fields in `addBake` / `updateBake` calls
-- For past dates, skip from Step 1 directly to Review (step 3)
+- Header: "Day 2 — Baking"
+- Remove all timer logic
+- Fields: Oven Temp, Preheat Time (min), Lid On (min), Lid Off (min)
+- Pass all values to `onNext`
 
-## Update Step Headers
-- **Step1Recipe**: Change subtitle to "Day 1 — Recipe" and "Step 1 of 3"
-- **Step4Capture**: Change to "Step 3 of 3" and "Review"
+### Update `src/pages/wizard/Step1Recipe.tsx`
 
-## Update BakeDetail ProcessCard
-- Replace single "Bake Time" with Preheat, Lid On, Lid Off fields
-- Keep oven temp as-is
-- Remove proofing time display (or keep if value > 0 for legacy bakes)
+- Header text: "Day 1 — Recipe"
 
-## Update `useBakes.ts`
-- Include new columns in row mapping, insert, and update calls
+### Update `src/pages/wizard/Step4Capture.tsx`
 
-## Files Modified
-- `src/types/bake.ts`
-- `src/pages/wizard/Step1Recipe.tsx` (header text only)
-- `src/pages/wizard/Step3Baking.tsx` (rewrite)
-- `src/pages/wizard/Step4Capture.tsx` (header text)
-- `src/pages/NewBakeWizard.tsx`
-- `src/pages/BakeDetail.tsx` (ProcessCard)
-- `src/hooks/useBakes.ts`
-- Delete `src/pages/wizard/Step2Proofing.tsx`
+- Header text: "Review"
+
+### Update `src/pages/NewBakeWizard.tsx`
+
+- Remove Step2Proofing import and handler
+- Step 1 → Step 2 (Baking) → Step 3 (Review)
+- Past dates: Step 1 → Step 3 directly
+- Include new fields in save logic
+
+### Update `src/pages/BakeDetail.tsx` ProcessCard
+
+- Replace single bake time with Preheat, Lid On, Lid Off
+- Keep oven temp; remove proofing time (or show for legacy)
+
+### Update `src/hooks/useBakes.ts`
+
+- Include new columns in mapping, insert, update
