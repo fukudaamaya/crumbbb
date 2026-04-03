@@ -54,27 +54,35 @@ function base64ToBlob(base64: string): Blob {
 }
 
 function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
-  bake: { proofing_time_mins: number; bake_temp_c: number; bake_time_mins: number };
+  bake: { bake_temp_c: number; preheat_time_mins: number; lid_on_mins: number; lid_off_mins: number; proofing_time_mins?: number; bake_time_mins?: number };
   isDemo: boolean;
   tempUnit: 'C' | 'F';
   onSave: (updates: Record<string, number>) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [proofing, setProofing] = useState(bake.proofing_time_mins);
   const [temp, setTemp] = useState(bake.bake_temp_c);
-  const [time, setTime] = useState(bake.bake_time_mins);
+  const [preheat, setPreheat] = useState(bake.preheat_time_mins);
+  const [lidOn, setLidOn] = useState(bake.lid_on_mins);
+  const [lidOff, setLidOff] = useState(bake.lid_off_mins);
 
-  const hasData = bake.proofing_time_mins > 0 || bake.bake_temp_c > 0 || bake.bake_time_mins > 0;
+  const hasData = bake.bake_temp_c > 0 || bake.preheat_time_mins > 0 || bake.lid_on_mins > 0 || bake.lid_off_mins > 0;
   if (!hasData && !editing) return null;
 
   const handleSave = () => {
-    onSave({ proofing_time_mins: proofing, bake_temp_c: temp, bake_time_mins: time });
+    onSave({ bake_temp_c: temp, preheat_time_mins: preheat, lid_on_mins: lidOn, lid_off_mins: lidOff });
     setEditing(false);
   };
 
   const cToF = (c: number) => Math.round(c * 9 / 5 + 32);
   const fToC = (f: number) => Math.round((f - 32) * 5 / 9);
   const displayTempVal = tempUnit === 'F' ? cToF(temp) : temp;
+
+  const rows: { label: string; value: number; setValue: (v: number) => void; unit: string; display: string }[] = [
+    { label: 'Oven temp', value: displayTempVal, setValue: (v) => setTemp(tempUnit === 'F' ? fToC(v) : v), unit: `°${tempUnit}`, display: displayTemp(bake.bake_temp_c, tempUnit) },
+    { label: 'Preheat', value: preheat, setValue: setPreheat, unit: 'min', display: `${bake.preheat_time_mins} min` },
+    { label: 'Lid on', value: lidOn, setValue: setLidOn, unit: 'min', display: `${bake.lid_on_mins} min` },
+    { label: 'Lid off', value: lidOff, setValue: setLidOff, unit: 'min', display: `${bake.lid_off_mins} min` },
+  ];
 
   return (
     <div className="crumb-card p-4">
@@ -93,43 +101,20 @@ function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
         )}
       </div>
       <div className="space-y-2">
-        <div className="flex justify-between items-center text-[14px]">
-          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Proofing time</span>
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <input type="number" value={proofing} onChange={e => setProofing(Number(e.target.value))}
-                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
-              <span className="text-muted-foreground text-[13px]">min</span>
-            </div>
-          ) : (
-            <span className="font-semibold tabular-nums">{bake.proofing_time_mins} min</span>
-          )}
-        </div>
-        <div className="flex justify-between items-center text-[14px]">
-          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Oven temp</span>
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <input type="number" value={displayTempVal}
-                onChange={e => setTemp(tempUnit === 'F' ? fToC(Number(e.target.value)) : Number(e.target.value))}
-                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
-              <span className="text-muted-foreground text-[13px]">°{tempUnit}</span>
-            </div>
-          ) : (
-            <span className="font-semibold tabular-nums">{displayTemp(bake.bake_temp_c, tempUnit)}</span>
-          )}
-        </div>
-        <div className="flex justify-between items-center text-[14px]">
-          <span style={{ fontFamily: 'DM Sans, sans-serif' }}>Bake time</span>
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <input type="number" value={time} onChange={e => setTime(Number(e.target.value))}
-                className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
-              <span className="text-muted-foreground text-[13px]">min</span>
-            </div>
-          ) : (
-            <span className="font-semibold tabular-nums">{bake.bake_time_mins} min</span>
-          )}
-        </div>
+        {rows.map(r => (
+          <div key={r.label} className="flex justify-between items-center text-[14px]">
+            <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{r.label}</span>
+            {editing ? (
+              <div className="flex items-center gap-1">
+                <input type="number" value={r.value} onChange={e => r.setValue(Number(e.target.value))}
+                  className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
+                <span className="text-muted-foreground text-[13px]">{r.unit}</span>
+              </div>
+            ) : (
+              <span className="font-semibold tabular-nums">{r.display}</span>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

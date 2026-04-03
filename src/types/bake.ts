@@ -26,6 +26,9 @@ export interface Bake {
   proofing_time_mins: number;
   bake_temp_c: number;
   bake_time_mins: number;
+  preheat_time_mins: number;
+  lid_on_mins: number;
+  lid_off_mins: number;
   photo_base64: string;
   crumb_photo_base64: string;
   add_ins: AddIn[];

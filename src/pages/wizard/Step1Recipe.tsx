@@ -127,7 +127,7 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
         <div>
           <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-semibold"
           style={{ fontFamily: 'DM Sans, sans-serif' }}>
-            Step 1 of 4
+            Step 1 of 3
           </p>
           <h2 className="text-lg font-bold leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
             Recipe Setup

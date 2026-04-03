@@ -5,7 +5,6 @@ import { useBakes } from '@/hooks/useBakes';
 import { useRecipes } from '@/hooks/useRecipes';
 import { Bake, Flour, AddIn } from '@/types/bake';
 import Step1Recipe from './wizard/Step1Recipe';
-import Step2Proofing from './wizard/Step2Proofing';
 import Step3Baking from './wizard/Step3Baking';
 import Step4Capture from './wizard/Step4Capture';
 
@@ -22,9 +21,10 @@ interface BakeData {
   hydration_pct: number;
   starter_pct: number;
   leaven_pct: number;
-  proofing_time_mins: number;
   bake_temp_c: number;
-  bake_time_mins: number;
+  preheat_time_mins: number;
+  lid_on_mins: number;
+  lid_off_mins: number;
 }
 
 function calcPct(grams: number, totalFlour: number): number {
@@ -60,9 +60,10 @@ export default function NewBakeWizard() {
         hydration_pct: editBake.hydration_pct,
         starter_pct: editBake.starter_pct,
         leaven_pct: editBake.leaven_pct,
-        proofing_time_mins: editBake.proofing_time_mins,
         bake_temp_c: editBake.bake_temp_c,
-        bake_time_mins: editBake.bake_time_mins,
+        preheat_time_mins: editBake.preheat_time_mins,
+        lid_on_mins: editBake.lid_on_mins,
+        lid_off_mins: editBake.lid_off_mins,
       };
     }
     return {};
@@ -91,31 +92,20 @@ export default function NewBakeWizard() {
       starter_pct: calcPct(data.starter_g, totalFlour),
       leaven_pct: calcPct(data.leaven_g, totalFlour),
     }));
-    // Skip steps 2 & 3 for past dates
     if (data.date < today) {
-      setStep(4);
+      setStep(3); // skip baking step for past dates
     } else {
       setStep(2);
     }
   };
 
-  const handleStep2 = (proofingMins: number) => {
-    setBakeData(prev => ({ ...prev, proofing_time_mins: proofingMins }));
+  const handleStep2 = (data: { bake_temp_c: number; preheat_time_mins: number; lid_on_mins: number; lid_off_mins: number }) => {
+    setBakeData(prev => ({ ...prev, ...data }));
     setStep(3);
   };
 
-  const handleStep3 = (data: { bake_temp_c: number; bake_time_mins: number }) => {
-    setBakeData(prev => ({ ...prev, ...data }));
-    setStep(4);
-  };
-
-  const handleSave = (data: {
-    photos: string[];
-    notes: string;
-    rating: number;
-  }) => {
+  const handleSave = (data: { photos: string[]; notes: string; rating: number }) => {
     if (editId) {
-      // Update existing bake
       updateBake(editId, {
         name: bakeData.name,
         date: bakeData.date,
@@ -129,9 +119,12 @@ export default function NewBakeWizard() {
         hydration_pct: bakeData.hydration_pct,
         starter_pct: bakeData.starter_pct,
         leaven_pct: bakeData.leaven_pct,
-        proofing_time_mins: bakeData.proofing_time_mins,
         bake_temp_c: bakeData.bake_temp_c,
-        bake_time_mins: bakeData.bake_time_mins,
+        preheat_time_mins: bakeData.preheat_time_mins,
+        lid_on_mins: bakeData.lid_on_mins,
+        lid_off_mins: bakeData.lid_off_mins,
+        bake_time_mins: 0,
+        proofing_time_mins: 0,
         photos: data.photos,
         photo_base64: data.photos[0] ?? '',
         notes: data.notes,
@@ -153,9 +146,12 @@ export default function NewBakeWizard() {
         hydration_pct: bakeData.hydration_pct ?? 0,
         starter_pct: bakeData.starter_pct ?? 0,
         leaven_pct: bakeData.leaven_pct ?? 0,
-        proofing_time_mins: bakeData.proofing_time_mins ?? 0,
+        proofing_time_mins: 0,
         bake_temp_c: bakeData.bake_temp_c ?? 0,
-        bake_time_mins: bakeData.bake_time_mins ?? 0,
+        bake_time_mins: 0,
+        preheat_time_mins: bakeData.preheat_time_mins ?? 0,
+        lid_on_mins: bakeData.lid_on_mins ?? 0,
+        lid_off_mins: bakeData.lid_off_mins ?? 0,
         photo_base64: data.photos[0] ?? '',
         crumb_photo_base64: '',
         photos: data.photos,
@@ -193,22 +189,11 @@ export default function NewBakeWizard() {
 
   if (step === 2) {
     return (
-      <Step2Proofing
-        date={bakeData.date ?? today}
+      <Step3Baking
         onNext={handleStep2}
         onSkip={() => setStep(3)}
         onBack={() => setStep(1)}
-      />
-    );
-  }
-
-  if (step === 3) {
-    return (
-      <Step3Baking
-        date={bakeData.date ?? today}
-        onNext={handleStep3}
-        onSkip={() => setStep(4)}
-        onBack={() => setStep(2)}
+        initialData={bakeData}
       />
     );
   }
@@ -216,7 +201,7 @@ export default function NewBakeWizard() {
   return (
     <Step4Capture
       onSave={handleSave}
-      onBack={() => setStep(isPastDate ? 1 : 3)}
+      onBack={() => setStep(isPastDate ? 1 : 2)}
       initialData={editBake ? {
         photos: editBake.photos,
         notes: editBake.notes,
