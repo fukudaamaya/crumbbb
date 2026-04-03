@@ -24,7 +24,7 @@ export default function FAB({ date }: FABProps) {
       aria-label="Start a new bake"
     >
       <Plus size={20} strokeWidth={2.5} />
-      <span className="text-[15px] font-semibold">Bake</span>
+      <span className="text-[15px] font-semibold">New Bake</span>
     </button>
   );
 }
