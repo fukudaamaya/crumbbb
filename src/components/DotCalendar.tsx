@@ -136,6 +136,14 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
                   alt={bake.name}
                   className="rounded-full object-cover w-full h-full"
                 />
+              ) : bake && isDraft(bake) ? (
+                <div
+                  className={`${dotSize} rounded-full`}
+                  style={{
+                    backgroundColor: 'hsl(var(--primary) / 0.2)',
+                    border: '1.5px dashed hsl(var(--primary))',
+                  }}
+                />
               ) : (
                 <div
                   className={`${dotSize} rounded-full`}
