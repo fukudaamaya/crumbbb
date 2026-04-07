@@ -188,7 +188,7 @@ export default function NewBakeWizard() {
   };
 
   const handleSave = (data: { photos: string[]; notes: string; rating: number }) => {
-    const targetId = editId || continueId;
+    const targetId = editId || continueId || continueBakeId;
     if (targetId) {
       updateBake(targetId, {
         name: bakeData.name,
@@ -225,6 +225,7 @@ export default function NewBakeWizard() {
     return (
       <Step1Recipe
         onNext={handleStep1}
+        onContinue={handleStep1Continue}
         initialData={{
           date: searchParams.get('date') ?? undefined,
           ...(recipe ? {
