@@ -1,16 +1,27 @@
 
 
-# Fix Progress Bar & Inline Lid Durations
+# Make Draft Placeholder Full-Size Circle
 
-## Changes
+## Problem
+Draft bake placeholders use the tiny dot size (`w-2 h-2`) instead of filling the full cell like photo thumbnails do.
 
-### 1. Fix progress bar widths across all 3 steps
+## Change: `src/components/DotCalendar.tsx`
 
-- **Step1Recipe.tsx** line 149: change `width: '25%'` → `width: '33%'`
-- **Step3Baking.tsx** line 60: change `width: '66%'` → `width: '66%'` (already correct)
-- **Step4Capture.tsx** line 131: `width: '100%'` (already correct)
+Update the draft bake rendering (lines 140-146) to use `w-full h-full` instead of `${dotSize}`, matching the photo thumbnail size. Keep the dashed border with brand color and the muted brand fill. The click handler already routes drafts to the continuation flow, so no navigation changes needed.
 
-### 2. Inline lid-on and lid-off fields in Step3Baking.tsx
+**Before:**
+```tsx
+<div className={`${dotSize} rounded-full`} style={{
+  backgroundColor: 'hsl(var(--primary) / 0.2)',
+  border: '1.5px dashed hsl(var(--primary))',
+}} />
+```
 
-Replace the two separate `<div>` blocks for "Duration with Lid On" and "Duration with Lid Off" (lines 74-83) with a single row using a two-column grid layout, so both fields sit side-by-side on the same line.
+**After:**
+```tsx
+<div className="w-full h-full rounded-full" style={{
+  backgroundColor: 'hsl(var(--primary) / 0.15)',
+  border: '2px dashed hsl(var(--primary))',
+}} />
+```
 
