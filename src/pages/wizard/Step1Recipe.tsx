@@ -18,6 +18,7 @@ interface Step1Data {
 
 interface Step1Props {
   onNext: (data: Step1Data) => void;
+  onContinue?: (data: Step1Data) => void;
   initialData?: Partial<Step1Data>;
 }
 
@@ -95,20 +96,28 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
 
   const canProceed = name.trim() && date && totalFlour > 0;
 
+  const gatherData = (): Step1Data => ({
+    name: name.trim(),
+    date,
+    loaf_count: loafCount,
+    loaf_weight_g: loafWeight,
+    flours,
+    add_ins: addIns.filter(a => a.name.trim()),
+    water_g: water,
+    starter_g: starter,
+    leaven_g: leaven,
+  });
+
   const handleNext = () => {
     if (!canProceed) return;
     saveFlourTypes(flours.map(f => f.type));
-    onNext({
-      name: name.trim(),
-      date,
-      loaf_count: loafCount,
-      loaf_weight_g: loafWeight,
-      flours,
-      add_ins: addIns.filter(a => a.name.trim()),
-      water_g: water,
-      starter_g: starter,
-      leaven_g: leaven
-    });
+    onNext(gatherData());
+  };
+
+  const handleContinue = () => {
+    if (!canProceed || !onContinue) return;
+    saveFlourTypes(flours.map(f => f.type));
+    onContinue(gatherData());
   };
 
   return (
@@ -361,15 +370,22 @@ export default function Step1Recipe({ onNext, initialData }: Step1Props) {
         }
       </div>
 
-      {/* Next button */}
-      <div className="px-4 py-4 border-t border-border bg-background">
+      {/* Action buttons */}
+      <div className="px-4 py-4 border-t border-border bg-background space-y-2">
         <button
           onClick={handleNext}
           disabled={!canProceed}
           className="btn-primary w-full py-4 text-[16px] disabled:opacity-40">
-
           Save
         </button>
+        {onContinue && (
+          <button
+            onClick={handleContinue}
+            disabled={!canProceed}
+            className="w-full py-3 text-[14px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40">
+            Continue to Baking →
+          </button>
+        )}
       </div>
     </div>);
 
