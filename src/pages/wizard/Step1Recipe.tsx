@@ -31,7 +31,7 @@ function calcPct(grams: number, totalFlour: number): number {
   return Math.round(grams / totalFlour * 100);
 }
 
-export default function Step1Recipe({ onNext, initialData }: Step1Props) {
+export default function Step1Recipe({ onNext, onContinue, initialData }: Step1Props) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
