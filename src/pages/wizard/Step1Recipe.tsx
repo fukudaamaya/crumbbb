@@ -146,7 +146,7 @@ export default function Step1Recipe({ onNext, onContinue, initialData }: Step1Pr
 
       {/* Progress bar */}
       <div className="h-1 w-full bg-muted">
-        <div className="h-full bg-primary transition-all" style={{ width: '25%' }} />
+        <div className="h-full bg-primary transition-all" style={{ width: '33%' }} />
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
