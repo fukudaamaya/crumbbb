@@ -95,7 +95,7 @@ export default function NewBakeWizard() {
     return {};
   });
 
-  const handleStep1 = (data: {
+  const buildBakeFromStep1 = (data: {
     name: string;
     date: string;
     loaf_count: number;
@@ -107,35 +107,27 @@ export default function NewBakeWizard() {
     leaven_g: number;
   }) => {
     const totalFlour = data.flours.reduce((s, f) => s + f.grams, 0);
+    return {
+      ...data,
+      hydration_pct: calcPct(data.water_g, totalFlour),
+      starter_pct: calcPct(data.starter_g, totalFlour),
+      leaven_pct: calcPct(data.leaven_g, totalFlour),
+    };
+  };
+
+  // "Save" — draft and go home
+  const handleStep1 = (data: Parameters<typeof buildBakeFromStep1>[0]) => {
+    const enriched = buildBakeFromStep1(data);
 
     if (editId) {
-      // Edit mode: go to step 2 as before
-      setBakeData(prev => ({
-        ...prev,
-        ...data,
-        hydration_pct: calcPct(data.water_g, totalFlour),
-        starter_pct: calcPct(data.starter_g, totalFlour),
-        leaven_pct: calcPct(data.leaven_g, totalFlour),
-      }));
+      setBakeData(prev => ({ ...prev, ...enriched }));
       setStep(2);
       return;
     }
 
-    // New bake: save as draft immediately and return to calendar
     const bake: Bake = {
       id: uuidv4(),
-      name: data.name,
-      date: data.date,
-      loaf_count: data.loaf_count,
-      loaf_weight_g: data.loaf_weight_g,
-      flours: data.flours,
-      add_ins: data.add_ins,
-      water_g: data.water_g,
-      starter_g: data.starter_g,
-      leaven_g: data.leaven_g,
-      hydration_pct: calcPct(data.water_g, totalFlour),
-      starter_pct: calcPct(data.starter_g, totalFlour),
-      leaven_pct: calcPct(data.leaven_g, totalFlour),
+      ...enriched,
       proofing_time_mins: 0,
       bake_temp_c: 0,
       bake_time_mins: 0,
@@ -154,13 +146,49 @@ export default function NewBakeWizard() {
     navigate('/', { replace: true });
   };
 
+  // "Continue to Baking" — save draft then advance to step 2
+  const [continueBakeId, setContinueBakeId] = useState<string | null>(continueId ?? null);
+
+  const handleStep1Continue = (data: Parameters<typeof buildBakeFromStep1>[0]) => {
+    const enriched = buildBakeFromStep1(data);
+
+    if (editId) {
+      setBakeData(prev => ({ ...prev, ...enriched }));
+      setStep(2);
+      return;
+    }
+
+    const newId = uuidv4();
+    const bake: Bake = {
+      id: newId,
+      ...enriched,
+      proofing_time_mins: 0,
+      bake_temp_c: 0,
+      bake_time_mins: 0,
+      preheat_time_mins: 0,
+      lid_on_mins: 0,
+      lid_off_mins: 0,
+      photo_base64: '',
+      crumb_photo_base64: '',
+      photos: [],
+      notes: '',
+      rating: 0,
+      is_favourite: false,
+      created_at: new Date().toISOString(),
+    };
+    addBake(bake);
+    setContinueBakeId(newId);
+    setBakeData(prev => ({ ...prev, ...enriched }));
+    setStep(2);
+  };
+
   const handleStep2 = (data: { bake_temp_c: number; preheat_time_mins: number; lid_on_mins: number; lid_off_mins: number }) => {
     setBakeData(prev => ({ ...prev, ...data }));
     setStep(3);
   };
 
   const handleSave = (data: { photos: string[]; notes: string; rating: number }) => {
-    const targetId = editId || continueId;
+    const targetId = editId || continueId || continueBakeId;
     if (targetId) {
       updateBake(targetId, {
         name: bakeData.name,
@@ -197,6 +225,7 @@ export default function NewBakeWizard() {
     return (
       <Step1Recipe
         onNext={handleStep1}
+        onContinue={handleStep1Continue}
         initialData={{
           date: searchParams.get('date') ?? undefined,
           ...(recipe ? {
