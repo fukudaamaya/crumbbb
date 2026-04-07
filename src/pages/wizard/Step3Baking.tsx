@@ -71,15 +71,17 @@ export default function Step3Baking({ onNext, onSkip, onBack, initialData }: Ste
           <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
             value={preheat} onChange={e => setPreheat(Number(e.target.value))} />
         </div>
-        <div>
-          <label className="crumb-label">Duration with Lid On (min)</label>
-          <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
-            value={lidOn} onChange={e => setLidOn(Number(e.target.value))} />
-        </div>
-        <div>
-          <label className="crumb-label">Duration with Lid Off (min)</label>
-          <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
-            value={lidOff} onChange={e => setLidOff(Number(e.target.value))} />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="crumb-label">Lid On (min)</label>
+            <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
+              value={lidOn} onChange={e => setLidOn(Number(e.target.value))} />
+          </div>
+          <div>
+            <label className="crumb-label">Lid Off (min)</label>
+            <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
+              value={lidOff} onChange={e => setLidOff(Number(e.target.value))} />
+          </div>
         </div>
       </div>
 
