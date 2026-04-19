@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minimize2, Maximize2 } from 'lucide-react';
 import { Bake } from '@/types/bake';
@@ -31,6 +31,8 @@ function getDayOfWeek(d: Date): number {
 export default function DotCalendar({ bakes, year, demo = false }: DotCalendarProps) {
   const navigate = useNavigate();
   const [compact, setCompact] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const todayCellRef = useRef<HTMLButtonElement>(null);
 
   const bakesByDate = useMemo(() => {
     const map: Record<string, Bake> = {};
@@ -63,6 +65,16 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
   const cols = compact ? compactCols : 7;
 
   const today = toLocalDateString(new Date());
+
+  // Auto-scroll today's cell into view on mount and when toggling compact / year
+  useEffect(() => {
+    if (!todayCellRef.current || !scrollRef.current) return;
+    const container = scrollRef.current;
+    const cell = todayCellRef.current;
+    // Center today vertically in the scroll viewport
+    const offset = cell.offsetTop - container.clientHeight / 2 + cell.clientHeight / 2;
+    container.scrollTo({ top: Math.max(0, offset), behavior: 'auto' });
+  }, [compact, year]);
 
   const isDraft = (bake: Bake) => (!bake.photos || bake.photos.length === 0) && bake.bake_temp_c === 0;
 
