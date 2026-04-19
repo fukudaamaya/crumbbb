@@ -106,7 +106,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
         {compact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
       </button>
 
-      <div className={compact ? '' : 'flex-1 overflow-y-auto min-h-0'}>
+      <div ref={scrollRef} className={compact ? '' : 'flex-1 overflow-y-auto min-h-0'}>
       <div
         className="grid transition-all duration-300"
         style={{
@@ -135,6 +135,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
           return (
             <button
               key={ds}
+              ref={isToday ? todayCellRef : undefined}
               onClick={() => !isFuture && handleDayTap(d)}
               disabled={isFuture}
               className="relative flex items-center justify-center disabled:cursor-default aspect-square"
