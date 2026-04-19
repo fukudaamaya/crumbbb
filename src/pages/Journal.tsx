@@ -33,8 +33,7 @@ export default function Journal({ demo = false }: {demo?: boolean;}) {
 
   return (
     <div
-      className="flex flex-col h-dvh bg-background"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}>
+      className="flex flex-col flex-1 min-h-0 bg-background">
 
       {demo && <DemoBanner />}
 
