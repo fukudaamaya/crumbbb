@@ -97,7 +97,7 @@ export default function Journal({ demo = false }: {demo?: boolean;}) {
       </header>
 
       {/* Content */}
-      <main className="flex-1">
+      <main className="flex-1 flex flex-col">
         {view === 'grid' ?
         <DotCalendar bakes={yearBakes} year={year} demo={demo} /> :
 

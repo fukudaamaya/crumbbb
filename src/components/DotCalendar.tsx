@@ -83,7 +83,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
   const dotSize = 'w-2 h-2';
 
   return (
-    <div className="relative px-4 pb-4 pt-2">
+    <div className="relative px-4 pb-4 pt-2 min-h-full">
       {/* Floating toggle button */}
       <button
         onClick={() => setCompact((c) => !c)}
