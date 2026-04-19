@@ -83,18 +83,16 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
   const dotSize = 'w-2 h-2';
 
   return (
-    <div className="px-4 pb-4">
-      {/* Toggle button */}
-      <div className="flex justify-end mb-2">
-        <button
-          onClick={() => setCompact((c) => !c)}
-          className="p-1.5 rounded-[6px] border border-border bg-background text-muted-foreground hover:text-foreground transition-colors"
-          style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
-          aria-label={compact ? 'Zoom in' : 'Zoom out'}
-        >
-          {compact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
-        </button>
-      </div>
+    <div className="relative px-4 pb-4 pt-2">
+      {/* Floating toggle button */}
+      <button
+        onClick={() => setCompact((c) => !c)}
+        className="absolute top-2 right-4 z-10 p-1.5 rounded-[6px] border border-border bg-background text-muted-foreground hover:text-foreground transition-colors"
+        style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+        aria-label={compact ? 'Zoom in' : 'Zoom out'}
+      >
+        {compact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+      </button>
 
       <div className={compact ? '' : 'max-h-[65vh] overflow-y-auto'}>
       <div
