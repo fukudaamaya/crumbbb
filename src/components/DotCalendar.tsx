@@ -83,7 +83,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
   const dotSize = 'w-2 h-2';
 
   return (
-    <div className="relative px-4 pb-4 pt-2 min-h-full">
+    <div className="relative px-4 pb-4 pt-2 flex-1 flex flex-col">
       {/* Floating toggle button */}
       <button
         onClick={() => setCompact((c) => !c)}
@@ -94,7 +94,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
         {compact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
       </button>
 
-      <div className={compact ? '' : 'max-h-[65vh] overflow-y-auto'}>
+      <div className={compact ? '' : 'flex-1 overflow-y-auto min-h-0'}>
       <div
         className="grid transition-all duration-300"
         style={{
