@@ -1,30 +1,27 @@
 
 
-## Findings
-
-Verified at all three viewports:
-- **Mobile (390x844)**: Grid extends behind FAB correctly — no empty band ✓
-- **Tablet (820x1180)**: Grid ends ~250px above the FAB, leaving a large empty cream band ✗
-- **Desktop (1920x1080)**: Same issue — grid ends ~150px above the FAB ✗
+## Problem
+After switching the grid container to `flex-1 overflow-y-auto min-h-0`, scrolling no longer works because the parent flex chain doesn't establish a bounded height for the scroll area to overflow against.
 
 ## Root cause
-
-In `src/components/DotCalendar.tsx` (line 95), the non-compact view wraps the grid in `max-h-[65vh] overflow-y-auto`. On taller viewports (tablet/desktop), `65vh` is shorter than the available space between the header and bottom nav, so the grid scroll area stops short and the page background shows through behind the FAB.
-
-The dots inside the scroll container also size at `aspect-square` per cell (1/7 of width), so on wider/taller frames the grid naturally contains itself within `65vh` without overflowing.
+- `App.tsx` wrapper is `max-h-dvh overflow-hidden flex flex-col` (bounded height ✓)
+- `Journal.tsx` outer div uses `min-h-screen` + `paddingBottom: 64px`. `min-h-screen` makes Journal **at least** viewport tall, with no upper bound. Inside the parent's `overflow-hidden`, Journal extends beyond the visible area instead of being constrained to it.
+- Because Journal isn't height-bounded, its inner `<main className="flex-1">` and the grid's `flex-1 overflow-y-auto` have no fixed height to scroll within — they just grow to fit content.
 
 ## Fix
 
-### `src/components/DotCalendar.tsx`
+### `src/pages/Journal.tsx`
+Change the outer wrapper from `min-h-screen` (no height ceiling) to `h-dvh` (exact viewport height) so the flex chain has a bounded total height. The bottom padding stays so content clears the BottomNav.
 
-Replace the fixed `max-h-[65vh]` with `flex-1 min-h-0` so the scroll container fills all remaining vertical space between the header and the bottom nav, regardless of viewport height. Also make the outer wrapper a flex column that fills its parent.
+**Change line 36:**
+- `className="flex flex-col min-h-screen bg-background"` → `className="flex flex-col h-dvh bg-background"`
 
-**Change:**
-- Outer wrapper: `relative px-4 pb-4 pt-2 min-h-full` → `relative px-4 pb-4 pt-2 flex-1 flex flex-col`
-- Scroll container: `compact ? '' : 'max-h-[65vh] overflow-y-auto'` → `compact ? '' : 'flex-1 overflow-y-auto min-h-0'`
-
-The grid inside keeps its `aspect-square` cells, so dots remain the same size; only the available scroll area extends, allowing the dots to render all the way down behind the FAB.
+With Journal now exactly `100dvh` tall:
+- Header takes its natural height
+- `<main className="flex-1 flex flex-col">` fills the remaining space
+- `DotCalendar`'s inner `flex-1 overflow-y-auto min-h-0` now has a real bounded height → scrolling works again
+- Dots still extend behind the FAB (the fix from the previous step is preserved)
 
 ## Files Modified
-- `src/components/DotCalendar.tsx`
+- `src/pages/Journal.tsx`
 
