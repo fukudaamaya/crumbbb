@@ -20,7 +20,7 @@ export default function BakeListView({ bakes, demo = false, onToggleFavourite }:
 
   if (sorted.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center py-16 px-6 text-center">
         <p className="text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
           No bakes yet. Tap + Bake to start your journal.
         </p>
@@ -29,7 +29,10 @@ export default function BakeListView({ bakes, demo = false, onToggleFavourite }:
   }
 
   return (
-    <div className="px-4 pb-4 flex flex-col gap-3">
+    <div
+      className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-24 pt-2 flex flex-col gap-3"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+    >
       {sorted.map(bake => (
         <button
           key={bake.id}
