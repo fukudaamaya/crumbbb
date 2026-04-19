@@ -1,45 +1,29 @@
 
 
-# Float Toolbar & FAB Above Grid
-
 ## Problem
-1. The zoom (expand/compact) toggle button currently sits in its own row above the calendar grid, creating an empty "white row" that pushes the grid down.
-2. The "New Bake" FAB is already `position: fixed`, but its background pill makes it feel like it sits on a row rather than floating directly over the grid content.
+The FAB itself looks correct (filled brand pill). The issue is the row/area around it appears white, blocking the grid behind. Looking at the screenshot, the white band spans the full width above the bottom nav — this is the BottomNav's top edge or a wrapper around it, not the FAB itself.
 
-The user wants both buttons to **overlay** the grid so that dots are visible behind/around them, in all viewports.
+## Investigation needed
+Need to check `BottomNav.tsx` and the `Journal.tsx` bottom padding to find what's painting that white strip behind the FAB.
 
-## Changes
+## Likely cause
+The `<div>` wrapping the page has `paddingBottom: calc(env(safe-area-inset-bottom) + 64px)` for the bottom nav, but the BottomNav itself likely has a solid `bg-background` bar that's 64px tall. The FAB sits 20px above that bar — so the visible "white space around the FAB" is actually just the cream page background showing through where the grid has ended (grid is shorter than viewport).
 
-### 1. `src/components/DotCalendar.tsx` — float zoom toggle over grid
+If the grid is short (few bakes), the page has empty cream space below it, then the bottom nav. The FAB floats in that empty cream space. To make the grid visible behind the FAB, the grid needs to extend further OR the FAB needs to overlap the grid area directly.
 
-- Remove the dedicated toggle row (`<div className="flex justify-end mb-2">`).
-- Make the outer wrapper `relative` and absolutely position the zoom button in the top-right corner of the calendar area, overlapping the grid's top-right padding zone.
-- Keep the button's existing border/shadow/background styling so it remains tappable and visible against dots.
-- Result: the grid starts at the top of the available space; the zoom button floats over the grid's top-right.
+## Change
 
-```tsx
-<div className="relative px-4 pb-4 pt-2">
-  <button
-    onClick={() => setCompact((c) => !c)}
-    className="absolute top-2 right-4 z-10 p-1.5 rounded-[6px] border border-border bg-background ..."
-    ...
-  >
-    {compact ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
-  </button>
-  <div className={compact ? '' : 'max-h-[65vh] overflow-y-auto'}>
-    {/* grid */}
-  </div>
-</div>
-```
+### `src/components/DotCalendar.tsx`
+Ensure the dot grid container fills the available vertical space so dots render behind the FAB area instead of the page ending early. Add `min-h-full` or extend the scroll/grid area so the cream "empty" space below the dots is eliminated and the grid visually extends down to where the FAB floats.
 
-### 2. `src/pages/Journal.tsx` — remove top padding above grid
+Specifically: the grid currently has natural height based on dot count. Wrap it so the container takes `min-h-[calc(100vh-header-bottomnav)]` — this way when you scroll or view a sparse year, dots fill behind the FAB.
 
-- Change `<main className="flex-1 pt-4">` → `<main className="flex-1">` so the calendar (with its own internal padding) sits flush under the header without an extra blank band.
+If after inspection the actual issue is a solid background element behind the FAB (e.g. BottomNav extending visually upward, or a wrapper with `bg-background`), the fix will instead be to remove that background.
 
-### 3. FAB — confirmation, no code change needed
-The FAB is already `position: fixed` with z-index 40 and floats over content. Its solid pill background is intentional (so the label is readable against dots/photos). The grid is visible around it. **No change** unless the user wants the FAB pill itself to become transparent — flagging this for confirmation after seeing the result.
+## Files to inspect first
+- `src/components/BottomNav.tsx` — confirm it's only 64px tall with no upward extension
+- `src/components/DotCalendar.tsx` — confirm grid container height behavior
 
-## Files Modified
-- `src/components/DotCalendar.tsx`
-- `src/pages/Journal.tsx`
+## Files likely modified
+- `src/components/DotCalendar.tsx` (extend grid area to fill viewport)
 
