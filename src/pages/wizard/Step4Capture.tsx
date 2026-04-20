@@ -278,7 +278,7 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
           disabled={saving}
           className="btn-primary w-full py-4 text-[16px] disabled:opacity-50"
         >
-          {saving ? 'Saving...' : 'Save Bake 🍞'}
+          {saving ? 'Saving...' : 'Save to Journal'}
         </button>
       </div>
 
