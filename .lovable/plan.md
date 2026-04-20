@@ -1,45 +1,57 @@
+## Goal
 
+Add month separators in the **zoomed-in (7-column)** dot calendar with a small "MARCH"-style label, and align the first dot of each month to the correct weekday. Make this toggleable from `/settings`.
 
 ## Findings
 
-Looking at `src/pages/wizard/Step3Baking.tsx`:
-
-**Default values (current → desired):**
-- `bake_temp_c`: 250 → **230**
-- `preheat_time_mins`: 60 → 60 (already correct)
-- `lid_on_mins`: 20 → **25**
-- `lid_off_mins`: 25 → 25 (already correct)
-
-**The "025" bug:**
-The number inputs use `value={preheat}` where `preheat` is a `number`. When the state is `0`, the input displays "0". When the user types "25", React appends to the existing "0" because `Number(e.target.value)` followed by re-render doesn't strip the leading zero from typed input — actually the real cause is that `Number("025")` becomes `25`, but when the user types into a field showing `0`, the browser places the cursor after the `0`, so typing "25" produces "025" in the DOM, which `Number()` converts to `25`, but on the next keystroke or if the user clears partially, the displayed value can desync.
-
-The cleaner fix: store the input as a string while editing (or treat empty/NaN gracefully), so `0` doesn't stick as a prefix. Specifically, when the field is focused and the user starts typing, the leading `0` should be replaceable.
-
-The simplest robust fix: use string state for the input fields, parse to number only on submit. Or: on change, if the user types a value, set state to the parsed number directly (which strips leading zeros), AND ensure the displayed `value` reflects the parsed number. The issue here is likely that the user is interpreting "025" appearing momentarily — but more likely the inputs initialize from `initialData ?? <default>`, and when `initialData` is `0` (from the draft created in `NewBakeWizard` which sets `bake_temp_c: 0`, `preheat_time_mins: 0`, etc.), the field shows `0` and typing prepends.
-
-Confirmed: in `NewBakeWizard.tsx`, when a draft is created via "Continue to Baking", all baking fields are initialized to `0`. So `Step3Baking` receives `initialData.preheat_time_mins = 0`, displays `0`, and typing "25" yields "025" → `25` numerically, but visually "025" until blur/re-render.
+- `DotCalendar.tsx` currently builds `normalCells` as one continuous array padded only at the very start. Months flow with no break.
+- Compact (15-col) mode is sequential and weekday-agnostic — the user explicitly scoped this to **zoomed-in (7-col)** mode, so compact stays untouched.
+- `SettingsContext` already persists `weekStart`, `tempUnit`, `accentColor` in localStorage under `crumb-settings`. Adding a new `showMonthLabels` boolean follows the exact same pattern.
+- `Settings.tsx` uses the same `crumb-card` block pattern for each setting — easy to add one more.
 
 ## Plan
 
-Update `src/pages/wizard/Step3Baking.tsx`:
+**1. `src/contexts/SettingsContext.tsx**`
 
-1. **Update default values** when `initialData` field is missing OR is `0` (treat 0 as "unset" for these baking fields):
-   - `bake_temp_c`: default to **230**
-   - `preheat_time_mins`: default to **60**
-   - `lid_on_mins`: default to **25**
-   - `lid_off_mins`: default to **25**
+- Add `showMonthLabels: boolean` (default `true`) to state, LS read/write, and context value.
+- Add `setShowMonthLabels` setter.
 
-2. **Fix the leading-zero typing bug** by switching the four number inputs to controlled string state:
-   - Hold each field as a `string` in local state
-   - On change: accept the raw string (allowing empty while editing)
-   - On blur: if empty or invalid, snap back to the default
-   - On submit (`handleNext`): parse strings to numbers, applying defaults for empty values, then convert temp F→C as needed
+**2. `src/pages/Settings.tsx**`
 
-This eliminates the "025" display because typing into a string-backed input naturally replaces/edits text without numeric coercion artifacts, and an empty field stays empty instead of reverting to `0`.
+- Add a new `crumb-card` toggle "Show Month Labels" using the same segmented On/Off button style as Week Start / Temp Unit.
 
-3. **Preserve existing behavior:**
-   - Temperature unit conversion (°C ↔ °F) on display and submit
-   - Layout, styling, header, progress bar, Skip/Back/Next actions all unchanged
+**3. `src/components/DotCalendar.tsx` (zoomed-in / 7-col mode only)**
 
-**File to modify:** `src/pages/wizard/Step3Baking.tsx` (only)
+- Restructure `normalCells` rendering: instead of one flat grid, render **12 month sections stacked vertically**, each as its own 7-column grid:
+  - Month label row (small uppercase text, e.g. "MARCH") — only when `showMonthLabels` is true and `!compact`.
+  - 7-col grid for that month, padded at the start with empty cells so day 1 aligns to the correct weekday (respecting `weekStart` setting — Sunday or Monday based).
+  - Small vertical gap between months (e.g. `mt-4` or `mt-5`) for breathing room.
+- When `showMonthLabels` is false in zoomed-in mode, then show the current zoomed-in (7-col) grid unchanged as one continuous array padded only at the very start. Months flow with no break.
+- Compact (15-col) mode: **unchanged** — keep the current sequential flat grid.
+- Keep auto-scroll-to-today logic working: `todayCellRef` still attaches to today's cell wherever it lands.
+- Keep all existing styling: dot sizes, photo thumbnails, draft dashed circles, today outline, future-disabled.
 
+**4. Weekday alignment**
+
+- Use `weekStart` from settings to compute first-day offset per month (Mon=0..Sun=6 vs Sun=0..Sat=6).
+- Currently `getDayOfWeek` is hardcoded to Mon=0. Replace with a small helper that respects `weekStart`.
+
+## Visual
+
+```text
+   MARCH
+   . . . . . . .     ← first row padded to land on correct weekday
+   . . . . . . .
+   . . . . . . .
+   . . . . . .
+
+   APRIL
+   . . . . . . .
+   ...
+```
+
+## Files to modify
+
+- `src/contexts/SettingsContext.tsx`
+- `src/pages/Settings.tsx`
+- `src/components/DotCalendar.tsx`
