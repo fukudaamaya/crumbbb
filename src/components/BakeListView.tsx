@@ -89,10 +89,15 @@ export default function BakeListView({ bakes, demo = false, onToggleFavourite }:
               ))}
             </div>
             {/* Notes */}
-            {bake.notes && (
+            {bake.notes ? (
               <p className="text-muted-foreground text-[12px] mt-1 truncate"
                 style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 {bake.notes}
+              </p>
+            ) : (
+              <p className="text-muted-foreground/60 text-[12px] mt-1 truncate italic"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                Add a note...
               </p>
             )}
           </div>
