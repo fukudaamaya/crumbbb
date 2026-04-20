@@ -263,7 +263,7 @@ export default function Step1Recipe({ onNext, onContinue, initialData }: Step1Pr
         {/* Add-ins */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="crumb-label mb-0">Add-ins <span className="font-normal text-muted-foreground">(optional)</span></label>
+            <label className="crumb-label mb-0">Add-ins <span className="font-normal text-muted-foreground">​</span></label>
           </div>
           <div className="space-y-2">
             {addIns.map((a, i) =>
@@ -302,7 +302,7 @@ export default function Step1Recipe({ onNext, onContinue, initialData }: Step1Pr
         {/* Water, leaven, salt */}
         <div className="flex gap-2">
           {[
-            { label: 'Water (g)', value: water, set: setWater, pct: hydrationPct },
+            { label: 'WATER (G)', value: water, set: setWater, pct: hydrationPct },
             { label: 'Leaven (g)', value: leaven, set: setLeaven, pct: leavenPct },
             { label: 'Salt (g)', value: starter, set: setStarter, pct: starterPct },
           ].map(({ label, value, set, pct }) => (
