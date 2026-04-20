@@ -79,6 +79,29 @@ export default function Settings({ demo = false }: { demo?: boolean }) {
           </div>
         </div>
 
+        {/* Show Month Labels */}
+        <div className="crumb-card p-4">
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+            style={{ fontFamily: 'DM Sans, sans-serif' }}>Show Month Labels</h3>
+          <div className="flex border border-border rounded-[6px] overflow-hidden"
+            style={{ boxShadow: 'var(--shadow-sm)' }}>
+            {([true, false] as boolean[]).map(val => (
+              <button
+                key={String(val)}
+                onClick={() => setShowMonthLabels(val)}
+                className={`flex-1 py-2.5 text-[14px] font-semibold transition-colors ${
+                  showMonthLabels === val
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-background text-foreground'
+                }`}
+                style={{ fontFamily: 'DM Sans, sans-serif' }}
+              >
+                {val ? 'On' : 'Off'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Accent Colour */}
         <div className="crumb-card p-4">
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
