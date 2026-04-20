@@ -25,24 +25,41 @@ interface SettingsState {
   weekStart: WeekStart;
   tempUnit: TempUnit;
   accentColor: string; // name
+  showMonthLabels: boolean;
   setWeekStart: (v: WeekStart) => void;
   setTempUnit: (v: TempUnit) => void;
   setAccentColor: (name: string) => void;
+  setShowMonthLabels: (v: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsState | null>(null);
 
 const LS_KEY = 'crumb-settings';
 
-function readLS(): { weekStart: WeekStart; tempUnit: TempUnit; accentColor: string } {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { weekStart: 'sunday', tempUnit: 'C', accentColor: 'Maroon' };
+interface StoredSettings {
+  weekStart: WeekStart;
+  tempUnit: TempUnit;
+  accentColor: string;
+  showMonthLabels: boolean;
 }
 
-function writeLS(data: { weekStart: WeekStart; tempUnit: TempUnit; accentColor: string }) {
+function readLS(): StoredSettings {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        weekStart: parsed.weekStart ?? 'sunday',
+        tempUnit: parsed.tempUnit ?? 'C',
+        accentColor: parsed.accentColor ?? 'Maroon',
+        showMonthLabels: parsed.showMonthLabels ?? true,
+      };
+    }
+  } catch {}
+  return { weekStart: 'sunday', tempUnit: 'C', accentColor: 'Maroon', showMonthLabels: true };
+}
+
+function writeLS(data: StoredSettings) {
   localStorage.setItem(LS_KEY, JSON.stringify(data));
 }
 
@@ -59,31 +76,37 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [weekStart, setWeekStartState] = useState<WeekStart>('sunday');
   const [tempUnit, setTempUnitState] = useState<TempUnit>('C');
   const [accentColor, setAccentColorState] = useState('Maroon');
+  const [showMonthLabels, setShowMonthLabelsState] = useState(true);
 
   useEffect(() => {
     const saved = readLS();
     setWeekStartState(saved.weekStart);
     setTempUnitState(saved.tempUnit);
     setAccentColorState(saved.accentColor);
+    setShowMonthLabelsState(saved.showMonthLabels);
     applyAccent(saved.accentColor);
   }, []);
 
   const setWeekStart = (v: WeekStart) => {
     setWeekStartState(v);
-    writeLS({ weekStart: v, tempUnit, accentColor });
+    writeLS({ weekStart: v, tempUnit, accentColor, showMonthLabels });
   };
   const setTempUnit = (v: TempUnit) => {
     setTempUnitState(v);
-    writeLS({ weekStart, tempUnit: v, accentColor });
+    writeLS({ weekStart, tempUnit: v, accentColor, showMonthLabels });
   };
   const setAccentColor = (name: string) => {
     setAccentColorState(name);
     applyAccent(name);
-    writeLS({ weekStart, tempUnit, accentColor: name });
+    writeLS({ weekStart, tempUnit, accentColor: name, showMonthLabels });
+  };
+  const setShowMonthLabels = (v: boolean) => {
+    setShowMonthLabelsState(v);
+    writeLS({ weekStart, tempUnit, accentColor, showMonthLabels: v });
   };
 
   return (
-    <SettingsContext.Provider value={{ weekStart, tempUnit, accentColor, setWeekStart, setTempUnit, setAccentColor }}>
+    <SettingsContext.Provider value={{ weekStart, tempUnit, accentColor, showMonthLabels, setWeekStart, setTempUnit, setAccentColor, setShowMonthLabels }}>
       {children}
     </SettingsContext.Provider>
   );
