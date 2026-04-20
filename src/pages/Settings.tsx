@@ -8,7 +8,7 @@ export default function Settings({ demo = false }: { demo?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isDemo = demo || location.pathname.startsWith('/demo');
-  const { weekStart, tempUnit, accentColor, setWeekStart, setTempUnit, setAccentColor } = useSettings();
+  const { weekStart, tempUnit, accentColor, showMonthLabels, setWeekStart, setTempUnit, setAccentColor, setShowMonthLabels } = useSettings();
   const { signOut } = useAuth();
 
   const backPath = isDemo ? '/demo/dashboard' : '/dashboard';
