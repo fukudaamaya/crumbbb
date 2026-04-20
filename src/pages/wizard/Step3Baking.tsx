@@ -14,23 +14,55 @@ interface Step3Props {
   };
 }
 
+const DEFAULTS = {
+  bake_temp_c: 230,
+  preheat_time_mins: 60,
+  lid_on_mins: 25,
+  lid_off_mins: 25,
+};
+
 export default function Step3Baking({ onNext, onSkip, onBack, initialData }: Step3Props) {
   const { tempUnit } = useSettings();
 
   const cToF = (c: number) => Math.round(c * 9 / 5 + 32);
   const fToC = (f: number) => Math.round((f - 32) * 5 / 9);
 
-  const [tempDisplay, setTempDisplay] = useState(() => {
-    const c = initialData?.bake_temp_c ?? 250;
-    return tempUnit === 'F' ? cToF(c) : c;
-  });
-  const [preheat, setPreheat] = useState(initialData?.preheat_time_mins ?? 60);
-  const [lidOn, setLidOn] = useState(initialData?.lid_on_mins ?? 20);
-  const [lidOff, setLidOff] = useState(initialData?.lid_off_mins ?? 25);
+  // Treat 0 / missing as "unset" → use defaults
+  const initTempC = initialData?.bake_temp_c && initialData.bake_temp_c > 0
+    ? initialData.bake_temp_c
+    : DEFAULTS.bake_temp_c;
+  const initPreheat = initialData?.preheat_time_mins && initialData.preheat_time_mins > 0
+    ? initialData.preheat_time_mins
+    : DEFAULTS.preheat_time_mins;
+  const initLidOn = initialData?.lid_on_mins && initialData.lid_on_mins > 0
+    ? initialData.lid_on_mins
+    : DEFAULTS.lid_on_mins;
+  const initLidOff = initialData?.lid_off_mins && initialData.lid_off_mins > 0
+    ? initialData.lid_off_mins
+    : DEFAULTS.lid_off_mins;
+
+  const initTempDisplay = tempUnit === 'F' ? cToF(initTempC) : initTempC;
+  const defaultTempDisplay = tempUnit === 'F' ? cToF(DEFAULTS.bake_temp_c) : DEFAULTS.bake_temp_c;
+
+  const [tempStr, setTempStr] = useState(String(initTempDisplay));
+  const [preheatStr, setPreheatStr] = useState(String(initPreheat));
+  const [lidOnStr, setLidOnStr] = useState(String(initLidOn));
+  const [lidOffStr, setLidOffStr] = useState(String(initLidOff));
+
+  const parseOrDefault = (s: string, fallback: number) => {
+    const n = parseInt(s, 10);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  };
 
   const handleNext = () => {
+    const tempDisplay = parseOrDefault(tempStr, defaultTempDisplay);
     const tempC = tempUnit === 'F' ? fToC(tempDisplay) : tempDisplay;
-    onNext({ bake_temp_c: tempC, preheat_time_mins: preheat, lid_on_mins: lidOn, lid_off_mins: lidOff });
+    onNext({
+      bake_temp_c: tempC,
+      preheat_time_mins: parseOrDefault(preheatStr, DEFAULTS.preheat_time_mins),
+      lid_on_mins: parseOrDefault(lidOnStr, DEFAULTS.lid_on_mins),
+      lid_off_mins: parseOrDefault(lidOffStr, DEFAULTS.lid_off_mins),
+    });
   };
 
   return (
@@ -63,24 +95,48 @@ export default function Step3Baking({ onNext, onSkip, onBack, initialData }: Ste
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
         <div>
           <label className="crumb-label">Oven Temp ({tempUnit === 'F' ? '°F' : '°C'})</label>
-          <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
-            value={tempDisplay} onChange={e => setTempDisplay(Number(e.target.value))} />
+          <input
+            className="crumb-input tabular-nums"
+            type="number"
+            inputMode="numeric"
+            value={tempStr}
+            onChange={e => setTempStr(e.target.value)}
+            onBlur={() => { if (!tempStr.trim()) setTempStr(String(defaultTempDisplay)); }}
+          />
         </div>
         <div>
           <label className="crumb-label">Preheat Time (min)</label>
-          <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
-            value={preheat} onChange={e => setPreheat(Number(e.target.value))} />
+          <input
+            className="crumb-input tabular-nums"
+            type="number"
+            inputMode="numeric"
+            value={preheatStr}
+            onChange={e => setPreheatStr(e.target.value)}
+            onBlur={() => { if (!preheatStr.trim()) setPreheatStr(String(DEFAULTS.preheat_time_mins)); }}
+          />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="crumb-label">Lid On (min)</label>
-            <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
-              value={lidOn} onChange={e => setLidOn(Number(e.target.value))} />
+            <input
+              className="crumb-input tabular-nums"
+              type="number"
+              inputMode="numeric"
+              value={lidOnStr}
+              onChange={e => setLidOnStr(e.target.value)}
+              onBlur={() => { if (!lidOnStr.trim()) setLidOnStr(String(DEFAULTS.lid_on_mins)); }}
+            />
           </div>
           <div>
             <label className="crumb-label">Lid Off (min)</label>
-            <input className="crumb-input tabular-nums" type="number" inputMode="numeric"
-              value={lidOff} onChange={e => setLidOff(Number(e.target.value))} />
+            <input
+              className="crumb-input tabular-nums"
+              type="number"
+              inputMode="numeric"
+              value={lidOffStr}
+              onChange={e => setLidOffStr(e.target.value)}
+              onBlur={() => { if (!lidOffStr.trim()) setLidOffStr(String(DEFAULTS.lid_off_mins)); }}
+            />
           </div>
         </div>
       </div>
