@@ -87,13 +87,13 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
 
   return (
     <div
-      className="flex flex-col min-h-dvh bg-background"
+      className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 bg-background"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}>
 
       {demo && <DemoBanner />}
 
       <header
-        className="px-4 py-4 border-b border-border bg-background flex items-start justify-between"
+        className="px-4 md:px-0 py-4 border-b md:border-b-0 border-border bg-background flex items-start justify-between"
         style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <span className="wordmark">DASHBOARD</span>
@@ -103,14 +103,14 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
         </div>
         <button
           onClick={() => navigate(`${prefix}/settings`)}
-          className="p-2 mt-1"
+          className="md:hidden p-2 mt-1"
           aria-label="Settings"
         >
           <Settings size={22} strokeWidth={2} className="text-foreground" />
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+      <div className="flex-1 overflow-y-auto md:overflow-visible px-4 md:px-0 py-5 space-y-6">
         {/* Streak */}
         <div className="crumb-card p-4 flex items-center gap-4">
           <span className="text-4xl">🔥</span>
@@ -153,7 +153,7 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
               This Year
             </button>
           </div>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="crumb-card flex-1 p-4 text-center">
               <p className="text-3xl font-bold text-primary tabular-nums" style={{ fontFamily: 'Raleway, sans-serif' }}>
                 {totalLoaves}
