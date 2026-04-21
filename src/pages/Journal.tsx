@@ -33,16 +33,17 @@ export default function Journal({ demo = false }: {demo?: boolean;}) {
 
   return (
     <div
-      className="flex flex-col flex-1 min-h-0 bg-background"
+      className="flex flex-col flex-1 min-h-0 bg-background md:px-8 md:py-6"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}>
 
       {demo && <DemoBanner />}
 
       {/* Header */}
-      <header className="z-30 bg-background border-b border-border px-4 py-3 flex items-center justify-between"
+      <header className="z-30 bg-background border-b border-border px-4 md:px-0 py-3 md:pb-4 md:border-b-0 flex items-center justify-between"
       style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
-          <h1 className="wordmark font-extrabold text-left">CRUMB</h1>
+          <h1 className="wordmark font-extrabold text-left md:hidden">CRUMB</h1>
+          <h1 className="hidden md:block text-2xl font-bold" style={{ fontFamily: 'Raleway, sans-serif' }}>Journal</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center text-[13px] font-bold tabular-nums mt-0.5"
