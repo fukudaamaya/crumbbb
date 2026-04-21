@@ -195,7 +195,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
             {compactCells.map((d, i) => renderCell(d, 'compact', i))}
           </div>
         ) : showMonthLabels ? (
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-x-8 md:gap-y-6">
             {Array.from({ length: 12 }, (_, m) => {
               const monthDays = getMonthDays(year, m);
               const firstOffset = getDayOfWeek(monthDays[0], weekStart);
