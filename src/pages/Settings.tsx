@@ -15,16 +15,16 @@ export default function Settings({ demo = false }: { demo?: boolean }) {
 
   return (
     <div
-      className="flex flex-col min-h-dvh bg-background"
+      className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 md:max-w-[640px] md:mx-auto md:w-full bg-background"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {isDemo && <DemoBanner />}
 
       <header
-        className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background"
+        className="flex items-center gap-3 px-4 md:px-0 py-3 border-b md:border-b-0 border-border bg-background"
         style={{ paddingTop: isDemo ? '12px' : 'calc(env(safe-area-inset-top) + 12px)' }}
       >
-        <button onClick={() => navigate(backPath)} className="p-1" aria-label="Back">
+        <button onClick={() => navigate(backPath)} className="md:hidden p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
         <h1 className="text-lg font-bold" style={{ fontFamily: 'Raleway, sans-serif' }}>
@@ -32,7 +32,7 @@ export default function Settings({ demo = false }: { demo?: boolean }) {
         </h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+      <div className="flex-1 overflow-y-auto md:overflow-visible px-4 md:px-0 py-5 space-y-6">
         {/* Start of the Week */}
         <div className="crumb-card p-4">
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"

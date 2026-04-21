@@ -389,7 +389,7 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
 
   return (
     <div
-      className="flex flex-col min-h-dvh bg-background"
+      className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 bg-background w-full"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {isDemo && <DemoBanner />}
