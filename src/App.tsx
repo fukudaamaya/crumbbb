@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import RecipeHistory from "./pages/RecipeHistory";
 import NotFound from "./pages/NotFound";
 import BottomNav from "./components/BottomNav";
+import AppShell from "./components/AppShell";
 
 const queryClient = new QueryClient();
 
@@ -44,23 +45,23 @@ const App = () => (
       <SettingsProvider>
         <BrowserRouter>
           <AuthProvider>
-            <div className="relative mx-auto w-full max-w-[430px] min-h-dvh max-h-dvh overflow-hidden bg-background shadow-[4px_0_0_hsl(var(--border)),_-4px_0_0_hsl(var(--border))] flex flex-col">
+            <div className="relative w-full min-h-dvh bg-background flex flex-col md:flex-row mx-auto max-w-[430px] md:max-w-none max-h-dvh md:max-h-none overflow-hidden md:overflow-visible shadow-[4px_0_0_hsl(var(--border)),_-4px_0_0_hsl(var(--border))] md:shadow-none">
               <Routes>
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
                 <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<ProtectedRoute><Journal /><BottomNav /></ProtectedRoute>} />
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /><BottomNav /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                <Route path="/recipe/:id" element={<ProtectedRoute><RecipeHistory /></ProtectedRoute>} />
-                <Route path="/bake/new/:step" element={<ProtectedRoute><NewBakeWizard /></ProtectedRoute>} />
-                <Route path="/bake/:id" element={<ProtectedRoute><BakeDetail /></ProtectedRoute>} />
+                <Route path="/" element={<ProtectedRoute><AppShell fullBleed><Journal /></AppShell><BottomNav /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><AppShell><Dashboard /></AppShell><BottomNav /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><AppShell><Settings /></AppShell></ProtectedRoute>} />
+                <Route path="/recipe/:id" element={<ProtectedRoute><AppShell><RecipeHistory /></AppShell></ProtectedRoute>} />
+                <Route path="/bake/new/:step" element={<ProtectedRoute><AppShell><NewBakeWizard /></AppShell></ProtectedRoute>} />
+                <Route path="/bake/:id" element={<ProtectedRoute><AppShell><BakeDetail /></AppShell></ProtectedRoute>} />
                 {/* Demo routes */}
-                <Route path="/demo" element={<><Journal demo /><BottomNav demo /></>} />
-                <Route path="/demo/dashboard" element={<><Dashboard demo /><BottomNav demo /></>} />
-                <Route path="/demo/settings" element={<Settings demo />} />
-                <Route path="/demo/bake/:id" element={<BakeDetail demo />} />
+                <Route path="/demo" element={<><AppShell demo fullBleed><Journal demo /></AppShell><BottomNav demo /></>} />
+                <Route path="/demo/dashboard" element={<><AppShell demo><Dashboard demo /></AppShell><BottomNav demo /></>} />
+                <Route path="/demo/settings" element={<AppShell demo><Settings demo /></AppShell>} />
+                <Route path="/demo/bake/:id" element={<AppShell demo><BakeDetail demo /></AppShell>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

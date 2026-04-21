@@ -76,6 +76,13 @@
     overscroll-behavior: none;
   }
 
+  @media (min-width: 768px) {
+    #root {
+      align-items: stretch;
+      justify-content: stretch;
+    }
+  }
+
   body {
     @apply text-foreground;
     background-color: hsl(35 20% 84%);
@@ -83,6 +90,12 @@
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior-y: none;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      background-color: hsl(var(--background));
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
