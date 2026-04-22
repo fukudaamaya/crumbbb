@@ -95,7 +95,7 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
       <header
         className="px-4 md:px-0 py-4 border-b md:border-b-0 border-border bg-background flex items-start justify-between"
         style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
-        <div className="md:hidden">
+        <div>
           <span className="wordmark">DASHBOARD</span>
           <p className="text-[12px] text-muted-foreground mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
             Your sourdough journal

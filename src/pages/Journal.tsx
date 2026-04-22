@@ -43,6 +43,7 @@ export default function Journal({ demo = false }: {demo?: boolean;}) {
       style={{ paddingTop: demo ? '12px' : 'calc(env(safe-area-inset-top) + 40px)' }}>
         <div>
           <h1 className="wordmark font-extrabold text-left md:hidden">CRUMB</h1>
+          <h1 className="hidden md:block text-2xl font-bold" style={{ fontFamily: 'Raleway, sans-serif' }}>Journal</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center text-[13px] font-bold tabular-nums mt-0.5"

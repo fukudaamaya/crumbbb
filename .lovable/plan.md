@@ -1,64 +1,44 @@
 
 
-## Goal
+## Bug
 
-Replace the desktop/tablet sidebar with two pieces of chrome on Journal and Dashboard:
+In Step 2 of the New Bake wizard (`Step3Baking.tsx`), the **Oven Temp** label can show "(°F)" even when the user's setting is "°C", and/or the numeric value shown doesn't match the unit in the label.
 
-1. **Fixed top header**: `CRUMB` wordmark left, Settings icon right.
-2. **Tab navigation** at the top of the page content: `Journal` / `Dashboard` (Twitter-style — bold active label with primary-colored underline, muted inactive label, thin divider beneath the row).
+## Root cause
 
-Mobile (<768px) is unchanged (`BottomNav` + `FAB`).
+`SettingsContext` initializes `tempUnit` to the hardcoded default `'C'` and only reads the user's saved value from `localStorage` inside a `useEffect` — i.e. **after** the first render.
 
-## Design
+`Step3Baking` reads `tempUnit` once during render and seeds its input state via `useState(String(initTempDisplay))`. The seed therefore uses the *pre-load* `tempUnit` value. When `SettingsContext`'s effect later flips `tempUnit` to the saved value (e.g. `'F'`), the label re-renders with the new unit, but the input value was already locked in using the old unit — producing the mismatch the user is seeing.
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  CRUMB                                                  ⚙   │  ← fixed header, h-16, border-b
-├─────────────────────────────────────────────────────────────┤
-│   Journal    Dashboard                                       │  ← tabs row, border-b
-│   ━━━━━━━                                                    │     active = bold + underline
-├─────────────────────────────────────────────────────────────┤
-│                       page content                           │
-└─────────────────────────────────────────────────────────────┘
-```
+Same class of issue affects any other component that reads settings during initial render (e.g. `BakeDetail`'s `ProcessCard`).
 
-- Wordmark uses existing `.wordmark` class, links to `/` (or `/demo` in demo mode).
-- Settings icon = `lucide-react` `Settings`, ghost button, links to `/settings`.
-- Header: `sticky top-0 z-40`, `bg-background`, `border-b border-border`, `hidden md:flex`, padded to align with content.
-- Tabs use `NavLink` to `/` and `/dashboard` (or `/demo` and `/demo/dashboard`); active state derived from `useLocation` so the underline tracks the route.
-- Tabs styling: `font-semibold` text, ~`text-[15px]`, gap-6, active gets `text-foreground` + 2px primary underline via a positioned bottom border; inactive gets `text-muted-foreground`.
-- The `+ New Bake` action stays accessible via the existing `FAB` on all viewports (it already renders on mobile + desktop). No header button needed.
+## Fix
 
-## Files
+Make `SettingsContext` resolve the saved settings **synchronously** during the very first render by using a lazy `useState` initializer that reads `localStorage` directly. This removes the post-mount flip and guarantees every consumer sees the correct `tempUnit` (and other settings) on first render.
 
-### New: `src/components/TopHeader.tsx`
-Fixed desktop header. Props: `{ demo?: boolean }`. Renders wordmark (link → Journal) and Settings icon button (link → `/settings`). Hidden below `md`.
+### Change in `src/contexts/SettingsContext.tsx`
 
-### New: `src/components/TopTabs.tsx`
-Renders the `Journal` / `Dashboard` tab row with active underline. Props: `{ demo?: boolean }`. Uses `NavLink` with `end` on Journal so `/dashboard` doesn't mark it active. Hidden below `md`.
+- Replace the four separate `useState(<hardcoded default>)` calls plus the `useEffect(() => { … readLS … })` block with lazy initializers:
 
-### Modify: `src/components/AppShell.tsx`
-- Remove `<Sidebar />`.
-- Add prop `showHeader?: boolean` (default `false`); when true, render `<TopHeader demo={demo} />` above content and `<TopTabs demo={demo} />` at the top of the scroll area.
-- Layout becomes vertical (`flex flex-col`).
-- `fullBleed` continues to control the inner content cap; tabs render inside the scroll container above the page content so they scroll with content (acceptable per the reference image) — if we want the tabs sticky too, we apply `sticky top-0` within the scroll area. **Decision: tabs scroll with content** to match the reference screenshot's behavior and keep implementation simple.
+  ```ts
+  const initial = typeof window !== 'undefined' ? readLS() : { weekStart: 'sunday', tempUnit: 'C', accentColor: 'Maroon', showMonthLabels: true };
+  const [weekStart, setWeekStartState] = useState<WeekStart>(initial.weekStart);
+  const [tempUnit, setTempUnitState] = useState<TempUnit>(initial.tempUnit);
+  const [accentColor, setAccentColorState] = useState(initial.accentColor);
+  const [showMonthLabels, setShowMonthLabelsState] = useState(initial.showMonthLabels);
+  ```
 
-### Modify: `src/App.tsx`
-Pass `showHeader` only on Journal & Dashboard routes:
-- `/` → `<AppShell fullBleed showHeader>`
-- `/dashboard` → `<AppShell showHeader>`
-- `/demo` → `<AppShell demo fullBleed showHeader>`
-- `/demo/dashboard` → `<AppShell demo showHeader>`
+- Keep an effect that calls `applyAccent(accentColor)` once on mount (so the CSS variables are set), but no longer use it to seed state.
 
-All other desktop routes (Settings, wizard, recipe history, bake detail backdrop) render without header/tabs and keep their existing in-page chrome.
+This is a one-file, surgical change. No API surface changes, no consumer changes required.
 
-### Remove
-`src/components/Sidebar.tsx` is no longer imported. Delete it to keep the codebase clean.
+## Why this is enough
 
-## Notes
+- `Step3Baking` (and every other consumer) now sees the correct `tempUnit` on its very first render, so the `useState(String(initTempDisplay))` seed is computed against the right unit. Label and value stay consistent.
+- No need to sprinkle `useEffect`-based re-syncs in individual consumers.
+- `localStorage` access inside a lazy initializer runs only once per `SettingsProvider` mount, so there's no perf concern.
 
-- `FAB` continues to provide the "New Bake" entry point on every viewport.
-- Settings page on desktop is reachable via the header gear icon and direct URL; the page's own back button handles return.
-- Mobile `BottomNav` is untouched — it remains the navigation surface below `md`.
-- `BakeDetailRoute` desktop modal renders Journal/Dashboard as the backdrop; the new header + tabs will appear in that backdrop, which is consistent.
+## Files to modify
+
+- `src/contexts/SettingsContext.tsx` — switch to lazy `useState` initializers backed by `readLS()`; reduce the mount effect to only call `applyAccent`.
 
