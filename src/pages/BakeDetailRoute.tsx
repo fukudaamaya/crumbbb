@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsDesktop } from '@/hooks/use-mobile';
 import AppShell from '@/components/AppShell';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import BakeDetail from './BakeDetail';
@@ -12,11 +12,11 @@ interface BakeDetailRouteProps {
 }
 
 export default function BakeDetailRoute({ demo = false }: BakeDetailRouteProps) {
-  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (isMobile) {
+  if (!isDesktop) {
     return (
       <AppShell demo={demo}>
         <BakeDetail demo={demo} />
