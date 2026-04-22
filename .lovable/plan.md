@@ -1,43 +1,22 @@
 
 
-## Goal
-
-Hide the scrollbar in the zoomed-in dot calendar grid while keeping scroll functionality intact on all viewports.
-
 ## Change
 
-**`src/components/DotCalendar.tsx`** — the scroll container is the `div` with `ref={scrollRef}` and classes `flex-1 overflow-y-auto min-h-0 overscroll-contain`. Add a utility class to hide its scrollbar cross-browser.
+Match the Dashboard's outer container to Settings' responsive width pattern.
 
-Two-part fix:
+**`src/pages/Dashboard.tsx`** — update the root wrapper className:
 
-1. **Add a global utility in `src/index.css`** (once, reusable):
-
-```css
-@layer utilities {
-  .scrollbar-hide {
-    scrollbar-width: none;          /* Firefox */
-    -ms-overflow-style: none;       /* IE/old Edge */
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;                  /* Chrome/Safari/WebKit */
-  }
-}
-```
-
-2. **Apply it in `src/components/DotCalendar.tsx`** on the scrollRef div:
-
+From:
 ```tsx
-<div
-  ref={scrollRef}
-  className="flex-1 overflow-y-auto min-h-0 overscroll-contain scrollbar-hide"
-  ...
->
+className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 bg-background"
 ```
 
-Scroll still works (wheel, touch, keyboard) — only the visible track/thumb is hidden.
+To:
+```tsx
+className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 md:max-w-[640px] md:mx-auto md:w-full bg-background"
+```
 
-## Files to modify
+This caps Dashboard content at 640px on desktop and centers it, matching Settings exactly. Mobile is untouched. Inner `px-4 md:px-0` already matches Settings, so no further edits are needed.
 
-- `src/index.css` — add `.scrollbar-hide` utility.
-- `src/components/DotCalendar.tsx` — add `scrollbar-hide` class to the scroll container.
+**File to modify:** `src/pages/Dashboard.tsx` (one line)
 
