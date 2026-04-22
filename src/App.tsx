@@ -7,6 +7,7 @@ import Journal from "./pages/Journal";
 import Dashboard from "./pages/Dashboard";
 import BakeDetail from "./pages/BakeDetail";
 import NewBakeWizard from "./pages/NewBakeWizard";
+import BakeDetailRoute from "./pages/BakeDetailRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -56,12 +57,12 @@ const App = () => (
                 <Route path="/settings" element={<ProtectedRoute><AppShell><Settings /></AppShell></ProtectedRoute>} />
                 <Route path="/recipe/:id" element={<ProtectedRoute><AppShell><RecipeHistory /></AppShell></ProtectedRoute>} />
                 <Route path="/bake/new/:step" element={<ProtectedRoute><AppShell><NewBakeWizard /></AppShell></ProtectedRoute>} />
-                <Route path="/bake/:id" element={<ProtectedRoute><AppShell><BakeDetail /></AppShell></ProtectedRoute>} />
+                <Route path="/bake/:id" element={<ProtectedRoute><BakeDetailRoute /></ProtectedRoute>} />
                 {/* Demo routes */}
                 <Route path="/demo" element={<><AppShell demo fullBleed><Journal demo /></AppShell><BottomNav demo /></>} />
                 <Route path="/demo/dashboard" element={<><AppShell demo><Dashboard demo /></AppShell><BottomNav demo /></>} />
                 <Route path="/demo/settings" element={<AppShell demo><Settings demo /></AppShell>} />
-                <Route path="/demo/bake/:id" element={<AppShell demo><BakeDetail demo /></AppShell>} />
+                <Route path="/demo/bake/:id" element={<BakeDetailRoute demo />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
