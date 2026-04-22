@@ -73,18 +73,22 @@ function applyAccent(name: string) {
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [weekStart, setWeekStartState] = useState<WeekStart>('sunday');
-  const [tempUnit, setTempUnitState] = useState<TempUnit>('C');
-  const [accentColor, setAccentColorState] = useState('Maroon');
-  const [showMonthLabels, setShowMonthLabelsState] = useState(true);
+  const [weekStart, setWeekStartState] = useState<WeekStart>(() =>
+    typeof window !== 'undefined' ? readLS().weekStart : 'sunday'
+  );
+  const [tempUnit, setTempUnitState] = useState<TempUnit>(() =>
+    typeof window !== 'undefined' ? readLS().tempUnit : 'C'
+  );
+  const [accentColor, setAccentColorState] = useState<string>(() =>
+    typeof window !== 'undefined' ? readLS().accentColor : 'Maroon'
+  );
+  const [showMonthLabels, setShowMonthLabelsState] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? readLS().showMonthLabels : true
+  );
 
   useEffect(() => {
-    const saved = readLS();
-    setWeekStartState(saved.weekStart);
-    setTempUnitState(saved.tempUnit);
-    setAccentColorState(saved.accentColor);
-    setShowMonthLabelsState(saved.showMonthLabels);
-    applyAccent(saved.accentColor);
+    applyAccent(accentColor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setWeekStart = (v: WeekStart) => {
