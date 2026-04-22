@@ -181,7 +181,7 @@ export default function DotCalendar({ bakes, year, demo = false }: DotCalendarPr
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto min-h-0 overscroll-contain"
+        className="flex-1 overflow-y-auto min-h-0 overscroll-contain scrollbar-hide"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {compact ? (
