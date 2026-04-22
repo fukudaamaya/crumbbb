@@ -45,7 +45,7 @@ const App = () => (
       <SettingsProvider>
         <BrowserRouter>
           <AuthProvider>
-            <div className="relative w-full min-h-dvh bg-background flex flex-col md:flex-row mx-auto max-w-[430px] md:max-w-none max-h-dvh md:max-h-none overflow-hidden md:overflow-visible shadow-[4px_0_0_hsl(var(--border)),_-4px_0_0_hsl(var(--border))] md:shadow-none">
+            <div className="relative w-full min-h-dvh bg-background flex flex-col md:flex-row mx-auto max-w-[430px] md:max-w-none max-h-dvh overflow-hidden shadow-[4px_0_0_hsl(var(--border)),_-4px_0_0_hsl(var(--border))] md:shadow-none">
               <Routes>
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
