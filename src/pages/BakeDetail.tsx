@@ -283,7 +283,7 @@ function PhotoLightbox({ photo, onClose, bakeName }: { photo: string; onClose: (
   );
 }
 
-export default function BakeDetail({ demo = false }: { demo?: boolean }) {
+export default function BakeDetail({ demo = false, asModal = false }: { demo?: boolean; asModal?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -389,14 +389,14 @@ export default function BakeDetail({ demo = false }: { demo?: boolean }) {
 
   return (
     <div
-      className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 bg-background w-full"
+      className={asModal ? "flex flex-col max-h-[85vh] bg-background w-full" : "flex flex-col min-h-dvh md:min-h-0 md:flex-1 bg-background w-full"}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {isDemo && <DemoBanner />}
 
       {/* Header */}
       <header
-        className="flex items-center justify-between px-4 py-3 border-b border-border bg-background sticky top-0 z-10"
+        className={`flex items-center justify-between px-4 py-3 border-b border-border bg-background z-10 ${asModal ? '' : 'sticky top-0'}`}
         style={{ paddingTop: isDemo ? '12px' : 'calc(env(safe-area-inset-top) + 12px)' }}
       >
         <button onClick={() => { const idx = (window.history.state as any)?.idx; if (typeof idx === 'number' && idx > 0) { navigate(-1); } else { navigate(backPath, { replace: true }); } }} className="p-1" aria-label="Back">
