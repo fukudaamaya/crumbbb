@@ -52,15 +52,15 @@ const App = () => (
                 <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
                 <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<ProtectedRoute><AppShell fullBleed><Journal /></AppShell><BottomNav /></ProtectedRoute>} />
-                <Route path="/dashboard" element={<ProtectedRoute><AppShell><Dashboard /></AppShell><BottomNav /></ProtectedRoute>} />
+                <Route path="/" element={<ProtectedRoute><AppShell fullBleed showHeader><Journal /></AppShell><BottomNav /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><AppShell showHeader><Dashboard /></AppShell><BottomNav /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><AppShell><Settings /></AppShell></ProtectedRoute>} />
                 <Route path="/recipe/:id" element={<ProtectedRoute><AppShell><RecipeHistory /></AppShell></ProtectedRoute>} />
                 <Route path="/bake/new/:step" element={<ProtectedRoute><AppShell><NewBakeWizard /></AppShell></ProtectedRoute>} />
                 <Route path="/bake/:id" element={<ProtectedRoute><BakeDetailRoute /></ProtectedRoute>} />
                 {/* Demo routes */}
-                <Route path="/demo" element={<><AppShell demo fullBleed><Journal demo /></AppShell><BottomNav demo /></>} />
-                <Route path="/demo/dashboard" element={<><AppShell demo><Dashboard demo /></AppShell><BottomNav demo /></>} />
+                <Route path="/demo" element={<><AppShell demo fullBleed showHeader><Journal demo /></AppShell><BottomNav demo /></>} />
+                <Route path="/demo/dashboard" element={<><AppShell demo showHeader><Dashboard demo /></AppShell><BottomNav demo /></>} />
                 <Route path="/demo/settings" element={<AppShell demo><Settings demo /></AppShell>} />
                 <Route path="/demo/bake/:id" element={<BakeDetailRoute demo />} />
                 <Route path="*" element={<NotFound />} />
