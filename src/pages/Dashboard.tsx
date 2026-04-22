@@ -87,7 +87,7 @@ export default function Dashboard({ demo = false }: { demo?: boolean }) {
 
   return (
     <div
-      className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 bg-background"
+      className="flex flex-col min-h-dvh md:min-h-0 md:flex-1 md:max-w-[640px] md:mx-auto md:w-full bg-background"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}>
 
       {demo && <DemoBanner />}
