@@ -1,103 +1,32 @@
 
 
-## Goal
+## Issue
 
-Add a true desktop layout instead of the centered 430px mobile frame currently shown on large screens. Mobile experience stays identical.
+On tablet/desktop (≥768px), the dot calendar's zoomed-in grid can't scroll. Mobile works because the App.tsx wrapper has `max-h-dvh overflow-hidden`, giving the inner `flex-1 overflow-y-auto` container a bounded height. On desktop those classes are removed (`md:max-h-none md:overflow-visible`) and `AppShell` uses `min-h-dvh` (min, not max), so the scroll container in `DotCalendar` has no bounded parent — it just grows and the page scrolls instead (which doesn't work because the sticky sidebar + flex layout context).
 
-## Current state
+## Fix
 
-- `#root` in `src/index.css` is `min-height: 100dvh; display: flex; align-items: center; justify-content: center` — this centers the app.
-- `src/App.tsx` (or layout shell) wraps routes in a fixed-width `430x844` mobile frame for desktop.
-- `BottomNav` and `FAB` are mobile-style fixed bars.
-- All pages (`Journal`, `Dashboard`, `BakeDetail`, `Settings`, wizard steps) are designed mobile-first with `px-4`, single-column.
+Constrain the desktop layout to viewport height so the calendar's internal `overflow-y-auto` can take effect.
 
-## Clarifying decisions baked into this plan
+### Changes
 
-I'm proposing **one cohesive desktop pattern** rather than asking — but flag two open choices in Options at the bottom in case you want to redirect.
+**1. `src/App.tsx`** — on the outer wrapper, also bound height on desktop:
+- Change `md:max-h-none md:overflow-visible` → keep `max-h-dvh overflow-hidden` at all breakpoints (the inner scrollable regions handle scrolling). The mobile frame width cap (`max-w-[430px]`) still drops at `md`.
 
-**Default direction:** convert to a responsive web app (not a mobile-frame-on-desktop simulator). Use a left sidebar for navigation on desktop, replace bottom nav, and let content breathe to a max-width.
+**2. `src/components/AppShell.tsx`** — switch from `min-h-dvh` to `h-dvh` so the flex column has a fixed height to distribute, and ensure inner content area can shrink:
+- Outer: `flex w-full h-dvh` (was `min-h-dvh`)
+- Inner content wrapper: add `min-h-0 overflow-y-auto` for non-fullBleed pages so they scroll their own content; `fullBleed` stays `flex-1 flex flex-col min-h-0` (Journal manages its own scroll inside DotCalendar).
 
-## Plan
+**3. `src/components/Sidebar.tsx`** — already `h-dvh sticky top-0`; no change needed, but confirm it stays inside the bounded flex row.
 
-### 1. App shell (`src/App.tsx` + new `src/components/AppShell.tsx`)
+### Why this works
 
-- Remove the fixed mobile frame wrapper for `md:` and up.
-- New shell:
-  - **Mobile (`< md`)**: unchanged — full-width content + `BottomNav` fixed bottom + `FAB`.
-  - **Desktop (`>= md`)**: 
-    - Left **sidebar** (240px): CRUMB wordmark top, nav items (Journal, Dashboard, Settings) as vertical list, "+ New Bake" primary button at top of nav.
-    - Main content area: max-width `1100px`, centered, generous padding (`px-8 py-6`).
-    - Hide `BottomNav` and floating `FAB` on `md+`.
+- Desktop becomes a fixed-viewport-height app shell (like Gmail/Linear): sidebar + main both `h-dvh`, main is a flex column with `min-h-0`, and `DotCalendar`'s inner `overflow-y-auto` scroll region now has a real bounded parent and scrolls properly.
+- Mobile is unaffected — the same `max-h-dvh overflow-hidden` already applied there.
+- Non-fullBleed routes (Dashboard, Settings, BakeDetail, wizard) get an outer scroll on the main column so long forms still scroll on desktop.
 
-### 2. Root CSS (`src/index.css`)
+### Files to modify
 
-- Remove `#root` flex centering on `md+` (keep on mobile only) so content can fill width.
-- Body bg stays cream; sidebar gets a slightly different surface tone for separation.
-
-### 3. Page-level responsive tweaks
-
-- **`Journal.tsx`**:
-  - Header: keep as is on mobile; on desktop integrate year selector + view toggle into a top bar inside main content.
-  - Dot calendar: in zoomed-in 7-col mode on desktop, render months in a **3- or 4-column grid** (each month a self-contained 7-col mini-grid) instead of one tall vertical stack — uses horizontal space.
-  - Compact 15-col mode: widen to use available width.
-  - List view: keep single column but wider cards (max-width ~720px centered).
-- **`Dashboard.tsx`**: 2-column stat grid on desktop (`md:grid-cols-2 lg:grid-cols-3`).
-- **`BakeDetail.tsx`**: 2-column on desktop — left: photo gallery + lightbox; right: editable fields. Stays single-column on mobile.
-- **`NewBakeWizard` steps**: cap form width at ~560px centered; keep step progress bar at top.
-- **`Settings.tsx`**: cap card list at ~640px centered.
-- **`Login`, `Signup`, `ForgotPassword`, `ResetPassword`**: cap card at ~420px centered (current look already works, just ensure no mobile frame).
-
-### 4. Components
-
-- **`BottomNav`**: add `md:hidden`.
-- **`FAB`**: add `md:hidden`.
-- **New `Sidebar` component** (desktop only, `hidden md:flex`): wordmark, nav links reusing `NavLink` styling, "+ New Bake" button, account/settings at bottom.
-- **`DemoBanner`**: full-width on both; unchanged.
-
-### 5. Breakpoints
-
-- Use Tailwind defaults: `md` = 768px (tablet+ shows sidebar), `lg` = 1024px (more breathing room).
-- Below 768px: current mobile experience, untouched.
-
-## Visual sketch
-
-```text
-Desktop (>=768px):
-┌─────────────┬──────────────────────────────────────────┐
-│  CRUMB      │  Journal              2025 ▾   [grid|list]│
-│             │                                           │
-│  + New Bake │   JANUARY     FEBRUARY     MARCH          │
-│             │   . . . . .   . . . . .    . . . . . .    │
-│  Journal    │   . . . . .   . . . . .    . . . . . .    │
-│  Dashboard  │   . . . .     . . . .      . . . .        │
-│  Settings   │                                           │
-│             │   APRIL       MAY          JUNE           │
-│             │   ...                                     │
-└─────────────┴──────────────────────────────────────────┘
-
-Mobile (<768px):  unchanged — current single-column + bottom nav.
-```
-
-## Files to modify
-
-- `src/App.tsx` — wrap routes in new `AppShell`.
-- `src/index.css` — relax `#root` centering on `md+`.
-- `src/components/AppShell.tsx` *(new)* — sidebar + main layout.
-- `src/components/Sidebar.tsx` *(new)* — desktop nav.
-- `src/components/BottomNav.tsx` — add `md:hidden`.
-- `src/components/FAB.tsx` — add `md:hidden`.
-- `src/components/DotCalendar.tsx` — multi-column month layout on desktop.
-- `src/pages/Journal.tsx` — integrated header on desktop.
-- `src/pages/Dashboard.tsx` — multi-col stat grid.
-- `src/pages/BakeDetail.tsx` — 2-col layout on desktop.
-- `src/pages/Settings.tsx`, `src/pages/wizard/*.tsx`, auth pages — max-width caps.
-
-## Memory updates
-
-- Update `mem://style/visual-identity` to reflect: mobile-first responsive (not fixed-frame), with desktop sidebar shell at `md+`.
-
-## Open questions (only if you want to redirect)
-
-1. **Sidebar vs top nav on desktop?** Plan uses sidebar. Top horizontal nav is the alternative.
-2. **Keep mobile frame as an opt-in "preview" mode on desktop?** Plan removes it entirely. Could keep a toggle.
+- `src/App.tsx` — drop `md:max-h-none md:overflow-visible`.
+- `src/components/AppShell.tsx` — `h-dvh` outer; add `min-h-0 overflow-y-auto` to non-fullBleed inner wrapper.
 
