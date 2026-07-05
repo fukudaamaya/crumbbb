@@ -566,8 +566,8 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
             </div>
           )}
 
-          {/* Thumbnail strip with add-tile */}
-          {photos.length >= 1 && (
+          {/* Edit mode: thumbnail strip for reorder/add/remove */}
+          {editing && photos.length >= 1 && (
             <ReorderStrip
               photos={photos}
               currentSlide={currentSlide}
@@ -579,6 +579,25 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
               onAdd={() => setShowPhotoOptions(true)}
               canAdd={!isDemo && photos.length < MAX_PHOTOS}
             />
+          )}
+
+          {/* Default view: dot indicators when multiple photos */}
+          {!editing && photos.length >= 2 && (
+            <div className="flex justify-center gap-1.5 mt-3">
+              {photos.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setCurrentSlide(i);
+                    setTimeout(() => carouselApi?.scrollTo(i), 50);
+                  }}
+                  aria-label={`Go to photo ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === currentSlide ? 'w-4 bg-primary' : 'w-1.5 bg-border'
+                  }`}
+                />
+              ))}
+            </div>
           )}
         </div>
 
