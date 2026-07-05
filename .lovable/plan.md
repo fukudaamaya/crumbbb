@@ -1,28 +1,39 @@
 ## Goal
 
-Clean up the bake detail photo section: drop the dot indicator, replace the "Add photo" text button with an add-tile at the end of the thumbnail row, and gate the per-photo X delete on the page's edit mode.
+Simplify the photo section on `BakeDetail`: in the default (read-only) view, show a swipeable main photo with dot indicators and no thumbnails. All photo management (add, remove, reorder) is only available in edit mode.
 
 ## Changes (single file: `src/pages/BakeDetail.tsx`)
 
-1. **Remove dot indicators.** Delete the `{/* Dot indicators */}` block (the `photos.map` rendering `.bg-primary/.bg-border` dots). The carousel still swipes/scrolls; thumbnails already show position.
+### 1. Default view — clean carousel with dots
 
-2. **Remove the standalone "Add photo (n/MAX)" text button** under the photo block.
+- For `photos.length >= 1`, render the main image/carousel with **no thumbnail strip** and **no add tile**.
+- Re-introduce dot indicators below the main photo, but **only when `photos.length >= 2`** (single photo needs no dots). Dots use the existing `bg-primary` / `bg-border` styling, tied to `currentSlide`.
+- Tapping a dot scrolls the carousel to that slide (same behavior `ReorderStrip.onSelect` used).
+- The zero-photo empty state ("Tap to add photo") stays as-is only when not in demo — matches current behavior.
 
-3. **Add-tile in the thumbnail strip.** Extend `ReorderStrip`:
-   - Add prop `onAdd?: () => void` and `canAdd: boolean`.
-   - Change the guard from `photos.length < 2` to `photos.length < 1` so the strip renders whenever there's at least one photo (needed so the add-tile shows with 1 photo).
-   - After the mapped thumbnails, when `canAdd` is true, render an extra 14x14 tile styled like a thumbnail (dashed border, centered `Plus` icon, same rounded/shadow treatment) that calls `onAdd`. Not draggable, no grip bar.
-   - When there is exactly 1 photo, hide the drag grip bar overlay (reorder is meaningless with 1) — small conditional on `photos.length > 1`.
+### 2. Edit mode — thumbnails become the management surface
 
-4. **Render the strip for `photos.length >= 1`.** In the main render:
-   - Keep the single-photo main image block as-is.
-   - Below both the single-photo and multi-photo blocks, render `<ReorderStrip …  onAdd={() => setShowPhotoOptions(true)} canAdd={!isDemo && photos.length < MAX_PHOTOS} />` (moved out of the `photos.length >= 2` branch).
-   - For single-photo case there's no carousel, so pass `currentSlide={0}` and an `onSelect` that just opens the lightbox — but simpler: only render the strip if `photos.length >= 2 || (!isDemo && photos.length >= 1 && photos.length < MAX_PHOTOS)`. When only 1 photo + add-tile, `onSelect` maps to opening the lightbox on that photo.
+- When `editing` is true, render the `ReorderStrip` below the main photo (replacing the dots for that mode). This is where the user can:
+  - Reorder by drag (existing behavior).
+  - Tap a thumbnail to jump slides.
+  - Tap the `+` add-tile to open the photo source sheet (unchanged).
+  - Remove via the per-photo `X` button on the main image (already gated on `editing`, keep as-is).
+- Outside edit mode, the `X` remove button and the `ReorderStrip` are both hidden — the photo section is purely presentational.
 
-5. **Gate the per-photo X delete on edit mode.** Change the two `!isDemo &&` conditions wrapping the `X` remove button (single-photo block at line ~506 and carousel block at line ~533) to `!isDemo && editing &&`. The `editing` state already exists on the page (main edit pencil toggles it).
+### 3. Empty state in edit mode
 
-## Notes
+- If `photos.length === 0` and `editing` is true, the "Tap to add photo" tile stays clickable (same as today).
+- If `photos.length === 0` and not editing, keep the current tap-to-add tile so users can still add a first photo without entering edit mode. (Confirm-in-review: if you'd rather force edit mode for the very first photo too, say so and I'll gate it.)
 
-- Zero photos empty state ("Tap to add photo" full-height tile) is unchanged — that's the entry point when there are no photos yet.
-- `MAX_PHOTOS` cap still respected: add-tile hidden when at max.
-- No backend or schema changes.
+## Technical notes
+
+- Conditional structure inside the photos block:
+  - `photos.length === 0` → empty state tile (unchanged).
+  - `photos.length === 1` → single image; `X` remove button only if `editing`.
+  - `photos.length >= 2` → carousel; `X` remove button only if `editing`.
+- Below the image block:
+  - If `editing && photos.length >= 1` → render `ReorderStrip` (with `onAdd` + `canAdd`).
+  - Else if `!editing && photos.length >= 2` → render dot indicators row.
+  - Else → render nothing.
+- `ReorderStrip` component itself needs no prop changes; we just stop rendering it outside edit mode.
+- No changes to data model, backend, or other sections of the page.
