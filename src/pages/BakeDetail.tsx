@@ -644,6 +644,14 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
               <p className="text-[14px] text-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 {bake.notes || '—'}
               </p>
+            ) : editing ? (
+              <textarea
+                className="crumb-input resize-none"
+                rows={4}
+                placeholder="How did it go? Crust colour, oven spring, flavour..."
+                value={draftNotes}
+                onChange={e => setDraftNotes(e.target.value)}
+              />
             ) : (
               <textarea
                 className="crumb-input resize-none"
@@ -651,6 +659,7 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
                 placeholder="How did it go? Crust colour, oven spring, flavour..."
                 defaultValue={bake.notes}
                 onBlur={e => updateBake(bake.id, { notes: e.target.value })}
+                key={bake.notes /* reset uncontrolled value when bake.notes changes */}
               />
             )}
           </div>
@@ -677,29 +686,122 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
             </button>
           )}
 
+          {/* Favourite toggle (moved from header) */}
+          {!isDemo && (
+            <button
+              onClick={toggleFavourite}
+              className="crumb-card w-full p-3 flex items-center justify-center gap-2 text-[14px] font-semibold transition-colors"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              <Heart
+                size={18}
+                strokeWidth={2}
+                fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
+                stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
+              />
+              <span className={bake.is_favourite ? 'text-primary' : ''}>
+                {bake.is_favourite ? 'Favourited' : 'Add to Favourites'}
+              </span>
+            </button>
+          )}
+
           {/* Flour blend */}
           <div className="crumb-card p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
               style={{ fontFamily: 'DM Sans, sans-serif' }}>Flour Blend</h3>
-            {bake.flours.map((f, i) => (
-              <div key={i} className="flex justify-between text-[14px] py-1">
-                <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{f.type}</span>
-                <span className="font-semibold tabular-nums">{f.grams}g</span>
+            {editing ? (
+              <div className="space-y-2">
+                {draftFlours.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      className="crumb-input flex-1 py-1 px-2 text-[14px]"
+                      placeholder="Flour type"
+                      value={f.type}
+                      onChange={e => setDraftFlours(prev => prev.map((x, j) => j === i ? { ...x, type: e.target.value } : x))}
+                    />
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className="crumb-input w-20 text-right py-1 px-2 text-[14px] tabular-nums"
+                      value={f.grams || ''}
+                      onChange={e => setDraftFlours(prev => prev.map((x, j) => j === i ? { ...x, grams: Number(e.target.value) || 0 } : x))}
+                    />
+                    <span className="text-muted-foreground text-[13px]">g</span>
+                    <button
+                      onClick={() => setDraftFlours(prev => prev.filter((_, j) => j !== i))}
+                      className="p-1 text-muted-foreground"
+                      aria-label="Remove flour"
+                    >
+                      <Trash2 size={14} strokeWidth={2} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setDraftFlours(prev => [...prev, { type: '', grams: 0 }])}
+                  className="flex items-center gap-1.5 text-[13px] font-semibold text-primary mt-1"
+                  style={{ fontFamily: 'DM Sans, sans-serif' }}
+                >
+                  <Plus size={14} strokeWidth={2.5} /> Add flour
+                </button>
               </div>
-            ))}
+            ) : (
+              bake.flours.map((f, i) => (
+                <div key={i} className="flex justify-between text-[14px] py-1">
+                  <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{f.type}</span>
+                  <span className="font-semibold tabular-nums">{f.grams}g</span>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Add-ins */}
-          {bake.add_ins && bake.add_ins.length > 0 && (
+          {(editing || (bake.add_ins && bake.add_ins.length > 0)) && (
             <div className="crumb-card p-4">
               <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
                 style={{ fontFamily: 'DM Sans, sans-serif' }}>Add-ins</h3>
-              {bake.add_ins.map((a, i) => (
-                <div key={i} className="flex justify-between text-[14px] py-1">
-                  <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{a.name}</span>
-                  <span className="font-semibold tabular-nums">{a.grams}g</span>
+              {editing ? (
+                <div className="space-y-2">
+                  {draftAddIns.map((a, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        className="crumb-input flex-1 py-1 px-2 text-[14px]"
+                        placeholder="Add-in name"
+                        value={a.name}
+                        onChange={e => setDraftAddIns(prev => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                      />
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        className="crumb-input w-20 text-right py-1 px-2 text-[14px] tabular-nums"
+                        value={a.grams || ''}
+                        onChange={e => setDraftAddIns(prev => prev.map((x, j) => j === i ? { ...x, grams: Number(e.target.value) || 0 } : x))}
+                      />
+                      <span className="text-muted-foreground text-[13px]">g</span>
+                      <button
+                        onClick={() => setDraftAddIns(prev => prev.filter((_, j) => j !== i))}
+                        className="p-1 text-muted-foreground"
+                        aria-label="Remove add-in"
+                      >
+                        <Trash2 size={14} strokeWidth={2} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setDraftAddIns(prev => [...prev, { name: '', grams: 0 }])}
+                    className="flex items-center gap-1.5 text-[13px] font-semibold text-primary mt-1"
+                    style={{ fontFamily: 'DM Sans, sans-serif' }}
+                  >
+                    <Plus size={14} strokeWidth={2.5} /> Add add-in
+                  </button>
                 </div>
-              ))}
+              ) : (
+                bake.add_ins!.map((a, i) => (
+                  <div key={i} className="flex justify-between text-[14px] py-1">
+                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{a.name}</span>
+                    <span className="font-semibold tabular-nums">{a.grams}g</span>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
@@ -707,19 +809,40 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
           <div className="crumb-card p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
               style={{ fontFamily: 'DM Sans, sans-serif' }}>Baker's Percentages</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Hydration', value: `${bake.hydration_pct}%` },
-                { label: 'Leaven', value: `${bake.leaven_pct}%` },
-                { label: 'Salt', value: `${bake.starter_pct}%` },
-              ].map(({ label, value }) => (
-                <div key={label} className="text-center border border-border rounded-[4px] p-2"
-                  style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
-                  <p className="text-[20px] font-bold text-primary tabular-nums" style={{ fontFamily: 'DM Sans, sans-serif' }}>{value}</p>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'DM Sans, sans-serif' }}>{label}</p>
-                </div>
-              ))}
-            </div>
+            {editing ? (
+              <div className="space-y-2">
+                {[
+                  { label: 'Water (g)', value: draftWater, setter: setDraftWater },
+                  { label: 'Starter (g)', value: draftStarter, setter: setDraftStarter },
+                  { label: 'Salt (g)', value: draftLeaven, setter: setDraftLeaven },
+                ].map(row => (
+                  <div key={row.label} className="flex justify-between items-center text-[14px]">
+                    <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{row.label}</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className="crumb-input w-24 text-right py-1 px-2 text-[14px] tabular-nums"
+                      value={row.value || ''}
+                      onChange={e => row.setter(Number(e.target.value) || 0)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: 'Hydration', value: `${bake.hydration_pct}%` },
+                  { label: 'Leaven', value: `${bake.leaven_pct}%` },
+                  { label: 'Salt', value: `${bake.starter_pct}%` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="text-center border border-border rounded-[4px] p-2"
+                    style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}>
+                    <p className="text-[20px] font-bold text-primary tabular-nums" style={{ fontFamily: 'DM Sans, sans-serif' }}>{value}</p>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide" style={{ fontFamily: 'DM Sans, sans-serif' }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Bake stats - inline editable */}
