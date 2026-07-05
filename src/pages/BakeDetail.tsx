@@ -314,6 +314,10 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
   const [draftWater, setDraftWater] = useState(0);
   const [draftStarter, setDraftStarter] = useState(0);
   const [draftLeaven, setDraftLeaven] = useState(0);
+  const [draftTemp, setDraftTemp] = useState(0);
+  const [draftPreheat, setDraftPreheat] = useState(0);
+  const [draftLidOn, setDraftLidOn] = useState(0);
+  const [draftLidOff, setDraftLidOff] = useState(0);
 
   const enterEdit = () => {
     if (!bake) return;
@@ -325,6 +329,10 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
     setDraftWater(bake.water_g);
     setDraftStarter(bake.starter_g);
     setDraftLeaven(bake.leaven_g);
+    setDraftTemp(bake.bake_temp_c);
+    setDraftPreheat(bake.preheat_time_mins);
+    setDraftLidOn(bake.lid_on_mins);
+    setDraftLidOff(bake.lid_off_mins);
     setEditing(true);
   };
 
@@ -347,6 +355,10 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
       hydration_pct: calcPct(draftWater, totalFlour),
       starter_pct: calcPct(draftStarter, totalFlour),
       leaven_pct: calcPct(draftLeaven, totalFlour),
+      bake_temp_c: draftTemp,
+      preheat_time_mins: draftPreheat,
+      lid_on_mins: draftLidOn,
+      lid_off_mins: draftLidOff,
     });
     setEditing(false);
   };
