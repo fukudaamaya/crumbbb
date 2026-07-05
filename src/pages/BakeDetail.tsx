@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useBakes } from '@/hooks/useBakes';
-import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck, Check, Download, Share2, GripVertical } from 'lucide-react';
+import { ArrowLeft, Heart, Star, Camera, ImageIcon, Pencil, Plus, X, BookmarkPlus, BookmarkCheck, Check, Download, Share2, GripVertical, Trash2 } from 'lucide-react';
 import DemoBanner from '@/components/DemoBanner';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSettings, displayTemp } from '@/contexts/SettingsContext';
@@ -13,6 +13,11 @@ import {
 } from '@/components/ui/carousel';
 
 const MAX_PHOTOS = 5;
+
+function calcPct(grams: number, totalFlour: number): number {
+  if (!totalFlour) return 0;
+  return Math.round((grams / totalFlour) * 100);
+}
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
