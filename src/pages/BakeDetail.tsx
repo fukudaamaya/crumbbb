@@ -591,28 +591,33 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
         <div className="px-4 py-5 space-y-6">
           {/* Tappable name */}
           <div>
-          <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
+            {editing ? (
+              <>
+                <input
+                  className={`crumb-input text-2xl font-bold ${!draftName.trim() ? 'border-destructive' : ''}`}
+                  style={{ fontFamily: 'Raleway, sans-serif' }}
+                  value={draftName}
+                  onChange={e => setDraftName(e.target.value)}
+                  placeholder="Bake name"
+                />
+                <input
+                  type="date"
+                  className="crumb-input mt-2 text-[14px]"
+                  style={{ fontFamily: 'DM Sans, sans-serif' }}
+                  value={draftDate}
+                  onChange={e => setDraftDate(e.target.value)}
+                />
+              </>
+            ) : (
+              <>
                 <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Raleway, sans-serif' }}>
                   {bake.name}
                 </h1>
-              </div>
-              {!isDemo && (
-                <button
-                  onClick={() => navigate(`/bake/new/1?edit=${bake.id}`)}
-                  className="p-1 shrink-0 ml-2 flex items-center gap-1 text-[13px] font-semibold text-primary"
-                  style={{ fontFamily: 'DM Sans, sans-serif' }}
-                  aria-label="Edit bake"
-                >
-                  <Pencil size={16} strokeWidth={2} />
-                  Edit
-                </button>
-              )}
-            </div>
-
-            <p className="text-muted-foreground text-[14px] mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-              {formatDate(bake.date)}
-            </p>
+                <p className="text-muted-foreground text-[14px] mt-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {formatDate(bake.date)}
+                </p>
+              </>
+            )}
 
             <div className="flex gap-1 mt-2">
               {[1,2,3,4,5].map(s => (
