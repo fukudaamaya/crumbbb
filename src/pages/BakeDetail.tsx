@@ -456,14 +456,31 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
         <button onClick={() => { const idx = (window.history.state as any)?.idx; if (typeof idx === 'number' && idx > 0) { navigate(-1); } else { navigate(backPath, { replace: true }); } }} className="p-1" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <button onClick={toggleFavourite} className="p-1" aria-label="Toggle favourite">
-          <Heart
-            size={24}
-            fill={bake.is_favourite ? 'hsl(var(--primary))' : 'none'}
-            stroke={bake.is_favourite ? 'hsl(var(--primary))' : 'hsl(var(--foreground))'}
-            strokeWidth={1.8}
-          />
-        </button>
+        {!isDemo && (
+          editing ? (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={cancelEdit}
+                className="text-[14px] font-semibold text-muted-foreground"
+                style={{ fontFamily: 'DM Sans, sans-serif' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={!canSave}
+                className="p-1 disabled:opacity-40"
+                aria-label="Save edits"
+              >
+                <Check size={22} strokeWidth={2.5} className="text-primary" />
+              </button>
+            </div>
+          ) : (
+            <button onClick={enterEdit} className="p-1" aria-label="Edit bake">
+              <Pencil size={22} strokeWidth={2} />
+            </button>
+          )
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto">
