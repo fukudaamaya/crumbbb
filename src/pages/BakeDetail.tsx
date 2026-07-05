@@ -321,6 +321,55 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
+  // ─── On-page edit mode ───
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftDate, setDraftDate] = useState('');
+  const [draftNotes, setDraftNotes] = useState('');
+  const [draftFlours, setDraftFlours] = useState<{ type: string; grams: number }[]>([]);
+  const [draftAddIns, setDraftAddIns] = useState<{ name: string; grams: number }[]>([]);
+  const [draftWater, setDraftWater] = useState(0);
+  const [draftStarter, setDraftStarter] = useState(0);
+  const [draftLeaven, setDraftLeaven] = useState(0);
+
+  const enterEdit = () => {
+    if (!bake) return;
+    setDraftName(bake.name);
+    setDraftDate(bake.date);
+    setDraftNotes(bake.notes ?? '');
+    setDraftFlours(bake.flours.map(f => ({ ...f })));
+    setDraftAddIns((bake.add_ins ?? []).map(a => ({ ...a })));
+    setDraftWater(bake.water_g);
+    setDraftStarter(bake.starter_g);
+    setDraftLeaven(bake.leaven_g);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => setEditing(false);
+
+  const saveEdit = () => {
+    if (!bake) return;
+    const cleanFlours = draftFlours.filter(f => f.type.trim() && f.grams > 0);
+    const cleanAddIns = draftAddIns.filter(a => a.name.trim() && a.grams > 0);
+    const totalFlour = cleanFlours.reduce((s, f) => s + f.grams, 0);
+    updateBake(bake.id, {
+      name: draftName.trim() || bake.name,
+      date: draftDate || bake.date,
+      notes: draftNotes,
+      flours: cleanFlours,
+      add_ins: cleanAddIns,
+      water_g: draftWater,
+      starter_g: draftStarter,
+      leaven_g: draftLeaven,
+      hydration_pct: calcPct(draftWater, totalFlour),
+      starter_pct: calcPct(draftStarter, totalFlour),
+      leaven_pct: calcPct(draftLeaven, totalFlour),
+    });
+    setEditing(false);
+  };
+
+  const canSave = editing && draftName.trim().length > 0 && draftFlours.some(f => f.type.trim() && f.grams > 0);
+
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
 
