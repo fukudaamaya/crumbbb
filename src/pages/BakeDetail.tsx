@@ -58,60 +58,43 @@ function base64ToBlob(base64: string): Blob {
   return new Blob([ab], { type: mime });
 }
 
-function ProcessCard({ bake, isDemo, tempUnit, onSave }: {
-  bake: { bake_temp_c: number; preheat_time_mins: number; lid_on_mins: number; lid_off_mins: number; proofing_time_mins?: number; bake_time_mins?: number };
-  isDemo: boolean;
+function ProcessCard({ bake, editing, tempUnit, draft, setDraft }: {
+  bake: { bake_temp_c: number; preheat_time_mins: number; lid_on_mins: number; lid_off_mins: number };
+  editing: boolean;
   tempUnit: 'C' | 'F';
-  onSave: (updates: Record<string, number>) => void;
+  draft: { temp: number; preheat: number; lidOn: number; lidOff: number };
+  setDraft: {
+    setTemp: (v: number) => void;
+    setPreheat: (v: number) => void;
+    setLidOn: (v: number) => void;
+    setLidOff: (v: number) => void;
+  };
 }) {
-  const [editing, setEditing] = useState(false);
-  const [temp, setTemp] = useState(bake.bake_temp_c);
-  const [preheat, setPreheat] = useState(bake.preheat_time_mins);
-  const [lidOn, setLidOn] = useState(bake.lid_on_mins);
-  const [lidOff, setLidOff] = useState(bake.lid_off_mins);
-
   const hasData = bake.bake_temp_c > 0 || bake.preheat_time_mins > 0 || bake.lid_on_mins > 0 || bake.lid_off_mins > 0;
   if (!hasData && !editing) return null;
 
-  const handleSave = () => {
-    onSave({ bake_temp_c: temp, preheat_time_mins: preheat, lid_on_mins: lidOn, lid_off_mins: lidOff });
-    setEditing(false);
-  };
-
   const cToF = (c: number) => Math.round(c * 9 / 5 + 32);
   const fToC = (f: number) => Math.round((f - 32) * 5 / 9);
-  const displayTempVal = tempUnit === 'F' ? cToF(temp) : temp;
+  const displayTempVal = tempUnit === 'F' ? cToF(draft.temp) : draft.temp;
 
   const rows: { label: string; value: number; setValue: (v: number) => void; unit: string; display: string }[] = [
-    { label: 'Oven temp', value: displayTempVal, setValue: (v) => setTemp(tempUnit === 'F' ? fToC(v) : v), unit: `°${tempUnit}`, display: displayTemp(bake.bake_temp_c, tempUnit) },
-    { label: 'Preheat', value: preheat, setValue: setPreheat, unit: 'min', display: `${bake.preheat_time_mins} min` },
-    { label: 'Lid on', value: lidOn, setValue: setLidOn, unit: 'min', display: `${bake.lid_on_mins} min` },
-    { label: 'Lid off', value: lidOff, setValue: setLidOff, unit: 'min', display: `${bake.lid_off_mins} min` },
+    { label: 'Oven temp', value: displayTempVal, setValue: (v) => setDraft.setTemp(tempUnit === 'F' ? fToC(v) : v), unit: `°${tempUnit}`, display: displayTemp(bake.bake_temp_c, tempUnit) },
+    { label: 'Preheat', value: draft.preheat, setValue: setDraft.setPreheat, unit: 'min', display: `${bake.preheat_time_mins} min` },
+    { label: 'Lid on', value: draft.lidOn, setValue: setDraft.setLidOn, unit: 'min', display: `${bake.lid_on_mins} min` },
+    { label: 'Lid off', value: draft.lidOff, setValue: setDraft.setLidOff, unit: 'min', display: `${bake.lid_off_mins} min` },
   ];
 
   return (
     <div className="crumb-card p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
-          style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
-        {!isDemo && !editing && (
-          <button onClick={() => setEditing(true)} className="p-1 text-primary">
-            <Pencil size={14} strokeWidth={2} />
-          </button>
-        )}
-        {editing && (
-          <button onClick={handleSave} className="p-1 text-primary">
-            <Check size={16} strokeWidth={2.5} />
-          </button>
-        )}
-      </div>
+      <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3"
+        style={{ fontFamily: 'DM Sans, sans-serif' }}>Process</h3>
       <div className="space-y-2">
         {rows.map(r => (
           <div key={r.label} className="flex justify-between items-center text-[14px]">
             <span style={{ fontFamily: 'DM Sans, sans-serif' }}>{r.label}</span>
             {editing ? (
               <div className="flex items-center gap-1">
-                <input type="number" value={r.value} onChange={e => r.setValue(Number(e.target.value))}
+                <input type="number" value={r.value || ''} onChange={e => r.setValue(Number(e.target.value) || 0)}
                   className="crumb-input w-16 text-right py-1 px-2 text-[14px]" />
                 <span className="text-muted-foreground text-[13px]">{r.unit}</span>
               </div>
