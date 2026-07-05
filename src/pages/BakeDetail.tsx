@@ -521,7 +521,7 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
                 style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
                 onClick={() => setLightboxPhoto(photos[0])}
               />
-              {!isDemo && (
+              {!isDemo && editing && (
                 <button
                   onClick={() => handleRemovePhoto(0)}
                   className="absolute top-2 right-2 bg-background border border-border rounded-full w-7 h-7 flex items-center justify-center"
@@ -548,7 +548,7 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
                           style={{ maxHeight: 320, boxShadow: '4px 4px 0px hsl(var(--border))' }}
                           onClick={() => setLightboxPhoto(photo)}
                         />
-                        {!isDemo && (
+                        {!isDemo && editing && (
                           <button
                             onClick={() => handleRemovePhoto(i)}
                             className="absolute top-2 right-2 bg-background border border-border rounded-full w-7 h-7 flex items-center justify-center"
@@ -563,41 +563,22 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
                   ))}
                 </CarouselContent>
               </Carousel>
-              {/* Dot indicators */}
-              <div className="flex items-center justify-center gap-1.5 mt-3">
-                {photos.map((_, i) => (
-                  <button
-                    key={i}
-                    className={`w-2 h-2 rounded-full transition-colors ${i === currentSlide ? 'bg-primary' : 'bg-border'}`}
-                    onClick={() => carouselApi?.scrollTo(i)}
-                    aria-label={`Go to photo ${i + 1}`}
-                  />
-                ))}
-              </div>
-              {/* Drag-reorder thumbnails */}
-              {!isDemo && (
-                <ReorderStrip
-                  photos={photos}
-                  currentSlide={currentSlide}
-                  onReorder={handleReorderPhotos}
-                  onSelect={(idx) => {
-                    setCurrentSlide(idx);
-                    setTimeout(() => carouselApi?.scrollTo(idx), 50);
-                  }}
-                />
-              )}
             </div>
           )}
 
-          {/* Add more photos */}
-          {!isDemo && photos.length > 0 && photos.length < MAX_PHOTOS && (
-            <button
-              onClick={() => setShowPhotoOptions(true)}
-              className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-primary"
-              style={{ fontFamily: 'DM Sans, sans-serif' }}
-            >
-              <Plus size={16} strokeWidth={2.5} /> Add photo ({photos.length}/{MAX_PHOTOS})
-            </button>
+          {/* Thumbnail strip with add-tile */}
+          {photos.length >= 1 && (
+            <ReorderStrip
+              photos={photos}
+              currentSlide={currentSlide}
+              onReorder={handleReorderPhotos}
+              onSelect={(idx) => {
+                setCurrentSlide(idx);
+                setTimeout(() => carouselApi?.scrollTo(idx), 50);
+              }}
+              onAdd={() => setShowPhotoOptions(true)}
+              canAdd={!isDemo && photos.length < MAX_PHOTOS}
+            />
           )}
         </div>
 
