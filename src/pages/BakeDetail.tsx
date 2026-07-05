@@ -843,9 +843,10 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
           {/* Bake stats - inline editable */}
           <ProcessCard
             bake={bake}
-            isDemo={isDemo}
+            editing={editing}
             tempUnit={tempUnit}
-            onSave={(updates) => updateBake(bake.id, updates)}
+            draft={{ temp: draftTemp, preheat: draftPreheat, lidOn: draftLidOn, lidOff: draftLidOff }}
+            setDraft={{ setTemp: setDraftTemp, setPreheat: setDraftPreheat, setLidOn: setDraftLidOn, setLidOff: setDraftLidOff }}
           />
 
           {/* Delete */}
