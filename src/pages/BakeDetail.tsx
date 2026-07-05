@@ -114,11 +114,15 @@ function ReorderStrip({
   currentSlide,
   onReorder,
   onSelect,
+  onAdd,
+  canAdd,
 }: {
   photos: string[];
   currentSlide: number;
   onReorder: (newPhotos: string[]) => void;
   onSelect: (index: number) => void;
+  onAdd?: () => void;
+  canAdd?: boolean;
 }) {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
@@ -182,7 +186,8 @@ function ReorderStrip({
     setOverIdx(null);
   };
 
-  if (photos.length < 2) return null;
+  if (photos.length < 1) return null;
+  const reorderable = photos.length > 1;
 
   return (
     <div
@@ -194,23 +199,36 @@ function ReorderStrip({
       {photos.map((photo, i) => (
         <div
           key={i}
-          className={`relative w-14 h-14 rounded-[4px] overflow-hidden border-2 transition-all cursor-grab active:cursor-grabbing shrink-0 ${
+          className={`relative w-14 h-14 rounded-[4px] overflow-hidden border-2 transition-all shrink-0 ${reorderable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${
             i === currentSlide ? 'border-primary' : 'border-border'
           } ${dragIdx === i ? 'opacity-50 scale-95' : ''} ${overIdx === i && dragIdx !== null && dragIdx !== i ? 'ring-2 ring-primary' : ''}`}
           style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
-          onTouchStart={(e) => handleTouchStart(i, e)}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={() => handleMouseDown(i)}
-          onMouseEnter={() => handleMouseEnter(i)}
+          onTouchStart={reorderable ? (e) => handleTouchStart(i, e) : undefined}
+          onTouchMove={reorderable ? handleTouchMove : undefined}
+          onTouchEnd={reorderable ? handleTouchEnd : undefined}
+          onMouseDown={reorderable ? () => handleMouseDown(i) : undefined}
+          onMouseEnter={reorderable ? () => handleMouseEnter(i) : undefined}
           onClick={() => { if (dragIdx === null) onSelect(i); }}
         >
           <img src={photo} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
-          <div className="absolute bottom-0 left-0 right-0 bg-black/30 flex justify-center py-0.5">
-            <GripVertical size={10} className="text-white" />
-          </div>
+          {reorderable && (
+            <div className="absolute bottom-0 left-0 right-0 bg-black/30 flex justify-center py-0.5">
+              <GripVertical size={10} className="text-white" />
+            </div>
+          )}
         </div>
       ))}
+      {canAdd && onAdd && (
+        <button
+          type="button"
+          onClick={onAdd}
+          className="w-14 h-14 rounded-[4px] border-2 border-dashed border-border flex items-center justify-center shrink-0 bg-muted/40 text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+          style={{ boxShadow: '2px 2px 0px hsl(var(--border))' }}
+          aria-label="Add photo"
+        >
+          <Plus size={20} strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }
