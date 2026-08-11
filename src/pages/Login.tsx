@@ -18,7 +18,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6">
+    <div className="h-full bg-background flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <h1 className="wordmark text-center mb-2">CRUMB</h1>
         <p className="text-center text-muted-foreground text-[14px] mb-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>

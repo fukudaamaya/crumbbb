@@ -35,7 +35,7 @@ export default function Signup() {
 
   if (success) {
     return (
-      <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6 text-center">
+      <div className="h-full bg-background flex flex-col items-center justify-center px-6 text-center">
         <span className="text-5xl mb-4">📬</span>
         <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'Raleway, sans-serif' }}>Check your email</h2>
         <p className="text-muted-foreground text-[14px] max-w-xs" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -49,7 +49,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6">
+    <div className="h-full bg-background flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <h1 className="wordmark text-center mb-2">CRUMB</h1>
         <p className="text-center text-muted-foreground text-[14px] mb-8" style={{ fontFamily: 'DM Sans, sans-serif' }}>
