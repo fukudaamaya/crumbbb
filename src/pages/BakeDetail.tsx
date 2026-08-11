@@ -830,16 +830,27 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
             setDraft={{ setTemp: setDraftTemp, setPreheat: setDraftPreheat, setLidOn: setDraftLidOn, setLidOff: setDraftLidOff }}
           />
 
-          {/* Delete */}
-          {!isDemo && (
-            <button
-              onClick={() => setShowDelete(true)}
-              className="w-full py-4 text-[15px] font-semibold rounded-[4px] border border-border text-destructive"
-              style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
-            >
-              Delete Entry
-            </button>
+          {/* Edit-mode save / delete actions */}
+          {editing && !isDemo && (
+            <div className="space-y-3 pt-2">
+              <button
+                onClick={saveEdit}
+                disabled={!canSave}
+                className="w-full py-3 text-[15px] font-semibold rounded-[4px] bg-primary text-primary-foreground disabled:opacity-50"
+                style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
+              >
+                Save Entry
+              </button>
+              <button
+                onClick={() => setShowDelete(true)}
+                className="w-full py-3 text-[15px] font-semibold rounded-[4px] border border-border text-destructive"
+                style={{ fontFamily: 'DM Sans, sans-serif', boxShadow: '2px 2px 0px hsl(var(--border))' }}
+              >
+                Delete Entry
+              </button>
+            </div>
           )}
+
         </div>
       </div>
 
