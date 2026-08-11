@@ -11,6 +11,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
+import { uploadPhoto, photoToBlob, deletePhoto } from '@/lib/photos';
 
 const MAX_PHOTOS = 5;
 
@@ -22,40 +23,6 @@ function calcPct(grams: number, totalFlour: number): number {
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-async function compressImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const MAX = 800;
-      let { width, height } = img;
-      if (width > height) {
-        if (width > MAX) { height = (height * MAX) / width; width = MAX; }
-      } else {
-        if (height > MAX) { width = (width * MAX) / height; height = MAX; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
-function base64ToBlob(base64: string): Blob {
-  const [meta, data] = base64.split(',');
-  const mime = meta.match(/:(.*?);/)?.[1] || 'image/jpeg';
-  const byteString = atob(data);
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-  return new Blob([ab], { type: mime });
 }
 
 function ProcessCard({ bake, editing, tempUnit, draft, setDraft }: {
@@ -235,28 +202,35 @@ function ReorderStrip({
 
 /* ─── Fullscreen photo lightbox ─── */
 function PhotoLightbox({ photo, onClose, bakeName }: { photo: string; onClose: () => void; bakeName: string }) {
-  const handleShare = async () => {
-    const blob = base64ToBlob(photo);
-    const file = new File([blob], `${bakeName}.jpg`, { type: 'image/jpeg' });
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: bakeName });
-      } catch { /* user cancelled */ }
-    } else {
-      // fallback: download
-      handleDownload();
-    }
-  };
-
-  const handleDownload = () => {
-    const blob = base64ToBlob(photo);
+  const handleDownload = async () => {
+  try {
+    const blob = await photoToBlob(photo);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `${bakeName}.jpg`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  } catch (e) {
+    console.error('Download failed', e);
+  }
+};
+
+const handleShare = async () => {
+  try {
+    const blob = await photoToBlob(photo);
+    const file = new File([blob], `${bakeName}.jpg`, { type: 'image/jpeg' });
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: bakeName });
+      } catch { /* user cancelled */ }
+    } else {
+      await handleDownload();
+    }
+  } catch (e) {
+    console.error('Share failed', e);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col" onClick={onClose}>
@@ -393,40 +367,41 @@ export default function BakeDetail({ demo = false, asModal = false }: { demo?: b
   const toggleFavourite = () => updateBake(bake.id, { is_favourite: !bake.is_favourite });
 
   const handleAddPhoto = async (file: File) => {
-    try {
-      const compressed = await compressImage(file);
-      if (photos.length < MAX_PHOTOS) {
-        const newPhotos = [...photos, compressed];
-        updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
-      }
-    } catch (e) {
-      console.error('Image compression failed', e);
+  setShowPhotoOptions(false);
+  try {
+    const url = await uploadPhoto(file);
+    if (photos.length < MAX_PHOTOS) {
+      const newPhotos = [...photos, url];
+      updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
     }
-    setShowPhotoOptions(false);
-  };
+  } catch (e) {
+    console.error('Photo upload failed', e);
+  }
+};
 
   const handleAddMultiplePhotos = async (files: FileList) => {
-    const remaining = MAX_PHOTOS - photos.length;
-    const filesToAdd = Array.from(files).slice(0, remaining);
-    const newPhotos = [...photos];
-    for (const file of filesToAdd) {
-      try {
-        const compressed = await compressImage(file);
-        newPhotos.push(compressed);
-      } catch (e) {
-        console.error('Image compression failed', e);
-      }
+  setShowPhotoOptions(false);
+  const remaining = MAX_PHOTOS - photos.length;
+  const toAdd = Array.from(files).slice(0, remaining);
+  const newPhotos = [...photos];
+  for (const file of toAdd) {
+    try {
+      newPhotos.push(await uploadPhoto(file));
+    } catch (e) {
+      console.error('Photo upload failed', e);
     }
-    updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
-    setShowPhotoOptions(false);
-  };
+  }
+  updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
+};
 
   const handleRemovePhoto = (index: number) => {
+    const removed = photos[index];
     const newPhotos = photos.filter((_, i) => i !== index);
     updateBake(bake.id, { photos: newPhotos, photo_base64: newPhotos[0] ?? '' });
     const newSlide = Math.min(currentSlide, Math.max(0, newPhotos.length - 1));
     setCurrentSlide(newSlide);
     setTimeout(() => carouselApi?.scrollTo(newSlide), 50);
+    void deletePhoto(removed);
   };
 
   const handleReorderPhotos = (newPhotos: string[]) => {

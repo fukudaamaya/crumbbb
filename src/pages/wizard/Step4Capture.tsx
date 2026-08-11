@@ -6,6 +6,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from '@/components/ui/carousel';
+import { uploadPhoto } from '@/lib/photos';
 
 interface Step4Props {
   onSave: (data: {
@@ -23,43 +24,6 @@ interface Step4Props {
 
 const MAX_PHOTOS = 5;
 
-async function compressImage(file: File): Promise<string> {
-  const MAX_FILE_SIZE = 10 * 1024 * 1024;
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error('Image file too large. Please select a smaller image (max 10MB).');
-  }
-
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const MAX = 800;
-      let { width, height } = img;
-      if (width > height) {
-        if (width > MAX) { height = (height * MAX) / width; width = MAX; }
-      } else {
-        if (height > MAX) { width = (width * MAX) / height; height = MAX; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
-
-      const base64 = canvas.toDataURL('image/jpeg', 0.7);
-      const MAX_BASE64_SIZE = 500 * 1024;
-      if (base64.length > MAX_BASE64_SIZE) {
-        reject(new Error('Compressed image still too large. Try a simpler image.'));
-      } else {
-        resolve(base64);
-      }
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
 export default function Step4Capture({ onSave, onBack, initialData }: Step4Props) {
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
@@ -68,6 +32,8 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
   const [saving, setSaving] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const libraryRef = useRef<HTMLInputElement>(null);
@@ -79,15 +45,17 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
   }, []);
 
   const handleAddPhoto = async (file: File) => {
-    try {
-      const compressed = await compressImage(file);
-      if (photos.length < MAX_PHOTOS) {
-        setPhotos(prev => [...prev, compressed]);
-      }
-    } catch (e) {
-      console.error('Image compression failed', e);
-    }
     setShowPhotoOptions(false);
+    setPhotoError('');
+    setUploading(true);
+    try {
+      const url = await uploadPhoto(file);
+      setPhotos(prev => prev.length < MAX_PHOTOS ? [...prev, url] : prev);
+    } catch (e) {
+      setPhotoError(e instanceof Error ? e.message : 'Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -135,6 +103,18 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
         {/* Photos */}
         <div>
           <label className="crumb-label">Photos <span className="text-muted-foreground font-normal">({photos.length}/{MAX_PHOTOS})</span></label>
+          {uploading && (
+  <p className="text-[13px] text-muted-foreground mt-2"
+     style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    Uploading photo…
+  </p>
+)}
+{photoError && (
+  <p className="text-destructive text-[13px] font-medium mt-2"
+     style={{ fontFamily: 'DM Sans, sans-serif' }}>
+    {photoError}
+  </p>
+)}
 
           {/* Hidden file inputs */}
           <input
@@ -156,6 +136,7 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
           {photos.length === 0 && (
             <button
               onClick={() => setShowPhotoOptions(true)}
+              disabled={uploading}
               className="w-full rounded-[6px] border-2 border-dashed border-border bg-muted/40 flex flex-col items-center justify-center gap-2 py-10"
             >
               <Camera size={32} strokeWidth={1.5} className="text-muted-foreground" />
@@ -228,6 +209,7 @@ export default function Step4Capture({ onSave, onBack, initialData }: Step4Props
           {photos.length > 0 && photos.length < MAX_PHOTOS && (
             <button
               onClick={() => setShowPhotoOptions(true)}
+              disabled={uploading}
               className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-primary"
               style={{ fontFamily: 'DM Sans, sans-serif' }}
             >
