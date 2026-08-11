@@ -69,7 +69,7 @@ export function useBakes(demo = false) {
   const addBakeMutation = useMutation({
     mutationFn: async (bake: Bake) => {
       if (isDemo) { demoNoop(); return; }
-      const { id, created_at, photos, add_ins, ...rest } = bake;
+      const { created_at, photos, add_ins, ...rest } = bake;
       const { error } = await supabase.from('bakes').insert({
         ...rest,
         user_id: user!.id,
