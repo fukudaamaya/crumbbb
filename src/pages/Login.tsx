@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -77,8 +76,9 @@ export default function Login() {
           type="button"
           onClick={async () => {
             setError('');
-            const { error } = await lovable.auth.signInWithOAuth('google', {
-              redirect_uri: window.location.origin,
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: { redirectTo: window.location.origin },
             });
             if (error) setError(error.message);
           }}
